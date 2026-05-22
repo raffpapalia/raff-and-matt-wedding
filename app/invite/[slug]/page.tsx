@@ -92,7 +92,7 @@ export default async function InvitePage({
   const { household, guests, phase } = data;
   console.log('[DEBUG] Rendering with guest count:', guests.length, 'phase:', phase.current_phase);
   
-  const guestName = formatGuestName(guests);
+  const guestName = formatGuestName(guests) || household.name;
 
   // For now, only render Save the Date phase
   if (phase.current_phase === 'save_the_date') {

@@ -9,9 +9,12 @@ const config: Config = {
     extend: {
       colors: {
         'dark-green': '#0A1F14',
+        'accent-gold': '#D4A83A',
       },
       fontFamily: {
         'bebas-neue': 'var(--font-bebas-neue)',
+        'cinzel': 'var(--font-cinzel)',
+        'dm-sans': 'var(--font-dm-sans)',
       },
       backgroundColor: {
         'dark-green': '#0A1F14',
