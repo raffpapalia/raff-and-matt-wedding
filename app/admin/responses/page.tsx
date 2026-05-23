@@ -120,12 +120,20 @@ export default async function AdminResponsesPage() {
               Answers grouped by question, newest first.
             </p>
           </div>
-          <a
-            href="/admin"
-            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10"
-          >
-            ← Dashboard
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href="/admin/api/responses/export"
+              className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200"
+            >
+              Export CSV
+            </a>
+            <a
+              href="/admin"
+              className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10"
+            >
+              ← Dashboard
+            </a>
+          </div>
         </div>
       </div>
 

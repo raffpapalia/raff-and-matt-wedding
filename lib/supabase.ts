@@ -131,3 +131,36 @@ export async function getHouseholdTags(householdId: string) {
     .select('*')
     .eq('household_id', householdId);
 }
+
+export type Settings = {
+  wedding_date: string;
+  wedding_time: string;
+  venue_name: string;
+  location: string;
+  couple_names: string;
+  tagline: string;
+  invitation_footer: string;
+  rsvp_cutoff_date: string;
+  dietary_options: string[];
+  default_plus_one_allowance: number;
+};
+
+export const DEFAULT_SETTINGS: Settings = {
+  wedding_date: '2027-07-12',
+  wedding_time: '6:00 PM',
+  venue_name: 'QT Hotel Melbourne',
+  location: 'Melbourne, Victoria',
+  couple_names: 'Matt & Raff',
+  tagline: "Cancel your plans. We've made better ones.",
+  invitation_footer: 'Full invitation coming soon',
+  rsvp_cutoff_date: '2027-06-01',
+  dietary_options: ['Vegetarian', 'Vegan', 'Gluten free', 'Dairy free', 'Halal', 'Kosher', 'Other'],
+  default_plus_one_allowance: 0,
+};
+
+export async function getSettings(): Promise<Settings> {
+  const { data } = await supabase.from('settings').select('key, value');
+  if (!data || data.length === 0) return DEFAULT_SETTINGS;
+  const map = Object.fromEntries(data.map((row: { key: string; value: unknown }) => [row.key, row.value]));
+  return { ...DEFAULT_SETTINGS, ...map } as Settings;
+}

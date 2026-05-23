@@ -1,4 +1,4 @@
-import { supabase, supabaseServer, type Household, type Guest, type Phase, type CustomQuestion, type CustomAnswer } from '@/lib/supabase';
+import { supabase, supabaseServer, getSettings, type Household, type Guest, type Phase, type CustomQuestion, type CustomAnswer } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import SaveTheDatePhase from './SaveTheDatePhase';
 import RSVPPhase from './RSVPPhase';
@@ -91,6 +91,9 @@ async function getInviteData(slug: string) {
       existingAnswers = (answersData ?? []) as CustomAnswer[];
     }
 
+    // Fetch settings
+    const settings = await getSettings();
+
     console.log('[DEBUG] All data fetched successfully');
 
     return {
@@ -99,6 +102,7 @@ async function getInviteData(slug: string) {
       phase: phase as Phase,
       questions,
       existingAnswers,
+      settings,
     };
   } catch (error) {
     console.error('[DEBUG] Exception in getInviteData:', error);
@@ -132,7 +136,7 @@ export default async function InvitePage({
     notFound();
   }
 
-  const { household, guests, phase, questions, existingAnswers } = data;
+  const { household, guests, phase, questions, existingAnswers, settings } = data;
   console.log('[DEBUG] Rendering with guest count:', guests.length, 'phase:', phase.current_phase);
 
   const guestName = formatGuestName(guests) || household.name;
@@ -144,6 +148,11 @@ export default async function InvitePage({
         guestName={guestName}
         personalMessage={household.personal_message}
         personalPhotoUrl={household.personal_photo_url}
+        coupleNames={settings.couple_names}
+        tagline={settings.tagline}
+        invitationFooter={settings.invitation_footer}
+        weddingDate={settings.wedding_date}
+        weddingLocation={settings.location}
       />
     );
   }
@@ -156,6 +165,8 @@ export default async function InvitePage({
         guests={guests}
         questions={questions}
         existingAnswers={existingAnswers}
+        dietaryOptions={settings.dietary_options}
+        rsvpCutoffDate={settings.rsvp_cutoff_date}
       />
     );
   }

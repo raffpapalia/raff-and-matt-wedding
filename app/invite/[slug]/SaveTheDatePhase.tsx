@@ -7,6 +7,20 @@ interface SaveTheDatePhaseProps {
   guestName: string;
   personalMessage?: string | null;
   personalPhotoUrl?: string | null;
+  coupleNames?: string;
+  tagline?: string;
+  invitationFooter?: string;
+  weddingDate?: string;
+  weddingLocation?: string;
+}
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function formatWeddingDate(iso: string): string {
+  const parts = iso.split('-');
+  if (parts.length !== 3) return iso;
+  const [year, month, day] = parts;
+  return `${parseInt(day)} ${MONTHS[parseInt(month) - 1]} ${year}`;
 }
 
 type AnimationStage =
@@ -26,6 +40,11 @@ export default function SaveTheDatePhase({
   guestName,
   personalMessage,
   personalPhotoUrl,
+  coupleNames = 'Matt & Raff',
+  tagline = "Cancel your plans. We've made better ones.",
+  invitationFooter = 'Full invitation coming soon',
+  weddingDate = '2027-07-12',
+  weddingLocation = 'Melbourne, Victoria',
 }: SaveTheDatePhaseProps) {
   const [mounted, setMounted] = useState(false);
   const [visibleStages, setVisibleStages] = useState<Set<AnimationStage>>(
@@ -147,7 +166,7 @@ export default function SaveTheDatePhase({
               className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-normal text-white tracking-wider leading-none"
               style={{ fontFamily: 'var(--font-bebas-neue)' }}
             >
-              Matt &amp; Raff
+              {coupleNames}
             </h2>
           </div>
 
@@ -163,7 +182,7 @@ export default function SaveTheDatePhase({
               className="text-2xl sm:text-3xl md:text-4xl text-white font-light tracking-wide"
               style={{ fontFamily: 'var(--font-dm-sans)' }}
             >
-              12 July 2027
+              {formatWeddingDate(weddingDate)}
             </p>
           </div>
 
@@ -179,7 +198,7 @@ export default function SaveTheDatePhase({
               className="text-xl sm:text-2xl text-[#F2E8D0] font-light tracking-widest uppercase"
               style={{ fontFamily: 'var(--font-dm-sans)', color: '#F2E8D0' }}
             >
-              Melbourne, Victoria
+              {weddingLocation}
             </p>
           </div>
 
@@ -195,7 +214,7 @@ export default function SaveTheDatePhase({
               className="text-base sm:text-lg text-[#F2E8D0] font-light italic tracking-wide"
               style={{ fontFamily: 'var(--font-dm-sans)' }}
             >
-              Cancel your plans. We&apos;ve made better ones.
+              {tagline}
             </p>
           </div>
 
@@ -227,7 +246,7 @@ export default function SaveTheDatePhase({
                   className="text-xs sm:text-sm text-[#D4A83A]/60 font-light tracking-widest uppercase"
                   style={{ fontFamily: 'var(--font-dm-sans)' }}
                 >
-                  Full invitation coming soon
+                  {invitationFooter}
                 </p>
               </div>
             </>

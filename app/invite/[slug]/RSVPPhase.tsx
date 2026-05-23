@@ -9,6 +9,14 @@ interface RSVPPhaseProps {
   guests: Guest[];
   questions: CustomQuestion[];
   existingAnswers: CustomAnswer[];
+  dietaryOptions?: string[];
+  rsvpCutoffDate?: string;
+}
+
+function isPastCutoff(cutoffDate: string): boolean {
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  return todayStr > cutoffDate;
 }
 
 interface GuestFormData {
@@ -30,21 +38,25 @@ interface PlusOneGuest {
   dietary_other: string;
 }
 
-const DIETARY_OPTIONS = [
-  { value: 'none', label: 'No preference' },
-  { value: 'vegetarian', label: 'Vegetarian' },
-  { value: 'vegan', label: 'Vegan' },
-  { value: 'gluten_free', label: 'Gluten free' },
-  { value: 'dairy_free', label: 'Dairy free' },
-  { value: 'halal', label: 'Halal' },
-  { value: 'kosher', label: 'Kosher' },
-  { value: 'other', label: 'Other' },
-];
+const DEFAULT_DIETARY_LABELS = ['Vegetarian', 'Vegan', 'Gluten free', 'Dairy free', 'Halal', 'Kosher', 'Other'];
 
-function getDietaryLabel(requirement: string, other: string | null): string {
-  const opt = DIETARY_OPTIONS.find(o => o.value === requirement);
+function buildDietaryOptions(labels: string[]) {
+  return [
+    { value: 'none', label: 'No preference' },
+    ...labels.map(label => ({
+      value: label.toLowerCase().replace(/\s+/g, '_'),
+      label,
+    })),
+  ];
+}
+
+function getDietaryLabel(
+  requirement: string,
+  other: string | null,
+  options: { value: string; label: string }[],
+): string {
+  const opt = options.find(o => o.value === requirement);
   if (opt) return opt.label;
-  // Fallback for values not in the dropdown (e.g. nut_allergy, shellfish_allergy)
   return requirement.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
@@ -105,7 +117,9 @@ function SongQuestionInput({
   );
 }
 
-export default function RSVPPhase({ household, guests, questions, existingAnswers }: RSVPPhaseProps) {
+export default function RSVPPhase({ household, guests, questions, existingAnswers, dietaryOptions, rsvpCutoffDate }: RSVPPhaseProps) {
+  const DIETARY_OPTIONS = buildDietaryOptions(dietaryOptions ?? DEFAULT_DIETARY_LABELS);
+  const rsvpClosed = rsvpCutoffDate ? isPastCutoff(rsvpCutoffDate) : false;
   const [formData, setFormData] = useState<GuestFormData>(
     guests.reduce((acc, guest) => ({
       ...acc,
@@ -346,7 +360,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                 </div>
                 {guest.rsvp_status === 'attending' && guest.dietary_requirement && guest.dietary_requirement !== 'none' && (
                   <p className="text-sm text-white/50 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-                    Dietary: {getDietaryLabel(guest.dietary_requirement, guest.dietary_other)}
+                    Dietary: {getDietaryLabel(guest.dietary_requirement, guest.dietary_other, DIETARY_OPTIONS)}
                     {guest.dietary_requirement === 'other' && guest.dietary_other ? ` — ${guest.dietary_other}` : ''}
                   </p>
                 )}
@@ -757,16 +771,25 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
             </div>
           )}
 
-          {/* Submit Button */}
+          {/* Submit Button or cutoff notice */}
           <div className="pt-8">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-[#D4A83A] text-[#0A1F14] font-light uppercase tracking-widest transition-all disabled:opacity-50 hover:bg-[#E8B854]"
-              style={{ fontFamily: 'var(--font-dm-sans)' }}
-            >
-              {loading ? 'Submitting...' : 'Submit RSVP'}
-            </button>
+            {rsvpClosed ? (
+              <p
+                className="text-center text-sm text-[#F2E8D0]/60 font-light"
+                style={{ fontFamily: 'var(--font-dm-sans)' }}
+              >
+                RSVP submissions are now closed. Please contact Matt &amp; Raff directly.
+              </p>
+            ) : (
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-[#D4A83A] text-[#0A1F14] font-light uppercase tracking-widest transition-all disabled:opacity-50 hover:bg-[#E8B854]"
+                style={{ fontFamily: 'var(--font-dm-sans)' }}
+              >
+                {loading ? 'Submitting...' : 'Submit RSVP'}
+              </button>
+            )}
           </div>
         </form>
       </div>

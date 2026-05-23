@@ -25,6 +25,9 @@ function AdminNav() {
         <a href="/admin/responses" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
           Responses
         </a>
+        <a href="/admin/settings" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
+          Settings
+        </a>
         <a href="/admin/guests/new" className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200">
           Add household
         </a>
@@ -125,11 +128,16 @@ function DashboardHeader({ daysUntil }: { daysUntil: number }) {
   );
 }
 
+function formatDietaryLabel(key: string): string {
+  return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 async function getDashboardData() {
-  const [householdsRes, guestsRes, phaseRes] = await Promise.all([
+  const [householdsRes, guestsRes, phaseRes, dietaryRes] = await Promise.all([
     supabase.from('households').select('id').order('created_at', { ascending: false }),
     supabase.from('guests').select('rsvp_status'),
     supabase.from('phases').select('current_phase').order('created_at', { ascending: false }).limit(1),
+    supabase.from('guests').select('dietary_requirement').eq('rsvp_status', 'attending').neq('dietary_requirement', 'none'),
   ]);
 
   const totalHouseholds = householdsRes.data?.length ?? 0;
@@ -147,7 +155,16 @@ async function getDashboardData() {
     { attending: 0, declined: 0, pending: 0 }
   );
 
-  return { totalHouseholds, ...counts, activePhase };
+  const dietaryBreakdown = (dietaryRes.data ?? []).reduce(
+    (acc: Record<string, number>, row) => {
+      const req = row.dietary_requirement as string;
+      if (req) acc[req] = (acc[req] ?? 0) + 1;
+      return acc;
+    },
+    {}
+  );
+
+  return { totalHouseholds, ...counts, activePhase, dietaryBreakdown };
 }
 
 function LoginForm({ error }: { error?: string }) {
@@ -199,6 +216,23 @@ export default async function AdminPage({ searchParams }: { searchParams?: { err
           <StatusBar attending={dashboard.attending} declined={dashboard.declined} pending={dashboard.pending} />
           <PhaseForm currentPhase={dashboard.activePhase} />
         </div>
+        {Object.keys(dashboard.dietaryBreakdown).length > 0 && (
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
+            <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Dietary requirements</p>
+            <h2 className="mt-1 mb-6 text-xl font-semibold text-white">Confirmed guest dietary needs</h2>
+            <div className="flex flex-wrap gap-3">
+              {Object.entries(dashboard.dietaryBreakdown)
+                .sort((a, b) => b[1] - a[1])
+                .map(([key, count]) => (
+                  <div key={key} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 min-w-[120px]">
+                    <p className="text-xs uppercase tracking-[0.2em] text-emerald-200/60">{formatDietaryLabel(key)}</p>
+                    <p className="mt-2 text-3xl font-semibold text-white">{count}</p>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
         <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
           <h2 className="text-xl font-semibold text-white">Quick links</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
