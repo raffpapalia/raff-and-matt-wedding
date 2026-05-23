@@ -2,12 +2,17 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabaseServer =
+  supabaseServiceRoleKey && supabaseServiceRoleKey.length
+    ? createClient(supabaseUrl, supabaseServiceRoleKey)
+    : supabase;
 
 // Type definitions for database tables
 export type Household = {
@@ -16,9 +21,12 @@ export type Household = {
   slug: string;
   primary_email: string;
   secondary_email: string | null;
-  mobile_numbers: string[];
+    mobile_numbers: Array<{ number: string; label: string }> | null;
   personal_photo_url: string | null;
   personal_message: string | null;
+  plus_one_allowance: number;
+  link_open_count: number;
+  link_first_opened_at: string | null;
   created_at: string;
 };
 

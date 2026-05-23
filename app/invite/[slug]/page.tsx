@@ -1,4 +1,4 @@
-import { supabase, type Household, type Guest, type Phase } from '@/lib/supabase';
+import { supabase, supabaseServer, type Household, type Guest, type Phase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import SaveTheDatePhase from './SaveTheDatePhase';
 
@@ -22,11 +22,21 @@ async function getInviteData(slug: string) {
       return null;
     }
 
+    // Track invite link open
+    await supabaseServer
+      .from('households')
+      .update({
+        link_open_count: (household.link_open_count || 0) + 1,
+        link_first_opened_at: household.link_first_opened_at || new Date().toISOString(),
+      })
+      .eq('id', household.id);
+
     // Fetch guests for this household
     const { data: guests, error: guestsError } = await supabase
       .from('guests')
       .select('*')
-      .eq('household_id', household.id);
+      .eq('household_id', household.id)
+      .order('display_order', { ascending: true });
 
     console.log('[DEBUG] Guests query result:', { guestsCount: guests?.length, error: guestsError });
 
