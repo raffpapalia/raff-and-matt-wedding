@@ -113,7 +113,7 @@ export default function NewHouseholdForm() {
       return copy;
     });
     if (normalized) {
-      updateMobileNumber(index, normalized);
+      updateMobileNumber(index, 'number', normalized);
     }
   };
 

@@ -1,6 +1,7 @@
 import { supabase, supabaseServer, type Household, type Guest, type Phase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import SaveTheDatePhase from './SaveTheDatePhase';
+import RSVPPhase from './RSVPPhase';
 
 export const revalidate = 0; // ISR with on-demand revalidation
 
@@ -101,10 +102,9 @@ export default async function InvitePage({
 
   const { household, guests, phase } = data;
   console.log('[DEBUG] Rendering with guest count:', guests.length, 'phase:', phase.current_phase);
-  
+
   const guestName = formatGuestName(guests) || household.name;
 
-  // For now, only render Save the Date phase
   if (phase.current_phase === 'save_the_date') {
     console.log('[DEBUG] Rendering SaveTheDatePhase');
     return (
@@ -112,6 +112,16 @@ export default async function InvitePage({
         guestName={guestName}
         personalMessage={household.personal_message}
         personalPhotoUrl={household.personal_photo_url}
+      />
+    );
+  }
+
+  if (phase.current_phase === 'invitation') {
+    console.log('[DEBUG] Rendering RSVPPhase');
+    return (
+      <RSVPPhase
+        household={household}
+        guests={guests}
       />
     );
   }

@@ -18,7 +18,28 @@ const dietaryOptions = [
 
 const initialGuestShape = { first_name: '', last_name: '', is_child: false, dietary_requirement: 'none', dietary_other: null, rsvp_status: 'pending' };
 
-export default function EditHouseholdForm({ initial }: { initial: any }) {
+interface HouseholdFormData {
+  id: string;
+  name: string;
+  slug: string;
+  primary_email: string;
+  secondary_email?: string;
+  mobile_numbers?: Array<{ number: string; label: string }>;
+  tags?: string[];
+  personal_message?: string;
+  plus_one_allowance: number;
+  personal_photo_url?: string;
+  guests?: Array<{
+    first_name: string;
+    last_name: string;
+    is_child: boolean;
+    dietary_requirement: string;
+    dietary_other?: string;
+    rsvp_status: string;
+  }>;
+}
+
+export default function EditHouseholdForm({ initial }: { initial: HouseholdFormData }) {
   const [householdName, setHouseholdName] = useState(initial?.name ?? '');
   const [slug, setSlug] = useState(initial?.slug ?? '');
   const [slugEdited, setSlugEdited] = useState(false);
@@ -170,7 +191,7 @@ export default function EditHouseholdForm({ initial }: { initial: any }) {
         body.append('primary_email', primaryEmail);
         body.append('secondary_email', secondaryEmail || '');
           body.append('mobile_numbers', JSON.stringify(mobileNumbers.filter((m) => m.number)));
-        body.append('tags', JSON.stringify(tags.split(',').map((t) => t.trim()).filter(Boolean)));
+        body.append('tags', JSON.stringify(tags.split(',').map((t: string) => t.trim()).filter(Boolean)));
         body.append('personal_message', personalMessage || '');
         body.append('plus_one_allowance', String(plusOneAllowance));
         body.append('guests', JSON.stringify(guests.map((g, idx) => ({ first_name: g.firstName, last_name: g.lastName, is_child: Boolean(g.isChild), dietary_requirement: g.dietaryRequirement, dietary_other: g.dietaryOther || null, rsvp_status: g.rsvpStatus, display_order: idx }))));
@@ -288,7 +309,7 @@ export default function EditHouseholdForm({ initial }: { initial: any }) {
                   key={tag}
                   type="button"
                   onClick={() => {
-                    const existing = tags.split(',').map((t) => t.trim()).filter(Boolean);
+                    const existing = tags.split(',').map((t: string) => t.trim()).filter(Boolean);
                     if (!existing.includes(tag)) {
                       const next = existing.concat(tag).join(', ');
                       setTags(next);
@@ -333,17 +354,23 @@ export default function EditHouseholdForm({ initial }: { initial: any }) {
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-lg font-semibold text-white">Phone numbers</h2>
-          <button type="button" onClick={() => setMobileNumbers((prev) => [...prev, ''])} className="rounded-full border border-white/10 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200 transition hover:bg-emerald-500/15">Add number</button>
+          <button type="button" onClick={addMobile} className="rounded-full border border-white/10 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200 transition hover:bg-emerald-500/15">Add number</button>
         </div>
         <div className="space-y-4">
           {mobileNumbers.map((number, index) => (
             <div key={index} className="flex gap-4">
               <input
-                value={number}
-                onChange={(event) => updateMobileNumber(index, event.target.value)}
+                value={number.number}
+                onChange={(event) => updateMobileNumber(index, 'number', event.target.value)}
                 onBlur={() => handleMobileBlur(index)}
                 className="flex-1 rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
                 placeholder="Mobile number"
+              />
+              <input
+                value={number.label}
+                onChange={(event) => updateMobileNumber(index, 'label', event.target.value)}
+                className="w-32 rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
+                placeholder="Label (e.g., mobile)"
               />
               {mobileNumbers.length > 1 ? (
                 <button type="button" onClick={() => removeMobile(index)} className="rounded-3xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200 transition hover:bg-rose-500/15">Remove</button>
