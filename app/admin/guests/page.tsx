@@ -43,9 +43,14 @@ export default async function AdminGuestsPage() {
             <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Guest list</p>
             <h1 className="mt-2 text-3xl font-semibold text-white">All households and RSVP summaries</h1>
           </div>
-          <a href="/admin/guests/new" className="rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200">
-            Add household
-          </a>
+          <div className="flex items-center gap-3">
+            <a href="/admin" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
+              ← Dashboard
+            </a>
+            <a href="/admin/guests/new" className="rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200">
+              Add household
+            </a>
+          </div>
         </div>
       </div>
       <GuestListTable rows={rows} />
