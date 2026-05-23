@@ -1,4 +1,4 @@
-import { supabase, supabaseServer, type Household, type Guest, type Phase } from '@/lib/supabase';
+import { supabase, supabaseServer, type Household, type Guest, type Phase, type CustomQuestion, type CustomAnswer } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import SaveTheDatePhase from './SaveTheDatePhase';
 import RSVPPhase from './RSVPPhase';
@@ -61,12 +61,44 @@ async function getInviteData(slug: string) {
       return null;
     }
 
+    // Fetch household tags for question filtering
+    const { data: tagRows } = await supabase
+      .from('guest_tags')
+      .select('tag')
+      .eq('household_id', household.id);
+    const householdTags = (tagRows ?? []).map((r: { tag: string }) => r.tag);
+
+    // Fetch active custom questions and filter to those targeting this household
+    const { data: allQuestions } = await supabase
+      .from('custom_questions')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true });
+
+    const questions = ((allQuestions ?? []) as CustomQuestion[]).filter(q =>
+      !q.target_tags || q.target_tags.length === 0 ||
+      q.target_tags.some(tag => householdTags.includes(tag))
+    );
+
+    // Fetch existing answers for all guests in this household (for returning visitors)
+    const guestIds = (guests ?? []).map(g => g.id);
+    let existingAnswers: CustomAnswer[] = [];
+    if (guestIds.length > 0) {
+      const { data: answersData } = await supabase
+        .from('custom_answers')
+        .select('*')
+        .in('guest_id', guestIds);
+      existingAnswers = (answersData ?? []) as CustomAnswer[];
+    }
+
     console.log('[DEBUG] All data fetched successfully');
 
     return {
       household: household as Household,
       guests: (guests || []) as Guest[],
       phase: phase as Phase,
+      questions,
+      existingAnswers,
     };
   } catch (error) {
     console.error('[DEBUG] Exception in getInviteData:', error);
@@ -100,7 +132,7 @@ export default async function InvitePage({
     notFound();
   }
 
-  const { household, guests, phase } = data;
+  const { household, guests, phase, questions, existingAnswers } = data;
   console.log('[DEBUG] Rendering with guest count:', guests.length, 'phase:', phase.current_phase);
 
   const guestName = formatGuestName(guests) || household.name;
@@ -122,6 +154,8 @@ export default async function InvitePage({
       <RSVPPhase
         household={household}
         guests={guests}
+        questions={questions}
+        existingAnswers={existingAnswers}
       />
     );
   }

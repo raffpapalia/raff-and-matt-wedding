@@ -48,11 +48,14 @@ export type Phase = {
   activated_at: string;
 };
 
+export type QuestionType = 'text' | 'textarea' | 'yes_no' | 'dropdown' | 'song';
+
 export type CustomQuestion = {
   id: string;
   question_text: string;
-  question_type: 'free_text' | 'single_choice' | 'multiple_choice' | 'yes_no';
+  question_type: QuestionType;
   options: string[] | null;
+  target_tags: string[];
   display_order: number;
   is_active: boolean;
 };

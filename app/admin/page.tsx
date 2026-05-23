@@ -19,6 +19,9 @@ function AdminNav() {
         <a href="/admin/guests" className="rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm text-amber-100 transition hover:border-amber-300 hover:bg-amber-300/20">
           Guest list
         </a>
+        <a href="/admin/questions" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
+          Questions
+        </a>
         <a href="/admin/guests/new" className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200">
           Add household
         </a>
