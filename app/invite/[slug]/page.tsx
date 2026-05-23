@@ -2,6 +2,7 @@ import { supabase, supabaseServer, getSettings, type Household, type Guest, type
 import { notFound } from 'next/navigation';
 import SaveTheDatePhase from './SaveTheDatePhase';
 import RSVPPhase from './RSVPPhase';
+import InvitationPhase from './InvitationPhase';
 
 export const revalidate = 0; // ISR with on-demand revalidation
 
@@ -158,15 +159,15 @@ export default async function InvitePage({
   }
 
   if (phase.current_phase === 'invitation') {
-    console.log('[DEBUG] Rendering RSVPPhase');
+    console.log('[DEBUG] Rendering InvitationPhase');
     return (
-      <RSVPPhase
+      <InvitationPhase
         household={household}
         guests={guests}
+        settings={settings}
         questions={questions}
         existingAnswers={existingAnswers}
-        dietaryOptions={settings.dietary_options}
-        rsvpCutoffDate={settings.rsvp_cutoff_date}
+        guestName={guestName}
       />
     );
   }

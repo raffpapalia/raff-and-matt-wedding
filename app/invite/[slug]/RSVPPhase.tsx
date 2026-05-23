@@ -11,6 +11,7 @@ interface RSVPPhaseProps {
   existingAnswers: CustomAnswer[];
   dietaryOptions?: string[];
   rsvpCutoffDate?: string;
+  embedded?: boolean;
 }
 
 function isPastCutoff(cutoffDate: string): boolean {
@@ -117,7 +118,7 @@ function SongQuestionInput({
   );
 }
 
-export default function RSVPPhase({ household, guests, questions, existingAnswers, dietaryOptions, rsvpCutoffDate }: RSVPPhaseProps) {
+export default function RSVPPhase({ household, guests, questions, existingAnswers, dietaryOptions, rsvpCutoffDate, embedded = false }: RSVPPhaseProps) {
   const DIETARY_OPTIONS = buildDietaryOptions(dietaryOptions ?? DEFAULT_DIETARY_LABELS);
   const rsvpClosed = rsvpCutoffDate ? isPastCutoff(rsvpCutoffDate) : false;
   const [formData, setFormData] = useState<GuestFormData>(
@@ -298,9 +299,9 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
 
   if (submitted) {
     return (
-      <div className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-[#0A1F14]">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" />
-        <div className="relative z-10 w-full max-w-2xl px-4 sm:px-6 text-center">
+      <div className={embedded ? 'w-full' : 'relative w-full h-screen flex items-center justify-center overflow-hidden bg-[#0A1F14]'}>
+        {!embedded && <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" />}
+        <div className={embedded ? 'text-center py-4' : 'relative z-10 w-full max-w-2xl px-4 sm:px-6 text-center'}>
           <h2 className="text-5xl sm:text-6xl font-light text-[#F2E8D0] mb-8" style={{ fontFamily: 'var(--font-cinzel)' }}>
             Thank you!
           </h2>
@@ -324,9 +325,9 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
 
   if (showSummary) {
     return (
-      <div className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-[#0A1F14] py-12 sm:py-16">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" />
-        <div className="relative z-10 w-full max-w-2xl px-4 sm:px-6">
+      <div className={embedded ? 'w-full' : 'relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-[#0A1F14] py-12 sm:py-16'}>
+        {!embedded && <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" />}
+        <div className={embedded ? 'w-full' : 'relative z-10 w-full max-w-2xl px-4 sm:px-6'}>
           <div className="text-center mb-10">
             <h2 className="text-4xl sm:text-5xl font-light text-[#F2E8D0] mb-4" style={{ fontFamily: 'var(--font-cinzel)' }}>
               {householdName}
@@ -383,15 +384,15 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
   }
 
   return (
-    <div className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-[#0A1F14] py-12 sm:py-16">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" />
-      <div className="absolute inset-0 opacity-5" style={{
+    <div className={embedded ? 'w-full' : 'relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-[#0A1F14] py-12 sm:py-16'}>
+      {!embedded && <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" />}
+      {!embedded && <div className="absolute inset-0 opacity-5" style={{
         backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><filter id=\"noise\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" seed=\"1\"/></filter><rect width=\"100\" height=\"100\" fill=\"%23fff\" filter=\"url(%23noise)\"/></svg>')"
-      }} />
+      }} />}
 
-      <div className="relative z-10 w-full max-w-2xl px-4 sm:px-6">
+      <div className={embedded ? 'w-full' : 'relative z-10 w-full max-w-2xl px-4 sm:px-6'}>
         {/* Header with Personal Photo and Message */}
-        <div className="mb-12 sm:mb-16 text-center">
+        {!embedded && <div className="mb-12 sm:mb-16 text-center">
           {/* Personal Photo */}
           {household.personal_photo_url && (
             <div className="mb-8 w-full max-w-sm mx-auto">
@@ -419,7 +420,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
           )}
 
           <div className="h-px w-24 bg-[#D4A83A] mx-auto" />
-        </div>
+        </div>}
 
         {/* RSVP Form */}
         <form onSubmit={handleSubmit} className="space-y-8">
