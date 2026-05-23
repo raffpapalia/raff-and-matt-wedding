@@ -11,6 +11,7 @@ interface RSVPPhaseProps {
 interface GuestFormData {
   [guestId: string]: {
     attending: boolean;
+    hasDietary: boolean;
     dietary_requirement: string;
     dietary_other: string;
   };
@@ -33,6 +34,7 @@ export default function RSVPPhase({ household, guests }: RSVPPhaseProps) {
       ...acc,
       [guest.id]: {
         attending: guest.rsvp_status === 'attending',
+        hasDietary: guest.dietary_requirement !== 'none' && guest.dietary_requirement !== null,
         dietary_requirement: guest.dietary_requirement || 'none',
         dietary_other: guest.dietary_other || '',
       },
@@ -49,6 +51,18 @@ export default function RSVPPhase({ household, guests }: RSVPPhaseProps) {
       [guestId]: {
         ...prev[guestId],
         attending,
+      },
+    }));
+  };
+
+  const handleHasDietaryChange = (guestId: string, hasDietary: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [guestId]: {
+        ...prev[guestId],
+        hasDietary,
+        dietary_requirement: hasDietary ? 'vegetarian' : 'none',
+        dietary_other: '',
       },
     }));
   };
@@ -88,8 +102,8 @@ export default function RSVPPhase({ household, guests }: RSVPPhaseProps) {
           responses: Object.entries(formData).map(([guestId, data]) => ({
             guest_id: guestId,
             rsvp_status: data.attending ? 'attending' : 'declined',
-            dietary_requirement: data.dietary_requirement,
-            dietary_other: data.dietary_other || null,
+            dietary_requirement: data.hasDietary ? data.dietary_requirement : 'none',
+            dietary_other: data.hasDietary && data.dietary_requirement === 'other' ? (data.dietary_other || null) : null,
           })),
         }),
       });
@@ -158,16 +172,16 @@ export default function RSVPPhase({ household, guests }: RSVPPhaseProps) {
                 {guest.first_name} {guest.last_name}
               </h3>
 
-              {/* Attending Toggle */}
-              <div className="mb-6">
-                <p className="text-sm uppercase tracking-widest text-[#D4A83A] mb-4" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+              {/* Attending Toggle - Primary Question */}
+              <div className="mb-8">
+                <p className="text-base uppercase tracking-widest text-[#D4A83A] mb-5 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
                   Will you be attending?
                 </p>
                 <div className="flex gap-4">
                   <button
                     type="button"
                     onClick={() => handleAttendingChange(guest.id, true)}
-                    className={`px-6 py-3 font-light transition-all ${
+                    className={`px-8 py-4 font-light text-base transition-all ${
                       formData[guest.id].attending
                         ? 'bg-[#D4A83A] text-[#0A1F14]'
                         : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
@@ -179,7 +193,7 @@ export default function RSVPPhase({ household, guests }: RSVPPhaseProps) {
                   <button
                     type="button"
                     onClick={() => handleAttendingChange(guest.id, false)}
-                    className={`px-6 py-3 font-light transition-all ${
+                    className={`px-8 py-4 font-light text-base transition-all ${
                       !formData[guest.id].attending
                         ? 'bg-[#D4A83A] text-[#0A1F14]'
                         : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
@@ -191,36 +205,73 @@ export default function RSVPPhase({ household, guests }: RSVPPhaseProps) {
                 </div>
               </div>
 
-              {/* Dietary Requirements */}
-              <div>
-                <label className="text-sm uppercase tracking-widest text-[#D4A83A] mb-4 block" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-                  Dietary requirements
-                </label>
-                <select
-                  value={formData[guest.id].dietary_requirement}
-                  onChange={(e) => handleDietaryChange(guest.id, e.target.value)}
-                  className="w-full px-4 py-3 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] focus:border-[#D4A83A] outline-none transition-colors"
-                  style={{ fontFamily: 'var(--font-dm-sans)' }}
-                >
-                  {DIETARY_OPTIONS.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+              {/* Dietary Requirements - Only show if attending */}
+              {formData[guest.id].attending && (
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-[#D4A83A]/80 mb-3" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+                    Dietary requirements
+                  </p>
+                  <div className="flex gap-3 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => handleHasDietaryChange(guest.id, false)}
+                      className={`px-4 py-2 font-light text-sm transition-all ${
+                        !formData[guest.id].hasDietary
+                          ? 'bg-[#D4A83A] text-[#0A1F14]'
+                          : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
+                      }`}
+                      style={{ fontFamily: 'var(--font-dm-sans)' }}
+                    >
+                      No
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleHasDietaryChange(guest.id, true)}
+                      className={`px-4 py-2 font-light text-sm transition-all ${
+                        formData[guest.id].hasDietary
+                          ? 'bg-[#D4A83A] text-[#0A1F14]'
+                          : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
+                      }`}
+                      style={{ fontFamily: 'var(--font-dm-sans)' }}
+                    >
+                      Yes
+                    </button>
+                  </div>
 
-                {/* Other Dietary Text Field */}
-                {formData[guest.id].dietary_requirement === 'other' && (
-                  <input
-                    type="text"
-                    placeholder="Please specify"
-                    value={formData[guest.id].dietary_other}
-                    onChange={(e) => handleDietaryOtherChange(guest.id, e.target.value)}
-                    className="w-full px-4 py-3 mt-4 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] placeholder-[#D4A83A]/30 focus:border-[#D4A83A] outline-none transition-colors"
-                    style={{ fontFamily: 'var(--font-dm-sans)' }}
-                  />
-                )}
-              </div>
+                  {/* Dietary Dropdown - Show only if they have requirements */}
+                  {formData[guest.id].hasDietary && (
+                    <>
+                      <label className="text-xs uppercase tracking-widest text-[#D4A83A]/80 mb-2 block" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+                        What are your requirements?
+                      </label>
+                      <select
+                        value={formData[guest.id].dietary_requirement}
+                        onChange={(e) => handleDietaryChange(guest.id, e.target.value)}
+                        className="w-full px-4 py-3 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] focus:border-[#D4A83A] outline-none transition-colors mb-4 text-sm"
+                        style={{ fontFamily: 'var(--font-dm-sans)' }}
+                      >
+                        {DIETARY_OPTIONS.filter(opt => opt.value !== 'none').map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Other Dietary Text Field */}
+                      {formData[guest.id].dietary_requirement === 'other' && (
+                        <input
+                          type="text"
+                          placeholder="Please specify"
+                          value={formData[guest.id].dietary_other}
+                          onChange={(e) => handleDietaryOtherChange(guest.id, e.target.value)}
+                          className="w-full px-4 py-3 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] placeholder-[#D4A83A]/30 focus:border-[#D4A83A] outline-none transition-colors text-sm"
+                          style={{ fontFamily: 'var(--font-dm-sans)' }}
+                        />
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           ))}
 
