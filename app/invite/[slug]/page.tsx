@@ -1,8 +1,9 @@
-import { supabase, supabaseServer, getSettings, type Household, type Guest, type Phase, type CustomQuestion, type CustomAnswer } from '@/lib/supabase';
+import { supabase, supabaseServer, getSettings, type Household, type Guest, type Phase, type CustomQuestion, type CustomAnswer, type Faq } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import SaveTheDatePhase from './SaveTheDatePhase';
 import RSVPPhase from './RSVPPhase';
 import InvitationPhase from './InvitationPhase';
+import ThankYouPhase from './ThankYouPhase';
 
 export const revalidate = 0; // ISR with on-demand revalidation
 
@@ -92,9 +93,20 @@ async function getInviteData(slug: string) {
       existingAnswers = (answersData ?? []) as CustomAnswer[];
     }
 
-    // Fetch settings
-    const settings = await getSettings();
+    // Fetch settings and active FAQs in parallel
+    // supabaseServer bypasses RLS — needed because the faqs table has no anon-read policy
+    const [settings, faqsRes] = await Promise.all([
+      getSettings(),
+      supabaseServer
+        .from('faqs')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true }),
+    ]);
 
+    const faqs = (faqsRes.data ?? []) as Faq[];
+
+    console.log('[DEBUG] FAQ fetch result — count:', faqs.length, 'error:', faqsRes.error, 'service role key set:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
     console.log('[DEBUG] All data fetched successfully');
 
     return {
@@ -104,6 +116,7 @@ async function getInviteData(slug: string) {
       questions,
       existingAnswers,
       settings,
+      faqs,
     };
   } catch (error) {
     console.error('[DEBUG] Exception in getInviteData:', error);
@@ -111,14 +124,16 @@ async function getInviteData(slug: string) {
   }
 }
 
+function formatGuestNames(names: string[]): string {
+  if (names.length === 0) return '';
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} & ${names[1]}`;
+  return `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`;
+}
+
 function formatGuestName(guests: Guest[]): string {
   if (guests.length === 0) return '';
-  if (guests.length === 1) {
-    return `${guests[0].first_name}`;
-  }
-  // For couples/multiple guests, show first names
-  const names = guests.map((g) => g.first_name);
-  return names.join(' & ');
+  return formatGuestNames(guests.map((g) => g.first_name));
 }
 
 export default async function InvitePage({
@@ -137,7 +152,7 @@ export default async function InvitePage({
     notFound();
   }
 
-  const { household, guests, phase, questions, existingAnswers, settings } = data;
+  const { household, guests, phase, questions, existingAnswers, settings, faqs } = data;
   console.log('[DEBUG] Rendering with guest count:', guests.length, 'phase:', phase.current_phase);
 
   const guestName = formatGuestName(guests) || household.name;
@@ -169,6 +184,18 @@ export default async function InvitePage({
         questions={questions}
         existingAnswers={existingAnswers}
         guestName={guestName}
+        faqs={faqs}
+      />
+    );
+  }
+
+  if (phase.current_phase === 'thank_you') {
+    console.log('[DEBUG] Rendering ThankYouPhase');
+    return (
+      <ThankYouPhase
+        household={household}
+        guests={guests}
+        settings={settings}
       />
     );
   }

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import AddToCalendar from '@/app/components/AddToCalendar';
+import HouseholdPhoto from './HouseholdPhoto';
 import type { Settings } from '@/lib/supabase';
 
 interface SaveTheDatePhaseProps {
@@ -78,6 +78,8 @@ export default function SaveTheDatePhase({
       }, delay);
     });
   }, []);
+
+  console.log('[SaveTheDatePhase] personalPhotoUrl:', personalPhotoUrl ? `${String(personalPhotoUrl).slice(0, 40)}...` : null);
 
   if (!mounted) {
     return null;
@@ -289,21 +291,13 @@ export default function SaveTheDatePhase({
           {/* Personal Photo Section */}
           {personalPhotoUrl && (
             <div
-              className={`mb-8 sm:mb-12 w-full max-w-sm transition-all duration-700 ${
+              className={`mb-8 sm:mb-12 w-full transition-all duration-700 ${
                 isPersonalMessageVisible
                   ? 'opacity-100 scale-100'
                   : 'opacity-0 scale-95'
               }`}
             >
-              <div className="relative aspect-square rounded-sm overflow-hidden border border-accent-gold/30">
-                <Image
-                  src={personalPhotoUrl}
-                  alt="Personal photo"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
+              <HouseholdPhoto src={personalPhotoUrl} maxWidth={320} />
             </div>
           )}
 

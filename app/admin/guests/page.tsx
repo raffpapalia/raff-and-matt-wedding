@@ -8,7 +8,7 @@ export default async function AdminGuestsPage() {
   const [householdsRes, tagsRes, guestsRes] = await Promise.all([
     supabase.from('households').select('id,name,slug,personal_message').order('created_at', { ascending: false }),
     supabase.from('guest_tags').select('household_id,tag'),
-    supabase.from('guests').select('household_id,rsvp_status'),
+    supabase.from('guests').select('household_id,rsvp_status,comms_email,comms_sms'),
   ]);
 
   const households = householdsRes.data ?? [];
@@ -22,6 +22,8 @@ export default async function AdminGuestsPage() {
     const attending = householdGuests.filter((item) => item.rsvp_status === 'attending').length;
     const declined = householdGuests.filter((item) => item.rsvp_status === 'declined').length;
     const pending = householdGuests.filter((item) => item.rsvp_status !== 'attending' && item.rsvp_status !== 'declined').length;
+    const commsEmail = householdGuests.filter((item: any) => item.comms_email !== false).length;
+    const commsSms = householdGuests.filter((item: any) => item.comms_sms !== false).length;
 
     return {
       id: household.id,
@@ -32,6 +34,8 @@ export default async function AdminGuestsPage() {
       attending,
       declined,
       pending,
+      commsEmail,
+      commsSms,
     };
   });
 

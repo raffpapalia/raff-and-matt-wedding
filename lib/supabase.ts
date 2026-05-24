@@ -19,11 +19,9 @@ export type Household = {
   id: string;
   name: string;
   slug: string;
-  primary_email: string;
-  secondary_email: string | null;
-    mobile_numbers: Array<{ number: string; label: string }> | null;
   personal_photo_url: string | null;
   personal_message: string | null;
+  thank_you_message: string | null;
   plus_one_allowance: number;
   link_open_count: number;
   link_first_opened_at: string | null;
@@ -39,6 +37,10 @@ export type Guest = {
   dietary_requirement: 'none' | 'vegetarian' | 'vegan' | 'gluten_free' | 'dairy_free' | 'halal' | 'kosher' | 'nut_allergy' | 'shellfish_allergy' | 'other';
   dietary_other: string | null;
   rsvp_status: 'pending' | 'attending' | 'declined';
+  email: string | null;
+  mobile: string | null;
+  comms_email: boolean;
+  comms_sms: boolean;
   created_at: string;
 };
 
@@ -70,7 +72,7 @@ export type CustomAnswer = {
 
 export type Communication = {
   id: string;
-  household_id: string;
+  guest_id: string;
   type: 'sms' | 'email';
   message: string;
   sent_at: string;
@@ -81,6 +83,16 @@ export type GuestTag = {
   id: string;
   household_id: string;
   tag: string;
+};
+
+export type Faq = {
+  id: string;
+  question: string;
+  answer: string;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 // Helper functions
@@ -143,6 +155,12 @@ export type Settings = {
   rsvp_cutoff_date: string;
   dietary_options: string[];
   default_plus_one_allowance: number;
+  accommodation_url: string;
+  photos_upload_url: string;
+  registry_url: string;
+  hashtag: string;
+  wedding_photo_url: string;
+  google_photos_url: string;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -156,6 +174,12 @@ export const DEFAULT_SETTINGS: Settings = {
   rsvp_cutoff_date: '2027-06-01',
   dietary_options: ['Vegetarian', 'Vegan', 'Gluten free', 'Dairy free', 'Halal', 'Kosher', 'Other'],
   default_plus_one_allowance: 0,
+  accommodation_url: '',
+  photos_upload_url: '',
+  registry_url: '',
+  hashtag: '#mattraff2027',
+  wedding_photo_url: '',
+  google_photos_url: '',
 };
 
 export async function getSettings(): Promise<Settings> {

@@ -5,7 +5,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const { id } = await params;
   const { data: household, error: householdError } = await supabaseServer.from('households').select('*').eq('id', id).single();
   const { data: tags, error: tagsError } = await supabaseServer.from('guest_tags').select('tag').eq('household_id', id);
-  const { data: guests, error: guestsError } = await supabaseServer.from('guests').select('*').eq('household_id', id).order('first_name', { ascending: true });
+  const { data: guests, error: guestsError } = await supabaseServer.from('guests').select('*').eq('household_id', id).order('display_order', { ascending: true });
 
   const initial = {
     ...household,

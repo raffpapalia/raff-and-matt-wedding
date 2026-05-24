@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import Image from 'next/image';
 import RSVPPhase from './RSVPPhase';
+import FaqAccordion from './FaqAccordion';
 import AddToCalendar from '@/app/components/AddToCalendar';
-import type { Household, Guest, Settings, CustomQuestion, CustomAnswer } from '@/lib/supabase';
+import HouseholdPhoto from './HouseholdPhoto';
+import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Faq } from '@/lib/supabase';
 
 interface InvitationPhaseProps {
   household: Household;
@@ -11,6 +12,7 @@ interface InvitationPhaseProps {
   questions: CustomQuestion[];
   existingAnswers: CustomAnswer[];
   guestName: string;
+  faqs: Faq[];
 }
 
 const MONTHS = [
@@ -60,7 +62,10 @@ export default function InvitationPhase({
   questions,
   existingAnswers,
   guestName,
+  faqs,
 }: InvitationPhaseProps) {
+  console.log('[InvitationPhase] personal_photo_url:', household.personal_photo_url ? `${household.personal_photo_url.slice(0, 40)}...` : null);
+
   const alreadyRsvpd = guests.some(
     (g) => g.rsvp_status === 'attending' || g.rsvp_status === 'declined',
   );
@@ -86,14 +91,8 @@ export default function InvitationPhase({
           </h1>
 
           {household.personal_photo_url && (
-            <div className="relative w-56 h-56 sm:w-72 sm:h-72 mx-auto mb-10 overflow-hidden border border-[#D4A83A]/30">
-              <Image
-                src={household.personal_photo_url}
-                alt="Personal photo"
-                fill
-                className="object-cover"
-                priority
-              />
+            <div className="mb-10">
+              <HouseholdPhoto src={household.personal_photo_url} maxWidth={400} />
             </div>
           )}
 
@@ -229,8 +228,23 @@ export default function InvitationPhase({
             style={{ fontFamily: 'var(--font-dm-sans)' }}
           >
             We&apos;ve arranged a special rate at{' '}
-            <span className="text-[#F2E8D0]">QT Hotel Melbourne</span>
-            {' '}— booking link coming soon. Plenty of other CBD hotels are nearby if you prefer.
+            <span className="text-[#F2E8D0]">{settings.venue_name}</span>
+            {settings.accommodation_url ? (
+              <>
+                {'. '}
+                <a
+                  href={settings.accommodation_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#D4A83A] underline underline-offset-2"
+                >
+                  Book here
+                </a>
+                {'. Plenty of other CBD hotels are nearby if you prefer.'}
+              </>
+            ) : (
+              <>{' '}— booking link coming soon. Plenty of other CBD hotels are nearby if you prefer.</>
+            )}
           </p>
         </section>
 
@@ -243,7 +257,7 @@ export default function InvitationPhase({
             className="text-3xl sm:text-4xl font-light text-[#D4A83A] tracking-wider mb-2"
             style={{ fontFamily: 'var(--font-cinzel)' }}
           >
-            #mattraff2027
+            {settings.hashtag}
           </p>
           <p
             className="text-xs text-[#F2E8D0]/40 font-light tracking-[0.2em] uppercase mb-10"
@@ -260,32 +274,47 @@ export default function InvitationPhase({
           >
             Share your photos with us
           </p>
-          <a
-            href="#"
-            className="inline-block px-7 py-3 border border-[#D4A83A]/50 text-[#D4A83A] text-xs font-light tracking-[0.2em] uppercase"
-            style={{ fontFamily: 'var(--font-dm-sans)' }}
-          >
-            Upload your photos
-          </a>
+          {settings.photos_upload_url ? (
+            <a
+              href={settings.photos_upload_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-7 py-3 border border-[#D4A83A]/50 text-[#D4A83A] text-xs font-light tracking-[0.2em] uppercase"
+              style={{ fontFamily: 'var(--font-dm-sans)' }}
+            >
+              Upload your photos
+            </a>
+          ) : (
+            <p
+              className="text-xs text-[#F2E8D0]/30 font-light italic"
+              style={{ fontFamily: 'var(--font-dm-sans)' }}
+            >
+              Photo upload link coming soon.
+            </p>
+          )}
         </section>
 
         <GoldDivider />
 
         {/* ── 8. FAQ ── */}
-        <section className="py-16 text-center">
+        <section className="py-16">
           <SectionLabel>FAQ</SectionLabel>
           <h2
-            className="text-2xl sm:text-3xl font-light text-[#F2E8D0] mb-5"
+            className="text-2xl sm:text-3xl font-light text-[#F2E8D0] mb-8 text-center"
             style={{ fontFamily: 'var(--font-cinzel)' }}
           >
             Questions?
           </h2>
-          <p
-            className="text-sm text-[#F2E8D0]/45 font-light italic"
-            style={{ fontFamily: 'var(--font-dm-sans)' }}
-          >
-            Frequently asked questions coming soon.
-          </p>
+          {faqs.length > 0 ? (
+            <FaqAccordion faqs={faqs} />
+          ) : (
+            <p
+              className="text-sm text-[#F2E8D0]/45 font-light italic text-center"
+              style={{ fontFamily: 'var(--font-dm-sans)' }}
+            >
+              Frequently asked questions coming soon.
+            </p>
+          )}
         </section>
 
         <GoldDivider />
@@ -293,12 +322,24 @@ export default function InvitationPhase({
         {/* ── 9. REGISTRY ── */}
         <section className="py-16 text-center">
           <SectionLabel>Registry</SectionLabel>
-          <p
-            className="text-sm text-[#F2E8D0]/45 font-light italic"
-            style={{ fontFamily: 'var(--font-dm-sans)' }}
-          >
-            Registry details coming soon.
-          </p>
+          {settings.registry_url ? (
+            <a
+              href={settings.registry_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-7 py-3 border border-[#D4A83A]/50 text-[#D4A83A] text-xs font-light tracking-[0.2em] uppercase"
+              style={{ fontFamily: 'var(--font-dm-sans)' }}
+            >
+              View our registry
+            </a>
+          ) : (
+            <p
+              className="text-sm text-[#F2E8D0]/45 font-light italic"
+              style={{ fontFamily: 'var(--font-dm-sans)' }}
+            >
+              Registry details coming soon.
+            </p>
+          )}
         </section>
 
         {/* Footer */}

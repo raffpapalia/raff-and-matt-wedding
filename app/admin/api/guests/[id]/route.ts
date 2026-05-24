@@ -15,22 +15,29 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const formData = await request.formData();
   const name = String(formData.get('name') ?? '');
   const slug = String(formData.get('slug') ?? '');
-  const primary_email = String(formData.get('primary_email') ?? '');
-  const secondary_email = String(formData.get('secondary_email') ?? '');
-  const mobile_numbers = JSON.parse(String(formData.get('mobile_numbers') ?? '[]'));
   const tags = JSON.parse(String(formData.get('tags') ?? '[]'));
   const personal_message = String(formData.get('personal_message') ?? '');
+  const thank_you_message = String(formData.get('thank_you_message') ?? '');
   const plus_one_allowance = Number(formData.get('plus_one_allowance') ?? 0);
+
+  const photo = formData.get('photo');
+  let photoFields: { personal_photo_url?: string } = {};
+  if (photo instanceof File && photo.size > 0) {
+    if (!photo.type.startsWith('image/')) {
+      return NextResponse.json({ message: 'Uploaded file must be an image.' }, { status: 400 });
+    }
+    const buffer = Buffer.from(await photo.arrayBuffer());
+    photoFields = { personal_photo_url: `data:${photo.type};base64,${buffer.toString('base64')}` };
+  }
 
   try {
     const upd = await supabaseServer.from('households').update({
       name,
       slug,
-      primary_email,
-      secondary_email: secondary_email || null,
-      mobile_numbers: Array.isArray(mobile_numbers) ? mobile_numbers : [],
       personal_message: personal_message || null,
+      thank_you_message: thank_you_message || null,
       plus_one_allowance,
+      ...photoFields,
     }).eq('id', id).select('id').single();
 
     if (upd.error) {
@@ -41,9 +48,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           id,
           name,
           slug,
-          primary_email,
-          secondary_email,
-          mobile_numbers,
           personal_message,
           plus_one_allowance,
         },
@@ -82,6 +86,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         dietary_other: g.dietary_other || null,
         rsvp_status: g.rsvp_status || 'pending',
         display_order: typeof g.display_order === 'number' ? g.display_order : 0,
+        email: g.email || null,
+        mobile: g.mobile || null,
+        comms_email: g.comms_email !== false,
+        comms_sms: g.comms_sms !== false,
       }));
       const gRes = await supabaseServer.from('guests').insert(guestsToInsert);
       if (gRes.error) {

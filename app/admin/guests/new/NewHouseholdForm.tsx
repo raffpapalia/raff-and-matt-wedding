@@ -16,7 +16,19 @@ const dietaryOptions = [
   { value: 'other', label: 'Other' },
 ];
 
-const initialGuest = { firstName: '', lastName: '', isChild: false, dietaryRequirement: 'none', dietaryOther: '', rsvpStatus: 'pending' };
+const initialGuest = {
+  firstName: '',
+  lastName: '',
+  isChild: false,
+  dietaryRequirement: 'none',
+  dietaryOther: '',
+  rsvpStatus: 'pending',
+  email: '',
+  mobile: '',
+  commsEmail: true,
+  commsSms: true,
+};
+
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'mattandraff.com';
 
 function slugify(text: string) {
@@ -28,14 +40,26 @@ function slugify(text: string) {
     .replace(/(^-|-$)/g, '');
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MOBILE_REGEX = /^(\+?61|0)4\d{8}$/;
+
+function validateEmail(email: string, commsEmail: boolean, firstName: string): string | undefined {
+  if (commsEmail && !email) return `Email address is required to send email to ${firstName || 'this guest'}`;
+  if (email && !EMAIL_REGEX.test(email)) return 'Invalid email address';
+}
+
+function validateMobile(mobile: string, commsSms: boolean, firstName: string): string | undefined {
+  if (commsSms && !mobile) return `Mobile number is required to send SMS to ${firstName || 'this guest'}`;
+  const stripped = mobile.replace(/[\s-]/g, '');
+  if (stripped && !MOBILE_REGEX.test(stripped)) return 'Invalid Australian mobile number (e.g. 0412 345 678)';
+}
+
+type GuestErrors = { email?: string; mobile?: string };
+
 export default function NewHouseholdForm() {
   const [householdName, setHouseholdName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugEdited, setSlugEdited] = useState(false);
-  const [primaryEmail, setPrimaryEmail] = useState('');
-  const [secondaryEmail, setSecondaryEmail] = useState('');
-    const [mobileNumbers, setMobileNumbers] = useState<Array<{ number: string; label: string }>>([{ number: '', label: '' }]);
-  const [mobileErrors, setMobileErrors] = useState<string[]>([]);
   const [tags, setTags] = useState('');
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
@@ -44,6 +68,7 @@ export default function NewHouseholdForm() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [guests, setGuests] = useState([initialGuest]);
+  const [guestErrors, setGuestErrors] = useState<GuestErrors[]>([{}]);
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -59,10 +84,8 @@ export default function NewHouseholdForm() {
       setPhotoPreview(null);
       return;
     }
-
     const objectUrl = URL.createObjectURL(photoFile);
     setPhotoPreview(objectUrl);
-
     return () => URL.revokeObjectURL(objectUrl);
   }, [photoFile]);
 
@@ -72,71 +95,76 @@ export default function NewHouseholdForm() {
     setGuests((prev) => prev.map((guest, idx) => (idx === index ? { ...guest, [key]: value } : guest)));
   };
 
-    const updateMobileNumber = (index: number, field: 'number' | 'label', value: string) => {
-      setMobileNumbers((prev) => prev.map((item, idx) => (idx === index ? { ...item, [field]: value } : item)));
-    };
-
-  function normalizeAustralianMobile(value: string) {
-    const raw = String(value || '').trim();
-    if (!raw) return null;
-    if (raw.startsWith('+')) {
-      const digits = raw.replace(/[^0-9]/g, '');
-      if (digits.startsWith('61') && digits.length === 11) {
-        return `+${digits}`;
-      }
-      return null;
-    }
-    const digits = raw.replace(/\D/g, '');
-    if (digits.length === 10 && digits.startsWith('04')) {
-      return '+61' + digits.slice(1);
-    }
-    if (digits.length === 9 && digits.startsWith('4')) {
-      return '+61' + digits;
-    }
-    if (digits.length === 11 && digits.startsWith('61')) {
-      return '+' + digits;
-    }
-    return null;
-  }
-
-  const handleMobileBlur = (index: number) => {
-      const value = mobileNumbers[index]?.number ?? '';
-    const normalized = normalizeAustralianMobile(value);
-    setMobileErrors((prev) => {
-      const copy = [...prev];
-      while (copy.length < mobileNumbers.length) copy.push('');
-      if (!normalized) {
-        copy[index] = 'Invalid Australian mobile (start with 04 or +614)';
-      } else {
-        copy[index] = '';
-      }
-      return copy;
-    });
-    if (normalized) {
-      updateMobileNumber(index, 'number', normalized);
+  const updateGuestIsChild = (index: number, isChild: boolean) => {
+    setGuests((prev) =>
+      prev.map((guest, idx) => {
+        if (idx !== index) return guest;
+        return {
+          ...guest,
+          isChild,
+          commsEmail: isChild ? false : guest.commsEmail,
+          commsSms: isChild ? false : guest.commsSms,
+        };
+      })
+    );
+    if (isChild) {
+      setGuestErrors((prev) => {
+        const next = [...prev];
+        next[index] = { ...next[index], email: undefined, mobile: undefined };
+        return next;
+      });
     }
   };
 
-  const addGuest = () => setGuests((prev) => [...prev, initialGuest]);
-  const removeGuest = (index: number) => setGuests((prev) => prev.filter((_, idx) => idx !== index));
-    const addMobile = () => setMobileNumbers((prev) => [...prev, { number: '', label: '' }]);
-  const removeMobile = (index: number) => setMobileNumbers((prev) => prev.filter((_, idx) => idx !== index));
+  const setGuestFieldError = (index: number, field: keyof GuestErrors, message: string | undefined) => {
+    setGuestErrors((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: message };
+      return next;
+    });
+  };
+
+  const handleEmailBlur = (index: number) => {
+    const g = guests[index];
+    setGuestFieldError(index, 'email', validateEmail(g.email, g.commsEmail, g.firstName));
+  };
+
+  const handleMobileBlur = (index: number) => {
+    const g = guests[index];
+    setGuestFieldError(index, 'mobile', validateMobile(g.mobile, g.commsSms, g.firstName));
+  };
+
+  const addGuest = () => {
+    setGuests((prev) => [...prev, { ...initialGuest }]);
+    setGuestErrors((prev) => [...prev, {}]);
+  };
+
+  const removeGuest = (index: number) => {
+    setGuests((prev) => prev.filter((_, idx) => idx !== index));
+    setGuestErrors((prev) => prev.filter((_, idx) => idx !== index));
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
 
-    if (!householdName || !primaryEmail) {
-      setError('Household name and primary email are required.');
+    if (!householdName) {
+      setError('Household name is required.');
+      return;
+    }
+
+    const errors: GuestErrors[] = guests.map((guest) => ({
+      email: validateEmail(guest.email, guest.commsEmail, guest.firstName),
+      mobile: validateMobile(guest.mobile, guest.commsSms, guest.firstName),
+    }));
+    if (errors.some((e) => e.email || e.mobile)) {
+      setGuestErrors(errors);
       return;
     }
 
     const formData = new FormData();
     formData.append('name', householdName);
     formData.append('slug', slugify(slug || householdName));
-    formData.append('primary_email', primaryEmail);
-    formData.append('secondary_email', secondaryEmail || '');
-      formData.append('mobile_numbers', JSON.stringify(mobileNumbers.filter((m) => m.number)));
     formData.append('tags', JSON.stringify(tags.split(',').map((tag) => tag.trim()).filter(Boolean)));
     formData.append('personal_message', personalMessage || '');
     formData.append('plus_one_allowance', String(plusOneAllowance));
@@ -148,6 +176,10 @@ export default function NewHouseholdForm() {
       dietary_other: guest.dietaryOther || null,
       rsvp_status: guest.rsvpStatus,
       display_order: idx,
+      email: guest.email || null,
+      mobile: guest.mobile ? (guest.mobile.replace(/[\s-]/g, '') || null) : null,
+      comms_email: guest.commsEmail,
+      comms_sms: guest.commsSms,
     }))));
 
     if (photoFile) {
@@ -210,17 +242,6 @@ export default function NewHouseholdForm() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <label className="space-y-2 text-sm text-slate-100">
-          Primary email
-          <input
-            type="email"
-            value={primaryEmail}
-            onChange={(event) => setPrimaryEmail(event.target.value)}
-            className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
-            placeholder="smith@example.com"
-            required
-          />
-        </label>
-        <label className="space-y-2 text-sm text-slate-100">
           Additional guest allowance
           <select
             value={plusOneAllowance}
@@ -231,19 +252,6 @@ export default function NewHouseholdForm() {
             <option value={1}>1 additional guest</option>
             <option value={2}>2 additional guests</option>
           </select>
-        </label>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <label className="space-y-2 text-sm text-slate-100">
-          Secondary email
-          <input
-            type="email"
-            value={secondaryEmail}
-            onChange={(event) => setSecondaryEmail(event.target.value)}
-            className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
-            placeholder="optional@example.com"
-          />
         </label>
         <label className="space-y-2 text-sm text-slate-100">
           Tags (comma-separated)
@@ -317,43 +325,6 @@ export default function NewHouseholdForm() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold text-white">Phone numbers</h2>
-          <button type="button" onClick={addMobile} className="rounded-full border border-white/10 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200 transition hover:bg-emerald-500/15">
-            Add number
-          </button>
-        </div>
-        <div className="space-y-4">
-          {mobileNumbers.map((number, index) => (
-              <div key={index} className="flex gap-4">
-                <input
-                  value={number.number}
-                  onChange={(event) => updateMobileNumber(index, 'number', event.target.value)}
-                  onBlur={() => handleMobileBlur(index)}
-                  className="flex-1 rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
-                  placeholder="Mobile number"
-                />
-                <input
-                  value={number.label}
-                  onChange={(event) => updateMobileNumber(index, 'label', event.target.value)}
-                  className="w-24 rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
-                  placeholder="Name"
-                />
-              {mobileNumbers.length > 1 ? (
-                <button
-                  type="button"
-                  onClick={() => removeMobile(index)}
-                  className="rounded-3xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200 transition hover:bg-rose-500/15"
-                >
-                  Remove
-                </button>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
           <h2 className="text-lg font-semibold text-white">Guest details</h2>
           <button type="button" onClick={addGuest} className="rounded-full border border-white/10 bg-amber-300/15 px-4 py-2 text-sm text-amber-200 transition hover:bg-amber-300/20">
             Add guest
@@ -362,7 +333,7 @@ export default function NewHouseholdForm() {
         <div className="space-y-6">
           {guests.map((guest, index) => (
             <div key={index} className="rounded-3xl border border-white/10 bg-slate-950/80 p-6">
-              <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                 <p className="text-sm font-semibold text-white">Guest {index + 1}</p>
                 {guests.length > 1 ? (
                   <button
@@ -374,7 +345,8 @@ export default function NewHouseholdForm() {
                   </button>
                 ) : null}
               </div>
-              <div className="grid gap-4 lg:grid-cols-2">
+
+              <div className="grid gap-4 lg:grid-cols-2 mb-4">
                 <label className="space-y-2 text-sm text-slate-100">
                   First name
                   <input
@@ -394,7 +366,39 @@ export default function NewHouseholdForm() {
                   />
                 </label>
               </div>
-              <div className="grid gap-4 lg:grid-cols-3">
+
+              <div className="grid gap-4 lg:grid-cols-2 mb-4">
+                <label className="space-y-2 text-sm text-slate-100">
+                  Email address
+                  <input
+                    type="email"
+                    value={guest.email}
+                    onChange={(event) => updateGuest(index, 'email', event.target.value)}
+                    onBlur={() => handleEmailBlur(index)}
+                    className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
+                    placeholder="Email address"
+                  />
+                  {guestErrors[index]?.email ? (
+                    <p className="text-xs" style={{ color: '#C4621A' }}>{guestErrors[index].email}</p>
+                  ) : null}
+                </label>
+                <label className="space-y-2 text-sm text-slate-100">
+                  Mobile number
+                  <input
+                    type="tel"
+                    value={guest.mobile}
+                    onChange={(event) => updateGuest(index, 'mobile', event.target.value)}
+                    onBlur={() => handleMobileBlur(index)}
+                    className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
+                    placeholder="Mobile number"
+                  />
+                  {guestErrors[index]?.mobile ? (
+                    <p className="text-xs" style={{ color: '#C4621A' }}>{guestErrors[index].mobile}</p>
+                  ) : null}
+                </label>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-3 mb-4">
                 <label className="space-y-2 text-sm text-slate-100">
                   RSVP status
                   <select
@@ -423,7 +427,7 @@ export default function NewHouseholdForm() {
                   Child?
                   <select
                     value={guest.isChild ? 'yes' : 'no'}
-                    onChange={(event) => updateGuest(index, 'isChild', event.target.value === 'yes')}
+                    onChange={(event) => updateGuestIsChild(index, event.target.value === 'yes')}
                     className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
                   >
                     <option value="no">No</option>
@@ -431,21 +435,52 @@ export default function NewHouseholdForm() {
                   </select>
                 </label>
               </div>
+
               {guest.dietaryRequirement === 'other' ? (
-                <label className="space-y-2 text-sm text-slate-100">
-                  Dietary details
-                  <input
-                    value={guest.dietaryOther}
-                    onChange={(event) => updateGuest(index, 'dietaryOther', event.target.value)}
-                    className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
-                    placeholder="Please describe"
-                  />
-                </label>
+                <div className="mb-4">
+                  <label className="space-y-2 text-sm text-slate-100">
+                    Dietary details
+                    <input
+                      value={guest.dietaryOther}
+                      onChange={(event) => updateGuest(index, 'dietaryOther', event.target.value)}
+                      className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
+                      placeholder="Please describe"
+                    />
+                  </label>
+                </div>
               ) : null}
+
+              <div className="flex flex-wrap gap-5 pt-1">
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-100">
+                  <input
+                    type="checkbox"
+                    checked={guest.commsEmail}
+                    onChange={(e) => {
+                      updateGuest(index, 'commsEmail', e.target.checked);
+                      if (!e.target.checked) setGuestFieldError(index, 'email', undefined);
+                    }}
+                    className="h-4 w-4 rounded accent-emerald-400"
+                  />
+                  Send email
+                </label>
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-100">
+                  <input
+                    type="checkbox"
+                    checked={guest.commsSms}
+                    onChange={(e) => {
+                      updateGuest(index, 'commsSms', e.target.checked);
+                      if (!e.target.checked) setGuestFieldError(index, 'mobile', undefined);
+                    }}
+                    className="h-4 w-4 rounded accent-emerald-400"
+                  />
+                  Send SMS
+                </label>
+              </div>
             </div>
           ))}
         </div>
       </div>
+
       <label className="space-y-2 text-sm text-slate-100">
         Personal message
         <textarea
@@ -456,6 +491,7 @@ export default function NewHouseholdForm() {
           placeholder="Message for the household, optional."
         />
       </label>
+
       {error ? <div className="rounded-3xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div> : null}
       <button
         type="submit"

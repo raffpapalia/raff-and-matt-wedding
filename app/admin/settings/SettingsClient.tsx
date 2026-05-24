@@ -88,6 +88,12 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       rsvp_cutoff_date: settings.rsvp_cutoff_date,
       dietary_options: settings.dietary_options.filter(o => o.trim()),
       default_plus_one_allowance: Number(settings.default_plus_one_allowance),
+      accommodation_url: settings.accommodation_url,
+      photos_upload_url: settings.photos_upload_url,
+      registry_url: settings.registry_url,
+      hashtag: settings.hashtag,
+      wedding_photo_url: settings.wedding_photo_url,
+      google_photos_url: settings.google_photos_url,
     };
 
     const res = await fetch('/admin/api/settings', {
@@ -241,6 +247,68 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
             + Add option
           </button>
         </div>
+      </Section>
+
+      {/* Links & Details */}
+      <Section label="Links & Details" title="Links & Details">
+        <Field label="QT Hotel booking URL">
+          <input
+            type="text"
+            value={settings.accommodation_url}
+            onChange={e => update('accommodation_url', e.target.value)}
+            placeholder="https://..."
+            className={INPUT_CLASS}
+          />
+        </Field>
+        <Field label="Guest photo upload link (Google Drive)">
+          <input
+            type="text"
+            value={settings.photos_upload_url}
+            onChange={e => update('photos_upload_url', e.target.value)}
+            placeholder="https://..."
+            className={INPUT_CLASS}
+          />
+        </Field>
+        <Field label="Registry link">
+          <input
+            type="text"
+            value={settings.registry_url}
+            onChange={e => update('registry_url', e.target.value)}
+            placeholder="https://..."
+            className={INPUT_CLASS}
+          />
+        </Field>
+        <Field label="Wedding hashtag">
+          <input
+            type="text"
+            value={settings.hashtag}
+            onChange={e => update('hashtag', e.target.value)}
+            placeholder="#mattraff2027"
+            className={INPUT_CLASS}
+          />
+        </Field>
+      </Section>
+
+      {/* After the wedding */}
+      <Section label="After the wedding" title="After the Wedding">
+        <Field label="Wedding day photo URL">
+          <input
+            type="text"
+            value={settings.wedding_photo_url}
+            onChange={e => update('wedding_photo_url', e.target.value)}
+            placeholder="https://..."
+            className={INPUT_CLASS}
+          />
+        </Field>
+        <Field label="Google Photos album link">
+          <input
+            type="text"
+            value={settings.google_photos_url}
+            onChange={e => update('google_photos_url', e.target.value)}
+            placeholder="https://photos.google.com/..."
+            className={INPUT_CLASS}
+          />
+        </Field>
       </Section>
 
       {/* Feedback */}

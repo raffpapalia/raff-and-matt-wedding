@@ -42,17 +42,14 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const name = formData.get('name');
   const slugValue = formData.get('slug');
-  const primary_email = formData.get('primary_email');
-  const secondary_email = formData.get('secondary_email');
-  const mobile_numbers = parseJsonField(formData.get('mobile_numbers')) ?? [];
   const tags = parseJsonField(formData.get('tags')) ?? [];
   const personal_message = formData.get('personal_message');
   const plus_one_allowance = Number(formData.get('plus_one_allowance') ?? 0);
   const guests = parseJsonField(formData.get('guests')) ?? [];
   const photo = formData.get('photo');
 
-  if (typeof name !== 'string' || !name.trim() || typeof primary_email !== 'string' || !primary_email.trim()) {
-    return NextResponse.json({ message: 'Household name and primary email are required.' }, { status: 400 });
+  if (typeof name !== 'string' || !name.trim()) {
+    return NextResponse.json({ message: 'Household name is required.' }, { status: 400 });
   }
 
   const baseSlug = slugify(typeof slugValue === 'string' && slugValue.trim() ? slugValue : name);
@@ -87,9 +84,6 @@ export async function POST(request: Request) {
     const householdInsert = await supabaseServer.from('households').insert({
       name,
       slug: finalSlug,
-      primary_email,
-      secondary_email: typeof secondary_email === 'string' && secondary_email.trim() ? secondary_email : null,
-      mobile_numbers: Array.isArray(mobile_numbers) ? mobile_numbers : [],
       personal_message: typeof personal_message === 'string' && personal_message.trim() ? personal_message : null,
       plus_one_allowance,
       personal_photo_url: photoUrl,
@@ -123,6 +117,10 @@ export async function POST(request: Request) {
         dietary_other: guest.dietary_other || null,
         rsvp_status: guest.rsvp_status || 'pending',
         display_order: typeof guest.display_order === 'number' ? guest.display_order : 0,
+        email: guest.email || null,
+        mobile: guest.mobile || null,
+        comms_email: guest.comms_email !== false,
+        comms_sms: guest.comms_sms !== false,
       }));
       const guestsRes = await supabaseServer.from('guests').insert(guestsToInsert);
       if (guestsRes.error) {

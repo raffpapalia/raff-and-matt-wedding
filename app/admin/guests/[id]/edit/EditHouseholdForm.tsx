@@ -16,17 +16,13 @@ const dietaryOptions = [
   { value: 'other', label: 'Other' },
 ];
 
-const initialGuestShape = { first_name: '', last_name: '', is_child: false, dietary_requirement: 'none', dietary_other: null, rsvp_status: 'pending' };
-
 interface HouseholdFormData {
   id: string;
   name: string;
   slug: string;
-  primary_email: string;
-  secondary_email?: string;
-  mobile_numbers?: Array<{ number: string; label: string }>;
   tags?: string[];
   personal_message?: string;
+  thank_you_message?: string;
   plus_one_allowance: number;
   personal_photo_url?: string;
   guests?: Array<{
@@ -34,34 +30,82 @@ interface HouseholdFormData {
     last_name: string;
     is_child: boolean;
     dietary_requirement: string;
-    dietary_other?: string;
+    dietary_other?: string | null;
     rsvp_status: string;
+    email?: string | null;
+    mobile?: string | null;
+    comms_email?: boolean;
+    comms_sms?: boolean;
   }>;
 }
 
-export default function EditHouseholdForm({ initial }: { initial: HouseholdFormData }) {
-  const [householdName, setHouseholdName] = useState(initial?.name ?? '');
-  const [slug, setSlug] = useState(initial?.slug ?? '');
-  const [slugEdited, setSlugEdited] = useState(false);
-  const [primaryEmail, setPrimaryEmail] = useState(initial?.primary_email ?? '');
-  const [secondaryEmail, setSecondaryEmail] = useState(initial?.secondary_email ?? '');
-    const [mobileNumbers, setMobileNumbers] = useState<Array<{ number: string; label: string }>>(Array.isArray(initial?.mobile_numbers) && initial.mobile_numbers.length ? initial.mobile_numbers : [{ number: '', label: '' }]);
-  const [mobileErrors, setMobileErrors] = useState<string[]>([]);
-  const [tags, setTags] = useState((initial?.tags ?? []).join(', '));
-  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
-  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
-  const [personalMessage, setPersonalMessage] = useState(initial?.personal_message ?? '');
-  const [plusOneAllowance, setPlusOneAllowance] = useState(initial?.plus_one_allowance ?? 0);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(initial?.personal_photo_url ?? null);
-  const [guests, setGuests] = useState<any[]>(Array.isArray(initial?.guests) && initial.guests.length ? initial.guests.map((g: any) => ({
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MOBILE_REGEX = /^(\+?61|0)4\d{8}$/;
+
+function validateEmail(email: string, commsEmail: boolean, firstName: string): string | undefined {
+  if (commsEmail && !email) return `Email address is required to send email to ${firstName || 'this guest'}`;
+  if (email && !EMAIL_REGEX.test(email)) return 'Invalid email address';
+}
+
+function validateMobile(mobile: string, commsSms: boolean, firstName: string): string | undefined {
+  if (commsSms && !mobile) return `Mobile number is required to send SMS to ${firstName || 'this guest'}`;
+  const stripped = mobile.replace(/[\s-]/g, '');
+  if (stripped && !MOBILE_REGEX.test(stripped)) return 'Invalid Australian mobile number (e.g. 0412 345 678)';
+}
+
+type GuestErrors = { email?: string; mobile?: string };
+
+function makeGuestState(g: NonNullable<HouseholdFormData['guests']>[number]) {
+  return {
     firstName: g.first_name,
     lastName: g.last_name,
     isChild: Boolean(g.is_child),
     dietaryRequirement: g.dietary_requirement || 'none',
     dietaryOther: g.dietary_other || '',
     rsvpStatus: g.rsvp_status || 'pending',
-  })) : [{ ...initialGuestShape, firstName: '', lastName: '' }] );
+    email: g.email || '',
+    mobile: g.mobile || '',
+    commsEmail: g.comms_email !== false,
+    commsSms: g.comms_sms !== false,
+  };
+}
+
+const blankGuest = {
+  firstName: '',
+  lastName: '',
+  isChild: false,
+  dietaryRequirement: 'none',
+  dietaryOther: '',
+  rsvpStatus: 'pending',
+  email: '',
+  mobile: '',
+  commsEmail: true,
+  commsSms: true,
+};
+
+function initialGuestErrors(initial: HouseholdFormData): GuestErrors[] {
+  const count = Array.isArray(initial?.guests) && initial.guests.length ? initial.guests.length : 1;
+  return Array.from({ length: count }, () => ({}));
+}
+
+export default function EditHouseholdForm({ initial }: { initial: HouseholdFormData }) {
+  const [householdName, setHouseholdName] = useState(initial?.name ?? '');
+  const [slug, setSlug] = useState(initial?.slug ?? '');
+  const [slugEdited, setSlugEdited] = useState(false);
+  const [tags, setTags] = useState((initial?.tags ?? []).join(', '));
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+  const [personalMessage, setPersonalMessage] = useState(initial?.personal_message ?? '');
+  const [thankYouMessage, setThankYouMessage] = useState(initial?.thank_you_message ?? '');
+  const [plusOneAllowance, setPlusOneAllowance] = useState(initial?.plus_one_allowance ?? 0);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(initial?.personal_photo_url ?? null);
+  const [guests, setGuests] = useState<ReturnType<typeof makeGuestState>[]>(
+    Array.isArray(initial?.guests) && initial.guests.length
+      ? initial.guests.map(makeGuestState)
+      : [{ ...blankGuest }]
+  );
+  const [guestErrors, setGuestErrors] = useState<GuestErrors[]>(initialGuestErrors(initial));
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -69,21 +113,17 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
   useEffect(() => {
     setHouseholdName(initial?.name ?? '');
     setSlug(initial?.slug ?? '');
-    setPrimaryEmail(initial?.primary_email ?? '');
-    setSecondaryEmail(initial?.secondary_email ?? '');
-      setMobileNumbers(Array.isArray(initial?.mobile_numbers) && initial.mobile_numbers.length ? initial.mobile_numbers : [{ number: '', label: '' }]);
     setTags((initial?.tags ?? []).join(', '));
     setPersonalMessage(initial?.personal_message ?? '');
+    setThankYouMessage(initial?.thank_you_message ?? '');
     setPlusOneAllowance(initial?.plus_one_allowance ?? 0);
     setPhotoPreview(initial?.personal_photo_url ?? null);
-    setGuests(Array.isArray(initial?.guests) && initial.guests.length ? initial.guests.map((g: any) => ({
-      firstName: g.first_name,
-      lastName: g.last_name,
-      isChild: Boolean(g.is_child),
-      dietaryRequirement: g.dietary_requirement || 'none',
-      dietaryOther: g.dietary_other || '',
-      rsvpStatus: g.rsvp_status || 'pending',
-    })) : [{ ...initialGuestShape, firstName: '', lastName: '' }] );
+    setGuests(
+      Array.isArray(initial?.guests) && initial.guests.length
+        ? initial.guests.map(makeGuestState)
+        : [{ ...blankGuest }]
+    );
+    setGuestErrors(initialGuestErrors(initial));
   }, [initial]);
 
   useEffect(() => {
@@ -100,41 +140,72 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
     return () => URL.revokeObjectURL(objectUrl);
   }, [photoFile, initial]);
 
-  function normalizeAustralianMobile(value: string) {
-    const raw = String(value || '').trim();
-    if (!raw) return null;
-    if (raw.startsWith('+')) {
-      const digits = raw.replace(/[^0-9]/g, '');
-      if (digits.startsWith('61') && digits.length === 11) {
-        return `+${digits}`;
-      }
-      return null;
-    }
-    const digits = raw.replace(/\D/g, '');
-    if (digits.length === 10 && digits.startsWith('04')) {
-      return '+61' + digits.slice(1);
-    }
-    if (digits.length === 9 && digits.startsWith('4')) {
-      return '+61' + digits;
-    }
-    if (digits.length === 11 && digits.startsWith('61')) {
-      return '+' + digits;
-    }
-    return null;
-  }
-
   const updateGuest = (index: number, key: string, value: any) => {
     setGuests((prev) => prev.map((guest, idx) => (idx === index ? { ...guest, [key]: value } : guest)));
   };
 
-  const addGuest = () => setGuests((prev) => [...prev, { firstName: '', lastName: '', isChild: false, dietaryRequirement: 'none', dietaryOther: '', rsvpStatus: 'pending' }]);
-  const removeGuest = (index: number) => setGuests((prev) => prev.filter((_, idx) => idx !== index));
+  const updateGuestIsChild = (index: number, isChild: boolean) => {
+    setGuests((prev) =>
+      prev.map((guest, idx) => {
+        if (idx !== index) return guest;
+        return {
+          ...guest,
+          isChild,
+          commsEmail: isChild ? false : guest.commsEmail,
+          commsSms: isChild ? false : guest.commsSms,
+        };
+      })
+    );
+    if (isChild) {
+      setGuestErrors((prev) => {
+        const next = [...prev];
+        next[index] = { ...next[index], email: undefined, mobile: undefined };
+        return next;
+      });
+    }
+  };
+
+  const setGuestFieldError = (index: number, field: keyof GuestErrors, message: string | undefined) => {
+    setGuestErrors((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: message };
+      return next;
+    });
+  };
+
+  const handleEmailBlur = (index: number) => {
+    const g = guests[index];
+    setGuestFieldError(index, 'email', validateEmail(g.email, g.commsEmail, g.firstName));
+  };
+
+  const handleMobileBlur = (index: number) => {
+    const g = guests[index];
+    setGuestFieldError(index, 'mobile', validateMobile(g.mobile, g.commsSms, g.firstName));
+  };
+
+  const addGuest = () => {
+    setGuests((prev) => [...prev, { ...blankGuest }]);
+    setGuestErrors((prev) => [...prev, {}]);
+  };
+
+  const removeGuest = (index: number) => {
+    setGuests((prev) => prev.filter((_, idx) => idx !== index));
+    setGuestErrors((prev) => prev.filter((_, idx) => idx !== index));
+  };
 
   const reorderGuests = (fromIndex: number, toIndex: number) => {
-    const newGuests = Array.from(guests);
-    const [movedGuest] = newGuests.splice(fromIndex, 1);
-    newGuests.splice(toIndex, 0, movedGuest);
-    setGuests(newGuests);
+    setGuests((prev) => {
+      const next = Array.from(prev);
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+    setGuestErrors((prev) => {
+      const next = Array.from(prev);
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
   };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -150,51 +221,44 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
   const handleDrop = (e: React.DragEvent, toIndex: number) => {
     e.preventDefault();
     const fromIndex = Number(e.dataTransfer.getData('text/plain'));
-    if (fromIndex !== toIndex) {
-      reorderGuests(fromIndex, toIndex);
-    }
-  };
-
-
-  const updateMobileNumber = (index: number, field: 'number' | 'label', value: string) => {
-    setMobileNumbers((prev) => prev.map((item, idx) => (idx === index ? { ...item, [field]: value } : item)));
-  };
-  const addMobile = () => setMobileNumbers((prev) => [...prev, { number: '', label: '' }]);
-  const removeMobile = (index: number) => setMobileNumbers((prev) => prev.filter((_, idx) => idx !== index));
-
-  const handleMobileBlur = (index: number) => {
-    const value = mobileNumbers[index]?.number ?? '';
-    const normalized = normalizeAustralianMobile(value);
-    setMobileErrors((prev) => {
-      const copy = [...prev];
-      while (copy.length < mobileNumbers.length) copy.push('');
-      if (!normalized) {
-        copy[index] = 'Invalid Australian mobile (start with 04 or +614)';
-      } else {
-        copy[index] = '';
-      }
-      return copy;
-    });
-    if (normalized) {
-      updateMobileNumber(index, 'number', normalized);
-    }
+    if (fromIndex !== toIndex) reorderGuests(fromIndex, toIndex);
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const errors: GuestErrors[] = guests.map((guest) => ({
+      email: validateEmail(guest.email, guest.commsEmail, guest.firstName),
+      mobile: validateMobile(guest.mobile, guest.commsSms, guest.firstName),
+    }));
+    if (errors.some((err) => err.email || err.mobile)) {
+      setGuestErrors(errors);
+      return;
+    }
+
     startTransition(async () => {
       try {
         const body = new FormData();
         body.append('name', householdName);
         body.append('slug', slug);
-        body.append('primary_email', primaryEmail);
-        body.append('secondary_email', secondaryEmail || '');
-          body.append('mobile_numbers', JSON.stringify(mobileNumbers.filter((m) => m.number)));
         body.append('tags', JSON.stringify(tags.split(',').map((t: string) => t.trim()).filter(Boolean)));
         body.append('personal_message', personalMessage || '');
+        body.append('thank_you_message', thankYouMessage || '');
         body.append('plus_one_allowance', String(plusOneAllowance));
-        body.append('guests', JSON.stringify(guests.map((g, idx) => ({ first_name: g.firstName, last_name: g.lastName, is_child: Boolean(g.isChild), dietary_requirement: g.dietaryRequirement, dietary_other: g.dietaryOther || null, rsvp_status: g.rsvpStatus, display_order: idx }))));
+        body.append('guests', JSON.stringify(guests.map((g, idx) => ({
+          first_name: g.firstName,
+          last_name: g.lastName,
+          is_child: Boolean(g.isChild),
+          dietary_requirement: g.dietaryRequirement,
+          dietary_other: g.dietaryOther || null,
+          rsvp_status: g.rsvpStatus,
+          display_order: idx,
+          email: g.email || null,
+          mobile: g.mobile ? (g.mobile.replace(/[\s-]/g, '') || null) : null,
+          comms_email: g.commsEmail,
+          comms_sms: g.commsSms,
+        }))));
         if (photoFile) body.append('photo', photoFile);
 
         const res = await fetch(`/admin/api/guests/${initial.id}`, { method: 'PATCH', body });
@@ -210,7 +274,10 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
     });
   };
 
-  const inviteUrl = useMemo(() => `${process.env.NEXT_PUBLIC_SITE_URL ? `https://${process.env.NEXT_PUBLIC_SITE_URL.replace(/https?:\/\//, '')}` : (typeof window !== 'undefined' ? window.location.origin : '')}/invite/${slug || 'your-household'}`, [slug]);
+  const inviteUrl = useMemo(
+    () => `${process.env.NEXT_PUBLIC_SITE_URL ? `https://${process.env.NEXT_PUBLIC_SITE_URL.replace(/https?:\/\//, '')}` : (typeof window !== 'undefined' ? window.location.origin : '')}/invite/${slug || 'your-household'}`,
+    [slug]
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-xl shadow-slate-950/20">
@@ -246,17 +313,6 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
 
       <div className="grid gap-6 lg:grid-cols-2">
         <label className="space-y-2 text-sm text-slate-100">
-          Primary email
-          <input
-            type="email"
-            value={primaryEmail}
-            onChange={(event) => setPrimaryEmail(event.target.value)}
-            className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
-            placeholder="smith@example.com"
-            required
-          />
-        </label>
-        <label className="space-y-2 text-sm text-slate-100">
           Additional guest allowance
           <select
             value={plusOneAllowance}
@@ -267,19 +323,6 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
             <option value={1}>1 additional guest</option>
             <option value={2}>2 additional guests</option>
           </select>
-        </label>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <label className="space-y-2 text-sm text-slate-100">
-          Secondary email
-          <input
-            type="email"
-            value={secondaryEmail}
-            onChange={(event) => setSecondaryEmail(event.target.value)}
-            className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
-            placeholder="optional@example.com"
-          />
         </label>
         <label className="space-y-2 text-sm text-slate-100">
           Tags (comma-separated)
@@ -353,36 +396,6 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
 
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold text-white">Phone numbers</h2>
-          <button type="button" onClick={addMobile} className="rounded-full border border-white/10 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200 transition hover:bg-emerald-500/15">Add number</button>
-        </div>
-        <div className="space-y-4">
-          {mobileNumbers.map((number, index) => (
-            <div key={index} className="flex gap-4">
-              <input
-                value={number.number}
-                onChange={(event) => updateMobileNumber(index, 'number', event.target.value)}
-                onBlur={() => handleMobileBlur(index)}
-                className="flex-1 rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
-                placeholder="Mobile number"
-              />
-              <input
-                value={number.label}
-                onChange={(event) => updateMobileNumber(index, 'label', event.target.value)}
-                className="w-32 rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
-                placeholder="Label (e.g., mobile)"
-              />
-              {mobileNumbers.length > 1 ? (
-                <button type="button" onClick={() => removeMobile(index)} className="rounded-3xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200 transition hover:bg-rose-500/15">Remove</button>
-              ) : null}
-            </div>
-          ))}
-          {mobileErrors.map((err, i) => err ? <div key={i} className="text-rose-300 text-xs">{err}</div> : null)}
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
           <h2 className="text-lg font-semibold text-white">Guest details</h2>
           <button type="button" onClick={addGuest} className="rounded-full border border-white/10 bg-amber-300/15 px-4 py-2 text-sm text-amber-200 transition hover:bg-amber-300/20">Add guest</button>
         </div>
@@ -404,7 +417,8 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
                     <button type="button" onClick={() => removeGuest(index)} className="rounded-full bg-rose-500/10 px-4 py-2 text-sm text-rose-200 transition hover:bg-rose-500/15">Remove</button>
                   ) : null}
                 </div>
-                <div className="grid gap-4 lg:grid-cols-2">
+
+                <div className="grid gap-4 lg:grid-cols-2 mb-4">
                   <label className="space-y-2 text-sm text-slate-100">
                     First name
                     <input value={guest.firstName} onChange={(e) => updateGuest(index, 'firstName', e.target.value)} className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400" required />
@@ -414,7 +428,39 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
                     <input value={guest.lastName} onChange={(e) => updateGuest(index, 'lastName', e.target.value)} className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400" required />
                   </label>
                 </div>
-                <div className="grid gap-4 lg:grid-cols-3">
+
+                <div className="grid gap-4 lg:grid-cols-2 mb-4">
+                  <label className="space-y-2 text-sm text-slate-100">
+                    Email address
+                    <input
+                      type="email"
+                      value={guest.email}
+                      onChange={(e) => updateGuest(index, 'email', e.target.value)}
+                      onBlur={() => handleEmailBlur(index)}
+                      className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
+                      placeholder="Email address"
+                    />
+                    {guestErrors[index]?.email ? (
+                      <p className="text-xs" style={{ color: '#C4621A' }}>{guestErrors[index].email}</p>
+                    ) : null}
+                  </label>
+                  <label className="space-y-2 text-sm text-slate-100">
+                    Mobile number
+                    <input
+                      type="tel"
+                      value={guest.mobile}
+                      onChange={(e) => updateGuest(index, 'mobile', e.target.value)}
+                      onBlur={() => handleMobileBlur(index)}
+                      className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
+                      placeholder="Mobile number"
+                    />
+                    {guestErrors[index]?.mobile ? (
+                      <p className="text-xs" style={{ color: '#C4621A' }}>{guestErrors[index].mobile}</p>
+                    ) : null}
+                  </label>
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-3 mb-4">
                   <label className="space-y-2 text-sm text-slate-100">
                     RSVP status
                     <select value={guest.rsvpStatus} onChange={(e) => updateGuest(index, 'rsvpStatus', e.target.value)} className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400">
@@ -431,18 +477,52 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
                   </label>
                   <label className="space-y-2 text-sm text-slate-100">
                     Child?
-                    <select value={guest.isChild ? 'yes' : 'no'} onChange={(e) => updateGuest(index, 'isChild', e.target.value === 'yes')} className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400">
+                    <select
+                      value={guest.isChild ? 'yes' : 'no'}
+                      onChange={(e) => updateGuestIsChild(index, e.target.value === 'yes')}
+                      className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
+                    >
                       <option value="no">No</option>
                       <option value="yes">Yes</option>
                     </select>
                   </label>
                 </div>
+
                 {guest.dietaryRequirement === 'other' ? (
-                  <label className="space-y-2 text-sm text-slate-100">
-                    Dietary details
-                    <input value={guest.dietaryOther} onChange={(e) => updateGuest(index, 'dietaryOther', e.target.value)} className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400" placeholder="Please describe" />
-                  </label>
+                  <div className="mb-4">
+                    <label className="space-y-2 text-sm text-slate-100">
+                      Dietary details
+                      <input value={guest.dietaryOther} onChange={(e) => updateGuest(index, 'dietaryOther', e.target.value)} className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400" placeholder="Please describe" />
+                    </label>
+                  </div>
                 ) : null}
+
+                <div className="flex flex-wrap gap-5 pt-1">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-100">
+                    <input
+                      type="checkbox"
+                      checked={guest.commsEmail}
+                      onChange={(e) => {
+                        updateGuest(index, 'commsEmail', e.target.checked);
+                        if (!e.target.checked) setGuestFieldError(index, 'email', undefined);
+                      }}
+                      className="h-4 w-4 rounded accent-emerald-400"
+                    />
+                    Send email
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-100">
+                    <input
+                      type="checkbox"
+                      checked={guest.commsSms}
+                      onChange={(e) => {
+                        updateGuest(index, 'commsSms', e.target.checked);
+                        if (!e.target.checked) setGuestFieldError(index, 'mobile', undefined);
+                      }}
+                      className="h-4 w-4 rounded accent-emerald-400"
+                    />
+                    Send SMS
+                  </label>
+                </div>
               </div>
             </div>
           ))}
@@ -453,6 +533,19 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
         Personal message
         <textarea value={personalMessage} onChange={(e) => setPersonalMessage(e.target.value)} rows={4} className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400" placeholder="Message for the household, optional." />
       </label>
+
+      <div className="space-y-2 text-sm text-slate-100">
+        <p>Thank you message <span className="text-slate-500">(optional)</span></p>
+        <textarea
+          value={thankYouMessage}
+          onChange={(e) => setThankYouMessage(e.target.value)}
+          rows={4}
+          className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none focus:border-emerald-400"
+          placeholder="Shown on the thank you page after the wedding"
+        />
+        <p className="text-xs text-slate-500">Shown on the thank you page after the wedding</p>
+      </div>
+
       {error ? <div className="rounded-3xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div> : null}
       <div className="flex gap-2">
         <button type="submit" disabled={isPending} className="w-full rounded-3xl bg-amber-300 px-5 py-4 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-70">{isPending ? 'Saving...' : 'Save household'}</button>

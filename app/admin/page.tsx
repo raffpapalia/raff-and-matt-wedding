@@ -16,20 +16,17 @@ function AdminNav() {
         <p className="mt-1 text-2xl font-semibold text-white">Wedding dashboard</p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <a href="/admin/guests" className="rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm text-amber-100 transition hover:border-amber-300 hover:bg-amber-300/20">
-          Guest list
+        <a href="/admin" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
+          Dashboard
         </a>
-        <a href="/admin/questions" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
-          Questions
+        <a href="/admin/guests" className="rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm text-amber-100 transition hover:border-amber-300 hover:bg-amber-300/20">
+          Guests
         </a>
         <a href="/admin/responses" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
           Responses
         </a>
-        <a href="/admin/settings" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
-          Settings
-        </a>
-        <a href="/admin/guests/new" className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200">
-          Add household
+        <a href="/admin/setup" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
+          Setup
         </a>
         <form action="/admin/logout" method="post">
           <button className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10" type="submit">
@@ -232,19 +229,6 @@ export default async function AdminPage({ searchParams }: { searchParams?: { err
             </div>
           </div>
         )}
-
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
-          <h2 className="text-xl font-semibold text-white">Quick links</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <a href="/admin/guests" className="rounded-3xl border border-white/10 bg-slate-950/70 px-5 py-4 text-sm font-medium text-white transition hover:bg-slate-900/90">
-              View guest list
-            </a>
-            <a href="/admin/guests/new" className="rounded-3xl border border-white/10 bg-amber-300 px-5 py-4 text-sm font-medium text-slate-950 transition hover:bg-amber-200">
-              Add new household
-            </a>
-          </div>
-          <p className="mt-4 text-sm text-slate-400">Use the guest list page to review household RSVP status and copy invite links quickly.</p>
-        </div>
       </div>
     </div>
   );
