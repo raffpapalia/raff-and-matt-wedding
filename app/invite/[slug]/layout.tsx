@@ -3,5 +3,5 @@ export default function InviteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <div>{children}</div>;
 }

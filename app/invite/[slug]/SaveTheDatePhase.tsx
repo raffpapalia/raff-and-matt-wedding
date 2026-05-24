@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import AddToCalendar from '@/app/components/AddToCalendar';
+import type { Settings } from '@/lib/supabase';
 
 interface SaveTheDatePhaseProps {
   guestName: string;
@@ -12,6 +14,7 @@ interface SaveTheDatePhaseProps {
   invitationFooter?: string;
   weddingDate?: string;
   weddingLocation?: string;
+  settings?: Settings;
 }
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -45,6 +48,7 @@ export default function SaveTheDatePhase({
   invitationFooter = 'Full invitation coming soon',
   weddingDate = '2027-07-12',
   weddingLocation = 'Melbourne, Victoria',
+  settings,
 }: SaveTheDatePhaseProps) {
   const [mounted, setMounted] = useState(false);
   const [visibleStages, setVisibleStages] = useState<Set<AnimationStage>>(
@@ -92,7 +96,7 @@ export default function SaveTheDatePhase({
 
   return (
     <div
-      className={`relative w-full h-screen flex items-center justify-center overflow-hidden ${
+      className={`relative w-full min-h-screen flex items-center justify-center ${
         isGreenVisible ? 'bg-[#0A1F14]' : 'bg-black'
       } transition-colors duration-1000 ease-out`}
     >
@@ -101,15 +105,17 @@ export default function SaveTheDatePhase({
         className={`absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent transition-opacity duration-1000 ${
           isGreenVisible ? 'opacity-100' : 'opacity-0'
         }`}
+        style={{ pointerEvents: 'none' }}
       />
 
       {/* Subtle grain texture overlay */}
       <div className="absolute inset-0 opacity-5" style={{
-        backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><filter id=\"noise\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" seed=\"1\"/></filter><rect width=\"100\" height=\"100\" fill=\"%23fff\" filter=\"url(%23noise)\"/></svg>')"
+        backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><filter id=\"noise\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" seed=\"1\"/></filter><rect width=\"100\" height=\"100\" fill=\"%23fff\" filter=\"url(%23noise)\"/></svg>')",
+        pointerEvents: 'none',
       }} />
 
       {/* Main content container */}
-      <div className="relative z-10 w-full max-w-5xl h-full flex flex-col items-center justify-center px-4 sm:px-6">
+      <div className="relative z-10 w-full max-w-5xl flex flex-col items-center justify-center px-4 sm:px-6 py-16">
         {/* Guest Name - First to appear */}
         <div
           className={`mb-6 sm:mb-12 text-center transition-all duration-1000 ${
@@ -266,6 +272,18 @@ export default function SaveTheDatePhase({
               >
                 Full invitation coming soon
               </p>
+            </div>
+          )}
+
+          {settings && (
+            <div
+              className={`mb-8 transition-all duration-700 ${
+                isFooterVisible
+                  ? 'opacity-100 translate-y-0'
+                  : 'opacity-0 translate-y-2'
+              }`}
+            >
+              <AddToCalendar mode="save_the_date" settings={settings} />
             </div>
           )}
 

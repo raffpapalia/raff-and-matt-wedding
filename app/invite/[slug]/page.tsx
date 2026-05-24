@@ -154,6 +154,7 @@ export default async function InvitePage({
         invitationFooter={settings.invitation_footer}
         weddingDate={settings.wedding_date}
         weddingLocation={settings.location}
+        settings={settings}
       />
     );
   }

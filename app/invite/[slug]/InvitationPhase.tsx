@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import RSVPPhase from './RSVPPhase';
+import AddToCalendar from '@/app/components/AddToCalendar';
 import type { Household, Guest, Settings, CustomQuestion, CustomAnswer } from '@/lib/supabase';
 
 interface InvitationPhaseProps {
@@ -60,25 +61,21 @@ export default function InvitationPhase({
   existingAnswers,
   guestName,
 }: InvitationPhaseProps) {
-  return (
-    <div className="min-h-screen w-full relative" style={{ backgroundColor: '#0A1F14', color: '#F2E8D0' }}>
-      {/* Grain texture */}
-      <div
-        className="fixed inset-0 opacity-[0.03] pointer-events-none z-0"
-        style={{
-          backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><filter id=\"noise\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" seed=\"1\"/></filter><rect width=\"100\" height=\"100\" fill=\"%23fff\" filter=\"url(%23noise)\"/></svg>')",
-        }}
-      />
+  const alreadyRsvpd = guests.some(
+    (g) => g.rsvp_status === 'attending' || g.rsvp_status === 'declined',
+  );
 
-      <div className="relative z-10 max-w-lg mx-auto px-6">
+  return (
+    <div style={{ backgroundColor: '#0A1F14', color: '#F2E8D0' }}>
+      <div className="max-w-lg mx-auto px-6">
 
         {/* ── 1. HERO ── */}
-        <section className="pt-20 pb-16 text-center">
+        <section id="invitation-hero" className="pt-20 pb-16 text-center">
           <p
             className="text-xs uppercase tracking-[0.3em] text-[#D4A83A]/70 mb-8 font-light"
             style={{ fontFamily: 'var(--font-dm-sans)' }}
           >
-            You&apos;re invited
+            You&apos;re invited to a wedding
           </p>
 
           <h1
@@ -102,11 +99,21 @@ export default function InvitationPhase({
 
           {household.personal_message && (
             <p
-              className="text-sm sm:text-base text-[#F2E8D0]/70 font-light italic leading-relaxed max-w-sm mx-auto"
+              className="text-sm sm:text-base text-[#F2E8D0]/70 font-light italic leading-relaxed max-w-sm mx-auto mb-10"
               style={{ fontFamily: 'var(--font-dm-sans)' }}
             >
               {household.personal_message}
             </p>
+          )}
+
+          {!alreadyRsvpd && (
+            <a
+              href="#invitation-rsvp"
+              className="inline-block px-7 py-3 border border-[#D4A83A]/50 text-[#D4A83A] text-xs font-light tracking-[0.2em] uppercase"
+              style={{ fontFamily: 'var(--font-dm-sans)' }}
+            >
+              ↓ RSVP
+            </a>
           )}
         </section>
 
@@ -171,6 +178,9 @@ export default function InvitationPhase({
               </div>
             ))}
           </div>
+          <div className="mt-10">
+            <AddToCalendar mode="invitation" settings={settings} />
+          </div>
         </section>
 
         <GoldDivider />
@@ -196,7 +206,7 @@ export default function InvitationPhase({
         <GoldDivider />
 
         {/* ── 5. RSVP ── */}
-        <section className="py-16">
+        <section id="invitation-rsvp" className="py-16">
           <SectionLabel>RSVP</SectionLabel>
           <RSVPPhase
             household={household}
@@ -252,7 +262,7 @@ export default function InvitationPhase({
           </p>
           <a
             href="#"
-            className="inline-block px-7 py-3 border border-[#D4A83A]/50 text-[#D4A83A] text-xs font-light tracking-[0.2em] uppercase hover:bg-[#D4A83A]/10 transition-colors"
+            className="inline-block px-7 py-3 border border-[#D4A83A]/50 text-[#D4A83A] text-xs font-light tracking-[0.2em] uppercase"
             style={{ fontFamily: 'var(--font-dm-sans)' }}
           >
             Upload your photos

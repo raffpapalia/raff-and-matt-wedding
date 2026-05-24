@@ -299,7 +299,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
 
   if (submitted) {
     return (
-      <div className={embedded ? 'w-full' : 'relative w-full h-screen flex items-center justify-center overflow-hidden bg-[#0A1F14]'}>
+      <div className="w-full">
         {!embedded && <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" />}
         <div className={embedded ? 'text-center py-4' : 'relative z-10 w-full max-w-2xl px-4 sm:px-6 text-center'}>
           <h2 className="text-5xl sm:text-6xl font-light text-[#F2E8D0] mb-8" style={{ fontFamily: 'var(--font-cinzel)' }}>
@@ -312,11 +312,23 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
             More details will be sent your way soon.
           </p>
           <button
-            onClick={() => { setLoading(false); setSubmitted(false); }}
-            className="text-[#D4A83A] hover:text-[#F2E8D0] transition-colors text-sm underline"
-            style={{ fontFamily: 'var(--font-dm-sans)' }}
+            type="button"
+            onClick={() => setSubmitted(false)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#D4A83A',
+              textDecoration: 'underline',
+              fontSize: '1rem',
+              padding: '20px 40px',
+              margin: '0 auto',
+              display: 'block',
+              cursor: 'pointer',
+              WebkitTapHighlightColor: 'transparent',
+              touchAction: 'manipulation',
+            }}
           >
-            Need to change your response? Click here to update your RSVP
+            Update your RSVP
           </button>
         </div>
       </div>
@@ -325,15 +337,14 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
 
   if (showSummary) {
     return (
-      <div className={embedded ? 'w-full' : 'relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-[#0A1F14] py-12 sm:py-16'}>
-        {!embedded && <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" />}
-        <div className={embedded ? 'w-full' : 'relative z-10 w-full max-w-2xl px-4 sm:px-6'}>
-          <div className="text-center mb-10">
-            <h2 className="text-4xl sm:text-5xl font-light text-[#F2E8D0] mb-4" style={{ fontFamily: 'var(--font-cinzel)' }}>
+      <div className="w-full">
+        <div className="w-full">
+          <div className="text-center mb-6">
+            <h2 className="text-4xl sm:text-5xl font-light text-[#F2E8D0] mb-3" style={{ fontFamily: 'var(--font-cinzel)' }}>
               {householdName}
             </h2>
-            <div className="h-px w-24 bg-[#D4A83A] mx-auto mb-8" />
-            <p className="text-2xl sm:text-3xl font-light text-[#F2E8D0] mb-2" style={{ fontFamily: 'var(--font-cinzel)' }}>
+            <div className="h-px w-24 bg-[#D4A83A] mx-auto mb-5" />
+            <p className="text-2xl sm:text-3xl font-light text-[#F2E8D0] mb-1" style={{ fontFamily: 'var(--font-cinzel)' }}>
               You&apos;re all set!
             </p>
             <p className="text-base text-white/60 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
@@ -341,10 +352,10 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
             </p>
           </div>
 
-          <div className="space-y-6 mb-10">
+          <div className="space-y-0 mb-6">
             {guests.map(guest => (
-              <div key={guest.id} className="border-b border-[#D4A83A]/20 pb-6 last:border-b-0">
-                <div className="flex items-center justify-between mb-2">
+              <div key={guest.id} className="border-b border-[#D4A83A]/20 py-3 last:border-b-0">
+                <div className="flex items-center justify-between">
                   <h3 className="text-lg font-light text-[#F2E8D0]" style={{ fontFamily: 'var(--font-cinzel)' }}>
                     {guest.first_name} {guest.last_name}
                   </h3>
@@ -360,8 +371,8 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                   </span>
                 </div>
                 {guest.rsvp_status === 'attending' && guest.dietary_requirement && guest.dietary_requirement !== 'none' && (
-                  <p className="text-sm text-white/50 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-                    Dietary: {getDietaryLabel(guest.dietary_requirement, guest.dietary_other, DIETARY_OPTIONS)}
+                  <p className="text-xs text-white/40 font-light mt-0.5" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+                    {getDietaryLabel(guest.dietary_requirement, guest.dietary_other, DIETARY_OPTIONS)}
                     {guest.dietary_requirement === 'other' && guest.dietary_other ? ` — ${guest.dietary_other}` : ''}
                   </p>
                 )}
@@ -369,11 +380,23 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
             ))}
           </div>
 
-          <div className="text-center">
+          <div>
             <button
+              type="button"
               onClick={() => setShowSummary(false)}
-              className="text-[#D4A83A] hover:text-[#F2E8D0] transition-colors text-sm underline"
-              style={{ fontFamily: 'var(--font-dm-sans)' }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#D4A83A',
+                textDecoration: 'underline',
+                fontSize: '1rem',
+                padding: '20px 40px',
+                margin: '0 auto',
+                display: 'block',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation',
+              }}
             >
               Update your RSVP
             </button>
@@ -384,13 +407,8 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
   }
 
   return (
-    <div className={embedded ? 'w-full' : 'relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-[#0A1F14] py-12 sm:py-16'}>
-      {!embedded && <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" />}
-      {!embedded && <div className="absolute inset-0 opacity-5" style={{
-        backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><filter id=\"noise\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" seed=\"1\"/></filter><rect width=\"100\" height=\"100\" fill=\"%23fff\" filter=\"url(%23noise)\"/></svg>')"
-      }} />}
-
-      <div className={embedded ? 'w-full' : 'relative z-10 w-full max-w-2xl px-4 sm:px-6'}>
+    <div className="w-full">
+      <div className="w-full">
         {/* Header with Personal Photo and Message */}
         {!embedded && <div className="mb-12 sm:mb-16 text-center">
           {/* Personal Photo */}
