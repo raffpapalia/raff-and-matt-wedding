@@ -300,7 +300,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
   if (submitted) {
     return (
       <div className="w-full">
-        {!embedded && <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" />}
+        {!embedded && <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" aria-hidden="true" />}
         <div className={embedded ? 'text-center py-4' : 'relative z-10 w-full max-w-2xl px-4 sm:px-6 text-center'}>
           <h2 className="text-5xl sm:text-6xl font-light text-[#F2E8D0] mb-8" style={{ fontFamily: 'var(--font-cinzel)' }}>
             Thank you!
@@ -463,7 +463,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                         ? 'bg-[#D4A83A] text-[#0A1F14]'
                         : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
                     }`}
-                    style={{ fontFamily: 'var(--font-dm-sans)' }}
+                    style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                   >
                     Yes
                   </button>
@@ -475,7 +475,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                         ? 'bg-[#D4A83A] text-[#0A1F14]'
                         : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
                     }`}
-                    style={{ fontFamily: 'var(--font-dm-sans)' }}
+                    style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                   >
                     No
                   </button>
@@ -497,7 +497,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                           ? 'bg-[#D4A83A] text-[#0A1F14]'
                           : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
                       }`}
-                      style={{ fontFamily: 'var(--font-dm-sans)' }}
+                      style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                     >
                       No
                     </button>
@@ -509,7 +509,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                           ? 'bg-[#D4A83A] text-[#0A1F14]'
                           : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
                       }`}
-                      style={{ fontFamily: 'var(--font-dm-sans)' }}
+                      style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                     >
                       Yes
                     </button>
@@ -571,6 +571,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                         type="button"
                         onClick={() => removePlusOne(plusOne.id)}
                         className="text-xs text-[#D4A83A]/60 hover:text-[#D4A83A] transition-colors"
+                        style={{ touchAction: 'manipulation' }}
                       >
                         Remove
                       </button>
@@ -608,7 +609,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                               ? 'bg-[#D4A83A] text-[#0A1F14]'
                               : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
                           }`}
-                          style={{ fontFamily: 'var(--font-dm-sans)' }}
+                          style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                         >
                           Yes
                         </button>
@@ -620,7 +621,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                               ? 'bg-[#D4A83A] text-[#0A1F14]'
                               : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
                           }`}
-                          style={{ fontFamily: 'var(--font-dm-sans)' }}
+                          style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                         >
                           No
                         </button>
@@ -641,7 +642,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                                 ? 'bg-[#D4A83A] text-[#0A1F14]'
                                 : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
                             }`}
-                            style={{ fontFamily: 'var(--font-dm-sans)' }}
+                            style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                           >
                             No
                           </button>
@@ -653,7 +654,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                                 ? 'bg-[#D4A83A] text-[#0A1F14]'
                                 : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
                             }`}
-                            style={{ fontFamily: 'var(--font-dm-sans)' }}
+                            style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                           >
                             Yes
                           </button>
@@ -697,7 +698,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                     type="button"
                     onClick={addPlusOne}
                     className="text-sm text-[#D4A83A] hover:text-[#F2E8D0] transition-colors underline"
-                    style={{ fontFamily: 'var(--font-dm-sans)' }}
+                    style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                   >
                     + Add another guest
                   </button>
@@ -750,7 +751,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                               ? 'bg-[#D4A83A] text-[#0A1F14]'
                               : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
                           }`}
-                          style={{ fontFamily: 'var(--font-dm-sans)' }}
+                          style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                         >
                           {val === 'yes' ? 'Yes' : 'No'}
                         </button>
@@ -804,7 +805,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                 type="submit"
                 disabled={loading}
                 className="w-full py-4 bg-[#D4A83A] text-[#0A1F14] font-light uppercase tracking-widest transition-all disabled:opacity-50 hover:bg-[#E8B854]"
-                style={{ fontFamily: 'var(--font-dm-sans)' }}
+                style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
               >
                 {loading ? 'Submitting...' : 'Submit RSVP'}
               </button>

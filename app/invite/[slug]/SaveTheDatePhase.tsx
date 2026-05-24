@@ -96,22 +96,21 @@ export default function SaveTheDatePhase({
 
   return (
     <div
-      className={`relative w-full min-h-screen flex items-center justify-center ${
+      className={`relative w-full min-h-dvh flex items-center justify-center ${
         isGreenVisible ? 'bg-[#0A1F14]' : 'bg-black'
       } transition-colors duration-1000 ease-out`}
     >
       {/* Animated background fade */}
       <div
-        className={`absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent transition-opacity duration-1000 ${
+        className={`absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent transition-opacity duration-1000 ${
           isGreenVisible ? 'opacity-100' : 'opacity-0'
         }`}
-        style={{ pointerEvents: 'none' }}
+        aria-hidden="true"
       />
 
       {/* Subtle grain texture overlay */}
-      <div className="absolute inset-0 opacity-5" style={{
+      <div className="absolute inset-0 pointer-events-none opacity-5" aria-hidden="true" style={{
         backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><filter id=\"noise\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" seed=\"1\"/></filter><rect width=\"100\" height=\"100\" fill=\"%23fff\" filter=\"url(%23noise)\"/></svg>')",
-        pointerEvents: 'none',
       }} />
 
       {/* Main content container */}
