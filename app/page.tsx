@@ -1,65 +1,147 @@
-import Image from "next/image";
+import FindInvitationForm from './FindInvitationForm';
+import { Parallelogram, WaterRipple, LightBeam, Particles, FloatingPetal } from './invite/[slug]/v3/primitives';
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div
+      style={{
+        position: 'relative',
+        minHeight: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        backgroundColor: '#0A1F14',
+        color: '#F2E8D0',
+      }}
+    >
+      {/* Ambience */}
+      <WaterRipple opacity={0.08} />
+      <LightBeam delay={0} opacity={0.02} />
+      <Particles count={14} color="rgba(212,168,58,0.5)" />
+      <FloatingPetal delay={2} top="20%" duration={24} color="#D4A83A" />
+      <FloatingPetal delay={11} top="68%" duration={20} color="#C4621A" flip />
+
+      {/* Corner mark */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '1.75rem',
+          left: '1.75rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.6rem',
+          pointerEvents: 'none',
+        }}
+      >
+        <Parallelogram width={16} height={8} color="#D4A83A" skew={5} />
+        <span
+          style={{
+            fontFamily: 'var(--font-dm-sans)',
+            fontSize: '0.55rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.35em',
+            color: '#D4A83A',
+            opacity: 0.8,
+          }}
+        >
+          M &amp; R · 2027
+        </span>
+      </div>
+
+      {/* Main */}
+      <main
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: '6rem 1.5rem 3rem',
+        }}
+      >
+        {/* Wordmark */}
+        <h1
+          style={{
+            fontFamily: 'var(--font-cinzel)',
+            fontSize: 'clamp(1.25rem, 4vw, 1.75rem)',
+            letterSpacing: '0.2em',
+            color: '#D4A83A',
+            margin: '0 0 1.5rem',
+          }}
+        >
+          M &amp; R · 2027
+        </h1>
+
+        {/* Parallelogram divider */}
+        <div style={{ marginBottom: '1.5rem' }} aria-hidden="true">
+          <Parallelogram width={44} height={16} color="#D4A83A" skew={9} fillOpacity={0.85} />
+        </div>
+
+        {/* Tagline */}
+        <p
+          style={{
+            fontFamily: 'var(--font-cinzel)',
+            fontStyle: 'italic',
+            fontSize: 'clamp(0.95rem, 2.2vw, 1.125rem)',
+            lineHeight: 1.6,
+            color: '#F2E8D0',
+            opacity: 0.85,
+            maxWidth: '440px',
+            margin: '0 0 clamp(2.5rem, 6vw, 4rem)',
+          }}
+        >
+          Cancel your plans. We&apos;ve made better ones.
+        </p>
+
+        {/* Find your invitation */}
+        <section style={{ width: '100%', maxWidth: '420px' }}>
+          <h2
+            style={{
+              fontFamily: 'var(--font-dm-sans)',
+              fontWeight: 400,
+              fontSize: '0.6rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.4em',
+              color: '#D4A83A',
+              opacity: 0.85,
+              margin: '0 0 0.75rem',
+            }}
+          >
+            Find Your Invitation
+          </h2>
+          <p
+            style={{
+              fontFamily: 'var(--font-dm-sans)',
+              fontSize: '0.85rem',
+              color: 'rgba(242,232,208,0.6)',
+              lineHeight: 1.7,
+              marginBottom: '2rem',
+            }}
+          >
+            Enter your last name and email address and, if we have you on the list, we&apos;ll
+            send your personal invite link.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+          <FindInvitationForm />
+        </section>
       </main>
+
+      {/* Footer */}
+      <footer
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          textAlign: 'center',
+          padding: '0 1.5rem 2.5rem',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }} aria-hidden="true">
+          <Parallelogram width={20} height={10} color="#D4A83A" skew={5} fillOpacity={0.7} />
+          <Parallelogram width={20} height={10} color="#C4621A" skew={5} fillOpacity={0.5} />
+        </div>
+      </footer>
     </div>
   );
 }
