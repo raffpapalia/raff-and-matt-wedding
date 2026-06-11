@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(Remove-Item -Force \"c:\\\\Users\\\\RadiumPCs\\\\Documents\\\\Wedding Website\\\\raff-and-matt-wedding\\\\app\\\\invite\\\\test\\\\page.tsx\")"
+      "Bash(Remove-Item -Force \"c:\\\\Users\\\\RadiumPCs\\\\Documents\\\\Wedding Website\\\\raff-and-matt-wedding\\\\app\\\\invite\\\\test\\\\page.tsx\")",
+      "Bash(mkdir -p \"c:\\\\Users\\\\RadiumPCs\\\\Documents\\\\Wedding Website\\\\raff-and-matt-wedding\\\\app\\\\invite\\\\[slug]\\\\v3\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\RadiumPCs\\Documents\\Wedding Website\\raff-and-matt-wedding\\app\\invite\\[slug]"
     ]
   }
 }

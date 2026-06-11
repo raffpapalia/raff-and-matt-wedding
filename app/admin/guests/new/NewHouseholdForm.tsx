@@ -29,7 +29,8 @@ const initialGuest = {
   commsSms: true,
 };
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'mattandraff.com';
+const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mattandraff.com';
+const baseUrl = rawSiteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
 function slugify(text: string) {
   return text

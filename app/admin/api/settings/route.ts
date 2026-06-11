@@ -15,7 +15,7 @@ export async function GET() {
 
   const { data, error } = await supabaseServer
     .from('settings')
-    .select('key, value, updated_at');
+    .select('key, value');
 
   if (error) {
     return NextResponse.json({ message: 'Failed to fetch settings', details: error.message }, { status: 500 });
@@ -34,7 +34,6 @@ export async function PATCH(request: NextRequest) {
   const rows = Object.entries(body).map(([key, value]) => ({
     key,
     value,
-    updated_at: new Date().toISOString(),
   }));
 
   const { error } = await supabaseServer

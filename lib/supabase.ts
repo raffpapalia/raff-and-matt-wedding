@@ -72,11 +72,12 @@ export type CustomAnswer = {
 
 export type Communication = {
   id: string;
-  guest_id: string;
+  household_id: string;
   type: 'sms' | 'email';
   message: string;
   sent_at: string;
   status: string;
+  created_at: string;
 };
 
 export type GuestTag = {

@@ -14,6 +14,8 @@ type GuestRow = {
   pending: number;
   commsEmail: number;
   commsSms: number;
+  linkOpenCount: number;
+  linkFirstOpenedAt: string | null;
 };
 
 const PAGE_SIZE = 20;
@@ -36,7 +38,9 @@ function statusBadge(label: string, value: number, colorClass: string) {
 
 function CopySlugChip({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false);
-  const siteUrl = (typeof window !== 'undefined' && (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin)) || (process.env.NEXT_PUBLIC_SITE_URL ?? '');
+  const siteUrl = typeof window !== 'undefined'
+    ? window.location.origin
+    : ((process.env.NEXT_PUBLIC_SITE_URL || 'https://mattandraff.com').replace(/\/$/, ''));
   const full = siteUrl.replace(/\/$/, '') + `/invite/${slug}`;
 
   return (
@@ -145,6 +149,8 @@ export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
               <th className="px-4 py-3">Guests</th>
               <th className="px-4 py-3">RSVP summary</th>
               <th className="px-4 py-3">Comms</th>
+              <th className="px-4 py-3">Link opens</th>
+              <th className="px-4 py-3">First opened</th>
               <th className="px-4 py-3">Tags</th>
               <th className="px-4 py-3">Invite link</th>
               <th className="px-4 py-3">Actions</th>
@@ -153,7 +159,7 @@ export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
           <tbody>
             {pageRows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-sm text-slate-400">
+                <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-400">
                   No households match this filter.
                 </td>
               </tr>
@@ -182,6 +188,14 @@ export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
                         </span>
                       ) : null}
                     </div>
+                  </td>
+                  <td className="px-4 py-3 align-top text-slate-300">
+                    {row.linkOpenCount > 0 ? row.linkOpenCount : <span className="text-slate-600">—</span>}
+                  </td>
+                  <td className="px-4 py-3 align-top text-xs text-slate-400">
+                    {row.linkFirstOpenedAt
+                      ? new Date(row.linkFirstOpenedAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+                      : <span className="text-slate-600">—</span>}
                   </td>
                   <td className="px-4 py-3 align-top">
                     <div className="flex flex-wrap gap-2">

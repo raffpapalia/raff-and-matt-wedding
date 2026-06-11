@@ -339,15 +339,11 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
     return (
       <div className="w-full">
         <div className="w-full">
-          <div className="text-center mb-6">
-            <h2 className="text-4xl sm:text-5xl font-light text-[#F2E8D0] mb-3" style={{ fontFamily: 'var(--font-cinzel)' }}>
-              {householdName}
-            </h2>
-            <div className="h-px w-24 bg-[#D4A83A] mx-auto mb-5" />
-            <p className="text-2xl sm:text-3xl font-light text-[#F2E8D0] mb-1" style={{ fontFamily: 'var(--font-cinzel)' }}>
+          <div className="mb-6">
+            <p className="text-lg font-light text-[#F2E8D0] mb-1" style={{ fontFamily: 'var(--font-cinzel)' }}>
               You&apos;re all set!
             </p>
-            <p className="text-base text-white/60 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+            <p className="text-sm text-white/50 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
               Here&apos;s what we have for you.
             </p>
           </div>

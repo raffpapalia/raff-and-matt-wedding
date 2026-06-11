@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'your-domain.com';
-
 export default function CopyInviteLinkButton({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false);
-  const url = `https://${baseUrl}/invite/${slug}`;
+  const origin = typeof window !== 'undefined'
+    ? window.location.origin
+    : (process.env.NEXT_PUBLIC_SITE_URL || 'https://mattandraff.com').replace(/\/$/, '');
+  const url = `${origin}/invite/${slug}`;
 
   return (
     <button

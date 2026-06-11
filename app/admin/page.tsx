@@ -22,6 +22,9 @@ function AdminNav() {
         <a href="/admin/guests" className="rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm text-amber-100 transition hover:border-amber-300 hover:bg-amber-300/20">
           Guests
         </a>
+        <a href="/admin/comms" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
+          Comms
+        </a>
         <a href="/admin/responses" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
           Responses
         </a>
@@ -65,10 +68,10 @@ function StatusBar({ attending, declined, pending }: { attending: number; declin
         <p>RSVP progress</p>
         <p>{total} guest{total === 1 ? '' : 's'}</p>
       </div>
-      <div className="h-4 overflow-hidden rounded-full bg-slate-900">
-        <div className="h-full bg-emerald-400" style={{ width: `${(attending / total) * 100}%` }} />
-        <div className="h-full bg-amber-400" style={{ width: `${(declined / total) * 100}%` }} />
-        <div className="h-full bg-slate-500" style={{ width: `${(pending / total) * 100}%` }} />
+      <div className="flex h-4 overflow-hidden rounded-full bg-slate-900">
+        <div className="h-full bg-emerald-400 transition-all" style={{ width: `${(attending / total) * 100}%` }} />
+        <div className="h-full bg-amber-400 transition-all" style={{ width: `${(declined / total) * 100}%` }} />
+        <div className="h-full bg-slate-500 transition-all" style={{ width: `${(pending / total) * 100}%` }} />
       </div>
       <div className="grid grid-cols-3 gap-3">
         <StatusPill label="Attending" value={attending} colorClass="text-emerald-300" />
@@ -105,7 +108,7 @@ function PhaseForm({ currentPhase }: { currentPhase: string }) {
   );
 }
 
-function DashboardHeader({ daysUntil }: { daysUntil: number }) {
+function DashboardHeader({ daysUntil, totalHouseholds }: { daysUntil: number; totalHouseholds: number }) {
   return (
     <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-950/40 to-slate-950/70 p-8 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
       <p className="text-sm uppercase tracking-[0.35em] text-emerald-200/70">Welcome back</p>
@@ -118,7 +121,7 @@ function DashboardHeader({ daysUntil }: { daysUntil: number }) {
         </div>
         <div className="rounded-3xl border border-white/10 bg-white/5 px-6 py-5 text-white">
           <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Households invited</p>
-          <p className="mt-2 text-5xl font-semibold text-white">{daysUntil >= 0 ? 'On track' : 'Soon'}</p>
+          <p className="mt-2 text-5xl font-semibold text-white">{totalHouseholds}</p>
         </div>
       </div>
     </div>
@@ -189,9 +192,10 @@ function LoginForm({ error }: { error?: string }) {
   );
 }
 
-export default async function AdminPage({ searchParams }: { searchParams?: { error?: string } }) {
+export default async function AdminPage({ searchParams }: { searchParams?: Promise<{ error?: string }> | { error?: string } }) {
+  const params = searchParams instanceof Promise ? await searchParams : (searchParams ?? {});
   if (!(await isAdminAuthenticated())) {
-    return <LoginForm error={searchParams?.error} />;
+    return <LoginForm error={params?.error} />;
   }
 
   const dashboard = await getDashboardData();
@@ -203,7 +207,7 @@ export default async function AdminPage({ searchParams }: { searchParams?: { err
     <div className="space-y-8">
       <AdminNav />
       <div className="space-y-8 lg:space-y-10">
-        <DashboardHeader daysUntil={daysUntil} />
+        <DashboardHeader daysUntil={daysUntil} totalHouseholds={dashboard.totalHouseholds} />
         <div className="grid gap-6 md:grid-cols-3">
           <SummaryCard label="Households invited" value={`${dashboard.totalHouseholds}`} />
           <SummaryCard label="Confirmed guests" value={`${dashboard.attending}`} detail="Attending" />
