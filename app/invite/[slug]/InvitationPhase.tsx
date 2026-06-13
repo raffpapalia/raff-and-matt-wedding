@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import RSVPPhase from './RSVPPhase';
 import FaqAccordion from './FaqAccordion';
 import AddToCalendar from '@/app/components/AddToCalendar';
@@ -59,6 +60,73 @@ const PROTEA_URL = '/images/protea.jpg';
 const EUCALYPTUS_URL = '/images/eucalyptus.jpg';
 const MAGNOLIA_URL = '/images/magnolia.jpg';
 const VELVET_URL = '/images/velvet.jpg';
+
+// Easter egg: Konami code
+const KONAMI_SEQUENCE = [
+  'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+  'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+  'b', 'a',
+];
+// Touch equivalent: swipe up/up/down/down/left/right/left/right, then two quick taps
+const KONAMI_TOUCH_SEQUENCE = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right', 'tap', 'tap'];
+const KONAMI_SWIPE_THRESHOLD = 40; // px
+const KONAMI_TAP_MAX_MOVE = 12; // px
+const KONAMI_TAP_MAX_DURATION = 300; // ms
+const KONAMI_COLORS = ['#D4A83A', '#F2E8D0', '#C4621A'];
+
+function KonamiCelebration() {
+  const pieces = Array.from({ length: 32 }, (_, i) => ({
+    left: (i * 29 + 7) % 100,
+    size: 6 + ((i * 7) % 10),
+    delay: ((i * 11) % 13) / 10,
+    duration: 2.8 + ((i * 5) % 17) / 10,
+    rotation: (i * 53) % 360,
+    color: KONAMI_COLORS[i % KONAMI_COLORS.length],
+  }));
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9999, overflow: 'hidden' }}
+      aria-hidden="true"
+    >
+      {pieces.map((p, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'fixed',
+            top: '-8%',
+            left: `${p.left}%`,
+            width: p.size,
+            height: p.size * 0.6,
+            borderRadius: '2px',
+            backgroundColor: p.color,
+            opacity: 0.85,
+            transform: `rotate(${p.rotation}deg)`,
+            animation: `konamiFall ${p.duration}s ease-in ${p.delay}s forwards`,
+          }}
+        />
+      ))}
+      <div
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          textAlign: 'center',
+          fontFamily: 'var(--font-cinzel)',
+          fontStyle: 'italic',
+          fontSize: 'clamp(1.25rem, 5vw, 2.25rem)',
+          color: '#F2E8D0',
+          whiteSpace: 'nowrap',
+          padding: '0 1rem',
+          animation: 'konamiMessage 3s ease-in-out forwards',
+        }}
+      >
+        You found it! 🎉 #mattraff2027
+      </div>
+    </div>
+  );
+}
 
 const schedule = [
   { time: '3:00', period: 'PM', event: 'Arrival', detail: 'Drinks in the lobby' },
@@ -234,9 +302,89 @@ export default function InvitationPhase({
   faqs,
 }: InvitationPhaseProps) {
   const photoSrc = getImgSrc(household.personal_photo_url);
+  const [showKonami, setShowKonami] = useState(false);
+
+  // Easter egg: Konami code (keyboard) + swipe/tap equivalent (touch)
+  useEffect(() => {
+    let keyProgress = 0;
+    let touchProgress = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let hideTimeout: ReturnType<typeof setTimeout>;
+
+    function trigger() {
+      setShowKonami(true);
+      hideTimeout = setTimeout(() => setShowKonami(false), 4500);
+    }
+
+    function handleKeyDown(e: KeyboardEvent) {
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      if (key === KONAMI_SEQUENCE[keyProgress]) {
+        keyProgress++;
+        if (keyProgress === KONAMI_SEQUENCE.length) {
+          keyProgress = 0;
+          trigger();
+        }
+      } else {
+        keyProgress = 0;
+      }
+    }
+
+    function handleTouchStart(e: TouchEvent) {
+      if (e.touches.length !== 1) {
+        touchProgress = 0;
+        return;
+      }
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartTime = Date.now();
+    }
+
+    function handleTouchEnd(e: TouchEvent) {
+      if (e.changedTouches.length !== 1) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+      const dt = Date.now() - touchStartTime;
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+
+      let gesture: string | null = null;
+      if (absX <= KONAMI_TAP_MAX_MOVE && absY <= KONAMI_TAP_MAX_MOVE && dt <= KONAMI_TAP_MAX_DURATION) {
+        gesture = 'tap';
+      } else if (Math.max(absX, absY) >= KONAMI_SWIPE_THRESHOLD) {
+        gesture = absX > absY ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+      }
+
+      if (!gesture) return;
+
+      if (gesture === KONAMI_TOUCH_SEQUENCE[touchProgress]) {
+        touchProgress++;
+        if (touchProgress === KONAMI_TOUCH_SEQUENCE.length) {
+          touchProgress = 0;
+          trigger();
+        }
+      } else {
+        touchProgress = 0;
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+      clearTimeout(hideTimeout);
+    };
+  }, []);
 
   return (
     <div style={{ backgroundColor: '#0A1F14', color: '#F2E8D0' }}>
+      {showKonami && <KonamiCelebration />}
 
       {/* ── HERO — full viewport height ── */}
       <section
