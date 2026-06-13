@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import RSVPPhase from './RSVPPhase';
 import FaqAccordion from './FaqAccordion';
 import AddToCalendar from '@/app/components/AddToCalendar';
@@ -67,11 +67,9 @@ const KONAMI_SEQUENCE = [
   'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
   'b', 'a',
 ];
-// Touch equivalent: swipe up/up/down/down/left/right/left/right, then two quick taps
-const KONAMI_TOUCH_SEQUENCE = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right', 'tap', 'tap'];
-const KONAMI_SWIPE_THRESHOLD = 40; // px
-const KONAMI_TAP_MAX_MOVE = 12; // px
-const KONAMI_TAP_MAX_DURATION = 300; // ms
+// Touch equivalent: tap the "M & R · 2027" mark several times in quick succession
+const KONAMI_TAP_COUNT = 7;
+const KONAMI_TAP_WINDOW = 1800; // ms allowed between consecutive taps
 const KONAMI_COLORS = ['#D4A83A', '#F2E8D0', '#C4621A'];
 
 function KonamiCelebration() {
@@ -304,19 +302,20 @@ export default function InvitationPhase({
   const photoSrc = getImgSrc(household.personal_photo_url);
   const [showKonami, setShowKonami] = useState(false);
 
-  // Easter egg: Konami code (keyboard) + swipe/tap equivalent (touch)
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tapCountRef = useRef(0);
+  const tapResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Easter egg: trigger the celebration overlay, auto-hiding after 4.5s
+  const triggerKonami = useCallback(() => {
+    setShowKonami(true);
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    hideTimeoutRef.current = setTimeout(() => setShowKonami(false), 4500);
+  }, []);
+
+  // Easter egg: Konami code (keyboard)
   useEffect(() => {
     let keyProgress = 0;
-    let touchProgress = 0;
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchStartTime = 0;
-    let hideTimeout: ReturnType<typeof setTimeout>;
-
-    function trigger() {
-      setShowKonami(true);
-      hideTimeout = setTimeout(() => setShowKonami(false), 4500);
-    }
 
     function handleKeyDown(e: KeyboardEvent) {
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
@@ -324,63 +323,35 @@ export default function InvitationPhase({
         keyProgress++;
         if (keyProgress === KONAMI_SEQUENCE.length) {
           keyProgress = 0;
-          trigger();
+          triggerKonami();
         }
       } else {
         keyProgress = 0;
       }
     }
 
-    function handleTouchStart(e: TouchEvent) {
-      if (e.touches.length !== 1) {
-        touchProgress = 0;
-        return;
-      }
-      const touch = e.touches[0];
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
-      touchStartTime = Date.now();
-    }
-
-    function handleTouchEnd(e: TouchEvent) {
-      if (e.changedTouches.length !== 1) return;
-      const touch = e.changedTouches[0];
-      const dx = touch.clientX - touchStartX;
-      const dy = touch.clientY - touchStartY;
-      const dt = Date.now() - touchStartTime;
-      const absX = Math.abs(dx);
-      const absY = Math.abs(dy);
-
-      let gesture: string | null = null;
-      if (absX <= KONAMI_TAP_MAX_MOVE && absY <= KONAMI_TAP_MAX_MOVE && dt <= KONAMI_TAP_MAX_DURATION) {
-        gesture = 'tap';
-      } else if (Math.max(absX, absY) >= KONAMI_SWIPE_THRESHOLD) {
-        gesture = absX > absY ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
-      }
-
-      if (!gesture) return;
-
-      if (gesture === KONAMI_TOUCH_SEQUENCE[touchProgress]) {
-        touchProgress++;
-        if (touchProgress === KONAMI_TOUCH_SEQUENCE.length) {
-          touchProgress = 0;
-          trigger();
-        }
-      } else {
-        touchProgress = 0;
-      }
-    }
-
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchend', handleTouchEnd);
-      clearTimeout(hideTimeout);
+      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+      if (tapResetTimeoutRef.current) clearTimeout(tapResetTimeoutRef.current);
     };
-  }, []);
+  }, [triggerKonami]);
+
+  // Easter egg: touch equivalent — tap the "M & R · 2027" mark several times quickly
+  function handleLogoTap() {
+    tapCountRef.current += 1;
+    if (tapResetTimeoutRef.current) clearTimeout(tapResetTimeoutRef.current);
+
+    if (tapCountRef.current >= KONAMI_TAP_COUNT) {
+      tapCountRef.current = 0;
+      triggerKonami();
+    } else {
+      tapResetTimeoutRef.current = setTimeout(() => {
+        tapCountRef.current = 0;
+      }, KONAMI_TAP_WINDOW);
+    }
+  }
 
   return (
     <div style={{ backgroundColor: '#0A1F14', color: '#F2E8D0' }}>
@@ -405,7 +376,9 @@ export default function InvitationPhase({
         <FloatingPetal delay={9} top="64%" duration={18} color="#C89870" flip />
 
         {/* Top corner markers */}
+        {/* Easter egg: tap the M & R mark several times for a surprise */}
         <div
+          onClick={handleLogoTap}
           style={{
             position: 'absolute',
             top: '1.75rem',
@@ -413,7 +386,9 @@ export default function InvitationPhase({
             display: 'flex',
             alignItems: 'center',
             gap: '0.6rem',
-            pointerEvents: 'none',
+            cursor: 'pointer',
+            WebkitTapHighlightColor: 'transparent',
+            userSelect: 'none',
           }}
         >
           <Parallelogram width={16} height={8} color="#E8B89E" skew={5} />
