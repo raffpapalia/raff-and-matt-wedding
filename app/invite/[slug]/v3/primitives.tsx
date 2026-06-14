@@ -1,11 +1,13 @@
 // v3 design primitives — inline SVG only, pointer-events: none on all decorative elements
 
+import { palette, houseSkew } from './tokens';
+
 export function Parallelogram({
   width,
   height,
   color,
   fillOpacity = 1,
-  skew = 18,
+  skew,
   stroke = false,
 }: {
   width: number;
@@ -15,7 +17,8 @@ export function Parallelogram({
   skew?: number;
   stroke?: boolean;
 }) {
-  const pts = `${skew},0 ${width},0 ${width - skew},${height} 0,${height}`;
+  const resolvedSkew = skew ?? houseSkew(height);
+  const pts = `${resolvedSkew},0 ${width},0 ${width - resolvedSkew},${height} 0,${height}`;
   return (
     <svg
       width={width}
@@ -32,6 +35,28 @@ export function Parallelogram({
         strokeWidth={stroke ? 1.5 : 0}
       />
     </svg>
+  );
+}
+
+export function EmeraldJewel({ width = 26, height = 16 }: { width?: number; height?: number }) {
+  const skew = houseSkew(height);
+  return (
+    <div
+      style={{ position: 'relative', display: 'inline-block', flexShrink: 0, width, height, pointerEvents: 'none' }}
+      aria-hidden="true"
+    >
+      <Parallelogram width={width} height={height} color={palette.emeraldJewel} />
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: skew,
+          width: width - skew,
+          height: 1,
+          backgroundColor: palette.emeraldHighlight,
+        }}
+      />
+    </div>
   );
 }
 
@@ -77,7 +102,7 @@ export function WaterRipple({ opacity = 0.1 }: { opacity?: number }) {
           width="100%"
           height="100%"
           filter="url(#v3-water-ripple)"
-          fill="rgba(46,111,82,0.15)"
+          fill={`${palette.forestAccent}26`}
         />
       </svg>
     </div>
@@ -172,8 +197,7 @@ export function LightBeam({ delay = 0, opacity = 0.06 }: { delay?: number; opaci
         left: '50%',
         width: '100px',
         height: '140%',
-        background:
-          'linear-gradient(180deg, rgba(232,184,158,0.9) 0%, rgba(200,152,112,0.4) 40%, transparent 100%)',
+        background: `linear-gradient(180deg, ${palette.goldChampagne}E6 0%, ${palette.goldDeep}66 40%, transparent 100%)`,
         pointerEvents: 'none',
         opacity,
         animation: `beam 6s ease-in-out ${delay}s infinite`,
@@ -189,7 +213,7 @@ export function FloatingPetal({
   duration,
   scale = 1,
   flip = false,
-  color = '#E8B89E',
+  color = palette.goldChampagne,
 }: {
   delay: number;
   top: string | number;
@@ -240,7 +264,7 @@ export function FloatingPetal({
 export function SectionNumber({
   n,
   label,
-  color = '#E8B89E',
+  color = palette.goldChampagne,
 }: {
   n: string;
   label: string;

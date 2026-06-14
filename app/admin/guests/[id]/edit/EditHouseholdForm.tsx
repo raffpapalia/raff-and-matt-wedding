@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import PhotoUpload from '../../../components/PhotoUpload';
 
 const dietaryOptions = [
   { value: 'none', label: 'No preference' },
@@ -98,8 +99,7 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
   const [personalMessage, setPersonalMessage] = useState(initial?.personal_message ?? '');
   const [thankYouMessage, setThankYouMessage] = useState(initial?.thank_you_message ?? '');
   const [plusOneAllowance, setPlusOneAllowance] = useState(initial?.plus_one_allowance ?? 0);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(initial?.personal_photo_url ?? null);
+  const [personalPhotoUrl, setPersonalPhotoUrl] = useState<string | null>(initial?.personal_photo_url ?? null);
   const [guests, setGuests] = useState<ReturnType<typeof makeGuestState>[]>(
     Array.isArray(initial?.guests) && initial.guests.length
       ? initial.guests.map(makeGuestState)
@@ -117,7 +117,7 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
     setPersonalMessage(initial?.personal_message ?? '');
     setThankYouMessage(initial?.thank_you_message ?? '');
     setPlusOneAllowance(initial?.plus_one_allowance ?? 0);
-    setPhotoPreview(initial?.personal_photo_url ?? null);
+    setPersonalPhotoUrl(initial?.personal_photo_url ?? null);
     setGuests(
       Array.isArray(initial?.guests) && initial.guests.length
         ? initial.guests.map(makeGuestState)
@@ -129,16 +129,6 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
   useEffect(() => {
     if (!slugEdited) setSlug(householdName ? householdName.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-') : '');
   }, [householdName, slugEdited]);
-
-  useEffect(() => {
-    if (!photoFile) {
-      setPhotoPreview(initial?.personal_photo_url ?? null);
-      return;
-    }
-    const objectUrl = URL.createObjectURL(photoFile);
-    setPhotoPreview(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [photoFile, initial]);
 
   const updateGuest = (index: number, key: string, value: any) => {
     setGuests((prev) => prev.map((guest, idx) => (idx === index ? { ...guest, [key]: value } : guest)));
@@ -259,7 +249,7 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
           comms_email: g.commsEmail,
           comms_sms: g.commsSms,
         }))));
-        if (photoFile) body.append('photo', photoFile);
+        body.append('personal_photo_url', personalPhotoUrl ?? '');
 
         const res = await fetch(`/admin/api/guests/${initial.id}`, { method: 'PATCH', body });
         if (!res.ok) {
@@ -369,23 +359,12 @@ export default function EditHouseholdForm({ initial }: { initial: HouseholdFormD
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <label className="space-y-2 text-sm text-slate-100">
-          Personal photo (optional)
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(event) => {
-              const file = event.target.files?.[0] ?? null;
-              setPhotoFile(file);
-            }}
-            className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none file:border-0 file:bg-white/5 file:px-3 file:py-2 file:text-sm file:text-slate-200"
-          />
-          {photoPreview ? (
-            <div className="mt-3 overflow-hidden rounded-3xl border border-white/10 bg-slate-950/90">
-              <img src={photoPreview} alt="Preview" className="h-40 w-full object-cover" />
-            </div>
-          ) : null}
-        </label>
+        <PhotoUpload
+          value={personalPhotoUrl}
+          onChange={setPersonalPhotoUrl}
+          aspectRatio={3 / 4}
+          label="Personal photo (optional)"
+        />
         <label className="space-y-2 text-sm text-slate-100">
           Invite URL preview
           <div className="rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-slate-300">

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { Faq } from '@/lib/supabase';
+import { palette, alpha } from './v3/tokens';
 import { Parallelogram } from './v3/primitives';
 
 function AccordionItem({
@@ -23,7 +24,7 @@ function AccordionItem({
   }, [isOpen]);
 
   return (
-    <div style={{ borderBottom: '1px solid rgba(232,184,158,0.1)' }}>
+    <div style={{ borderBottom: `1px solid ${alpha(palette.goldChampagne, 0.1)}` }}>
       <button
         type="button"
         onClick={onToggle}
@@ -40,12 +41,12 @@ function AccordionItem({
           textAlign: 'left',
         }}
       >
-        {/* Parallelogram marker — peach when closed, emerald when open */}
+        {/* Parallelogram marker — emerald jewel as the open-state indicator, subtle forest otherwise */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <Parallelogram
             width={20}
             height={10}
-            color={isOpen ? '#1F4D3A' : '#E8B89E'}
+            color={isOpen ? palette.emeraldJewel : palette.forestAccent}
             skew={5}
             fillOpacity={0.8}
           />
@@ -57,7 +58,7 @@ function AccordionItem({
             fontFamily: 'var(--font-cinzel)',
             fontStyle: 'italic',
             fontSize: 'clamp(0.85rem, 2.5vw, 1rem)',
-            color: '#F2E8D0',
+            color: palette.cream,
             lineHeight: 1.4,
           }}
         >
@@ -69,7 +70,7 @@ function AccordionItem({
           style={{
             fontFamily: 'var(--font-dm-sans)',
             fontSize: '1.1rem',
-            color: 'rgba(232,184,158,0.6)',
+            color: alpha(palette.goldChampagne, 0.6),
             transition: 'transform 0.3s ease',
             transform: isOpen ? 'rotate(45deg)' : 'none',
             display: 'flex',
@@ -93,7 +94,7 @@ function AccordionItem({
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontSize: '0.875rem',
-              color: 'rgba(242,232,208,0.62)',
+              color: alpha(palette.cream, 0.62),
               lineHeight: 1.8,
               paddingBottom: '1.25rem',
               paddingLeft: '2.25rem',

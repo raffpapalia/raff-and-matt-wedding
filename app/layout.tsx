@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Bebas_Neue, Cinzel, DM_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Cinzel, DM_Sans } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,12 +10,6 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-const bebasNeue = Bebas_Neue({
-  variable: "--font-bebas-neue",
-  subsets: ["latin"],
-  weight: "400",
 });
 
 const cinzel = Cinzel({
@@ -44,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${bebasNeue.variable} ${cinzel.variable} ${dmSans.variable} antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${dmSans.variable} antialiased`}
     >
       <body>{children}</body>
     </html>

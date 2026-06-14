@@ -9,8 +9,6 @@ export const revalidate = 0; // ISR with on-demand revalidation
 
 async function getInviteData(slug: string) {
   try {
-    console.log('[DEBUG] getInviteData called with slug:', slug);
-
     // Fetch household by slug
     const { data: household, error: householdError } = await supabase
       .from('households')
@@ -18,10 +16,7 @@ async function getInviteData(slug: string) {
       .eq('slug', slug)
       .single();
 
-    console.log('[DEBUG] Household query result:', { household, error: householdError });
-
     if (householdError || !household) {
-      console.error('[DEBUG] Household not found or error occurred');
       return null;
     }
 
@@ -41,8 +36,6 @@ async function getInviteData(slug: string) {
       .eq('household_id', household.id)
       .order('display_order', { ascending: true });
 
-    console.log('[DEBUG] Guests query result:', { guestsCount: guests?.length, error: guestsError });
-
     if (guestsError) {
       console.error('Error fetching guests:', guestsError);
       return null;
@@ -55,8 +48,6 @@ async function getInviteData(slug: string) {
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
-
-    console.log('[DEBUG] Phase query result:', { phase, error: phaseError });
 
     if (phaseError) {
       console.error('Error fetching phase:', phaseError);
@@ -106,9 +97,6 @@ async function getInviteData(slug: string) {
 
     const faqs = (faqsRes.data ?? []) as Faq[];
 
-    console.log('[DEBUG] FAQ fetch result — count:', faqs.length, 'error:', faqsRes.error, 'service role key set:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-    console.log('[DEBUG] All data fetched successfully');
-
     return {
       household: household as Household,
       guests: (guests || []) as Guest[],
@@ -119,7 +107,7 @@ async function getInviteData(slug: string) {
       faqs,
     };
   } catch (error) {
-    console.error('[DEBUG] Exception in getInviteData:', error);
+    console.error('Error in getInviteData:', error);
     return null;
   }
 }
@@ -142,23 +130,18 @@ export default async function InvitePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  console.log('[DEBUG] InvitePage rendering for slug:', slug);
-  
+
   const data = await getInviteData(slug);
-  console.log('[DEBUG] InvitePage received data:', !!data);
 
   if (!data) {
-    console.log('[DEBUG] No data returned, showing 404');
     notFound();
   }
 
   const { household, guests, phase, questions, existingAnswers, settings, faqs } = data;
-  console.log('[DEBUG] Rendering with guest count:', guests.length, 'phase:', phase.current_phase);
 
   const guestName = formatGuestName(guests) || household.name;
 
   if (phase.current_phase === 'save_the_date') {
-    console.log('[DEBUG] Rendering SaveTheDatePhase');
     return (
       <SaveTheDatePhase
         guestName={guestName}
@@ -175,7 +158,6 @@ export default async function InvitePage({
   }
 
   if (phase.current_phase === 'invitation') {
-    console.log('[DEBUG] Rendering InvitationPhase');
     return (
       <InvitationPhase
         household={household}
@@ -190,7 +172,6 @@ export default async function InvitePage({
   }
 
   if (phase.current_phase === 'thank_you') {
-    console.log('[DEBUG] Rendering ThankYouPhase');
     return (
       <ThankYouPhase
         household={household}

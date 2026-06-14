@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import type { Household, Guest, Settings } from '@/lib/supabase';
-import { Parallelogram, WaterRipple } from './v3/primitives';
+import { Parallelogram, EmeraldJewel, WaterRipple } from './v3/primitives';
+import { palette, alpha } from './v3/tokens';
 
 interface ThankYouPhaseProps {
   household: Household;
@@ -22,7 +23,7 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
   const showPhoto = !!photoUrl && !photoError;
 
   return (
-    <div style={{ backgroundColor: '#0A1F14', color: '#F2E8D0', minHeight: '100dvh' }}>
+    <div style={{ backgroundColor: palette.bgPrimary, color: palette.cream, minHeight: '100dvh' }}>
 
       {/* Hero photo — full width 16:9 max-height 560px */}
       {showPhoto && (
@@ -45,13 +46,13 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
               objectFit: 'cover',
               objectPosition: 'center',
               display: 'block',
-              filter: 'brightness(0.65) sepia(0.15) contrast(1.05) saturate(0.9)',
+              filter: 'brightness(0.88) contrast(1.02) saturate(0.95)',
             }}
           />
 
           {/* Water ripple overlay */}
           <div style={{ position: 'absolute', inset: 0, mixBlendMode: 'overlay', pointerEvents: 'none' }}>
-            <WaterRipple opacity={0.25} />
+            <WaterRipple opacity={0.2} />
           </div>
 
           {/* Gradient fade to background at bottom */}
@@ -59,12 +60,12 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'linear-gradient(to bottom, transparent 45%, #0A1F14 100%)',
+              background: `linear-gradient(to bottom, transparent 45%, ${palette.bgPrimary} 100%)`,
               pointerEvents: 'none',
             }}
           />
 
-          {/* Top-left overlay: peach parallelogram + "WITH GRATITUDE" */}
+          {/* Top-left overlay: EmeraldJewel + "WITH GRATITUDE" */}
           <div
             style={{
               position: 'absolute',
@@ -72,18 +73,18 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
               left: '1.75rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.75rem',
+              gap: '0.6rem',
               pointerEvents: 'none',
             }}
           >
-            <Parallelogram width={18} height={9} color="#E8B89E" skew={5} />
+            <EmeraldJewel width={18} height={10} />
             <p
               style={{
                 fontFamily: 'var(--font-dm-sans)',
                 fontSize: '0.6rem',
                 textTransform: 'uppercase',
                 letterSpacing: '0.4em',
-                color: '#E8B89E',
+                color: palette.goldChampagne,
                 margin: 0,
               }}
             >
@@ -111,7 +112,7 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
               fontSize: '0.65rem',
               textTransform: 'uppercase',
               letterSpacing: '0.3em',
-              color: '#E8B89E',
+              color: palette.goldChampagne,
               opacity: 0.7,
               marginBottom: '0.35rem',
             }}
@@ -123,7 +124,7 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
               fontSize: 'clamp(1.25rem, 4vw, 1.75rem)',
-              color: '#F2E8D0',
+              color: palette.cream,
               margin: 0,
             }}
           >
@@ -131,14 +132,14 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
           </p>
         </div>
 
-        {/* "Thank" + emerald para + rule, "You" right-aligned in gradient */}
+        {/* "Thank" + forestAccent bar + rule, "You" right-aligned in gold gradient */}
         <div style={{ marginBottom: '2.5rem' }}>
           <h1
             style={{
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
-              fontSize: 'clamp(3.5rem, 12vw, 6.5rem)',
-              color: '#F2E8D0',
+              fontSize: 'clamp(3.25rem, 11vw, 6rem)',
+              color: palette.cream,
               lineHeight: 1,
               margin: 0,
             }}
@@ -150,23 +151,24 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
               display: 'flex',
               alignItems: 'center',
               gap: '1rem',
-              margin: '0.2rem 0',
+              margin: '0.35rem 0',
             }}
           >
-            <Parallelogram width={64} height={26} color="#1F4D3A" skew={16} />
-            <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(242,232,208,0.18)' }} />
+            <Parallelogram width={64} height={26} color={palette.forestAccent} skew={16} />
+            <div style={{ flex: 1, height: '1px', backgroundColor: alpha(palette.cream, 0.18) }} />
           </div>
           <h1
             style={{
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
-              fontSize: 'clamp(3.5rem, 12vw, 6.5rem)',
-              background: 'linear-gradient(135deg, #E8B89E 0%, #C89870 100%)',
+              fontSize: 'clamp(3.25rem, 11vw, 6rem)',
+              background: `linear-gradient(135deg, ${palette.goldChampagne} 0%, ${palette.goldDeep} 100%)`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
               lineHeight: 1,
-              margin: 0,
+              margin: '0.25rem 0 0',
+              paddingRight: '0.25rem',
               textAlign: 'right',
             }}
           >
@@ -174,12 +176,12 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
           </h1>
         </div>
 
-        {/* Thank you message in card with left emerald border */}
+        {/* Thank you message in card with left forestAccent border */}
         <div
           style={{
-            borderLeft: '3px solid #1F4D3A',
+            borderLeft: `3px solid ${palette.forestAccent}`,
             padding: '1.25rem 1.5rem',
-            background: 'rgba(31,77,58,0.12)',
+            background: alpha(palette.forestAccent, 0.12),
             marginBottom: '2.5rem',
           }}
         >
@@ -187,7 +189,7 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontSize: '0.95rem',
-              color: 'rgba(242,232,208,0.85)',
+              color: alpha(palette.cream, 0.85),
               lineHeight: 1.85,
               margin: 0,
             }}
@@ -211,8 +213,8 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
                 padding: '0 2.5rem',
                 minHeight: '44px',
                 lineHeight: '44px',
-                backgroundColor: '#E8B89E',
-                color: '#040B07',
+                backgroundColor: palette.goldChampagne,
+                color: palette.bgDeepest,
                 fontFamily: 'var(--font-dm-sans)',
                 fontSize: '0.7rem',
                 fontWeight: 500,
@@ -235,7 +237,7 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
               fontSize: '0.6rem',
               textTransform: 'uppercase',
               letterSpacing: '0.4em',
-              color: '#E8B89E',
+              color: palette.goldChampagne,
               marginBottom: '0.5rem',
             }}
           >
@@ -246,7 +248,7 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
               fontSize: 'clamp(1.75rem, 5vw, 2.5rem)',
-              color: '#F2E8D0',
+              color: palette.cream,
               margin: 0,
             }}
           >

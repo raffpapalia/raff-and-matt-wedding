@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   const personal_message = formData.get('personal_message');
   const plus_one_allowance = Number(formData.get('plus_one_allowance') ?? 0);
   const guests = parseJsonField(formData.get('guests')) ?? [];
-  const photo = formData.get('photo');
+  const personal_photo_url = formData.get('personal_photo_url');
 
   if (typeof name !== 'string' || !name.trim()) {
     return NextResponse.json({ message: 'Household name is required.' }, { status: 400 });
@@ -71,22 +71,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Unexpected error checking slugs', error: { message: err?.message ?? String(err) } }, { status: 500 });
   }
 
-  let photoUrl: string | null = null;
-  if (photo instanceof File && photo.size > 0) {
-    if (!photo.type.startsWith('image/')) {
-      return NextResponse.json({ message: 'Uploaded file must be an image.' }, { status: 400 });
-    }
-    const buffer = Buffer.from(await photo.arrayBuffer());
-    photoUrl = `data:${photo.type};base64,${buffer.toString('base64')}`;
-  }
-
   try {
     const householdInsert = await supabaseServer.from('households').insert({
       name,
       slug: finalSlug,
       personal_message: typeof personal_message === 'string' && personal_message.trim() ? personal_message : null,
       plus_one_allowance,
-      personal_photo_url: photoUrl,
+      personal_photo_url: typeof personal_photo_url === 'string' && personal_photo_url ? personal_photo_url : null,
     }).select('id').single();
 
     if (householdInsert.error || !householdInsert.data) {

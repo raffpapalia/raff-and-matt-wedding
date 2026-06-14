@@ -3,6 +3,18 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* v3 invite design tokens — keep in sync with app/invite/[slug]/v3/tokens.ts */
+  --gold-champagne: #E8C766;
+  --gold-base: #D4A83A;
+  --gold-deep: #B8862B;
+  --emerald-jewel: #2FCB95;
+  --emerald-highlight: #7FE9C2;
+  --forest-accent: #1B7A57;
+  --bg-primary: #0A1F14;
+  --bg-deep: #06140C;
+  --bg-deepest: #040B07;
+  --cream: #F2E8D0;
 }
 
 @theme inline {
@@ -10,7 +22,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-bebas-neue: var(--font-bebas-neue);
   --font-cinzel: var(--font-cinzel);
   --font-dm-sans: var(--font-dm-sans);
 }
@@ -53,10 +64,6 @@ body::after {
   pointer-events: none;
   z-index: 9998;
   background: radial-gradient(ellipse at 50% 40%, transparent 0%, transparent 45%, rgba(0,0,0,0.35) 100%);
-}
-
-.font-bebas-neue {
-  font-family: var(--font-bebas-neue);
 }
 
 .font-cinzel {

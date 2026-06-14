@@ -5,12 +5,13 @@ import AddToCalendar from '@/app/components/AddToCalendar';
 import type { Settings } from '@/lib/supabase';
 import {
   Parallelogram,
+  EmeraldJewel,
   WaterRipple,
   LightBeam,
   Noise,
-  Vignette,
   FloatingPetal,
 } from './v3/primitives';
+import { palette } from './v3/tokens';
 
 interface SaveTheDatePhaseProps {
   guestName: string;
@@ -113,25 +114,19 @@ export default function SaveTheDatePhase({
       style={{
         position: 'relative',
         minHeight: '100dvh',
-        backgroundColor: isGreenVisible ? '#0A1F14' : '#000000',
+        backgroundColor: isGreenVisible ? palette.bgPrimary : palette.bgDeepest,
         transition: 'background-color 1s ease-out',
         overflow: 'hidden',
       }}
     >
       {/* Ambient background layers */}
-      <WaterRipple opacity={0.12} />
+      <WaterRipple opacity={0.08} />
       <LightBeam delay={0} opacity={0.07} />
-      <LightBeam delay={3} opacity={0.04} />
       <Noise opacity={0.03} />
-      <Vignette />
 
-      {/* Floating petals — stage 3 (guestName) */}
+      {/* Floating petal — stage 3 (guestName) */}
       {isGuestNameVisible && (
-        <>
-          <FloatingPetal delay={0} top="22%" duration={20} color="#E8B89E" />
-          <FloatingPetal delay={6} top="55%" duration={25} color="#C89870" flip />
-          <FloatingPetal delay={13} top="75%" duration={17} scale={0.75} color="#E8B89E" />
-        </>
+        <FloatingPetal delay={0} top="22%" duration={20} color={palette.goldChampagne} />
       )}
 
       {/* Content — left-aligned, max 640px */}
@@ -155,14 +150,14 @@ export default function SaveTheDatePhase({
             transition: 'opacity 1s ease',
           }}
         >
-          <Parallelogram width={18} height={9} color="#E8B89E" skew={5} />
+          <Parallelogram width={18} height={9} color={palette.goldBase} />
           <p
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontSize: '0.6rem',
               letterSpacing: '0.4em',
               textTransform: 'uppercase',
-              color: '#E8B89E',
+              color: palette.goldBase,
               margin: 0,
             }}
           >
@@ -185,7 +180,7 @@ export default function SaveTheDatePhase({
               fontSize: '0.65rem',
               textTransform: 'uppercase',
               letterSpacing: '0.25em',
-              color: '#E8B89E',
+              color: palette.goldBase,
               opacity: 0.7,
               marginBottom: '0.4rem',
             }}
@@ -197,7 +192,7 @@ export default function SaveTheDatePhase({
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
               fontSize: 'clamp(1.75rem, 5.5vw, 3rem)',
-              color: '#F2E8D0',
+              color: palette.cream,
               lineHeight: 1.15,
               margin: 0,
             }}
@@ -215,106 +210,110 @@ export default function SaveTheDatePhase({
             transition,
           }}
         >
-          <h2
-            style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: 'clamp(2.5rem, 12vw, 6.5rem)',
-              color: '#F2E8D0',
-              lineHeight: 1,
-              margin: 0,
-            }}
-          >
-            Matt
-          </h2>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1rem',
-              margin: '0.25rem 0',
-            }}
-          >
-            <Parallelogram width={80} height={32} color="#1F4D3A" skew={18} />
+          <h2 aria-label="Matt & Raff" style={{ margin: 0 }}>
             <span
+              aria-hidden="true"
               style={{
+                display: 'block',
                 fontFamily: 'var(--font-cinzel)',
                 fontStyle: 'italic',
-                fontSize: '1.75rem',
-                color: '#F2E8D0',
-                opacity: 0.65,
+                fontWeight: 400,
+                fontSize: 'clamp(2.5rem, 12vw, 6.5rem)',
+                color: palette.cream,
                 lineHeight: 1,
               }}
             >
-              &amp;
+              Matt
             </span>
-            <div
+            <span
+              aria-hidden="true"
               style={{
-                flex: 1,
-                height: '1px',
-                backgroundColor: 'rgba(242,232,208,0.18)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                margin: '0.5rem 0',
               }}
-            />
-          </div>
-          <h2
-            style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: 'clamp(2.5rem, 12vw, 6.5rem)',
-              color: '#F2E8D0',
-              lineHeight: 1,
-              margin: 0,
-              textAlign: 'right',
-              maxWidth: '100%',
-            }}
-          >
-            Raff
+            >
+              <Parallelogram width={64} height={24} color={palette.forestAccent} />
+              <EmeraldJewel />
+              <span
+                style={{
+                  flex: 1,
+                  height: '1px',
+                  backgroundColor: palette.cream,
+                  opacity: 0.18,
+                }}
+              />
+            </span>
+            <span
+              aria-hidden="true"
+              style={{
+                display: 'block',
+                textAlign: 'right',
+                fontFamily: 'var(--font-cinzel)',
+                fontStyle: 'italic',
+                fontWeight: 400,
+                fontSize: 'clamp(2.5rem, 12vw, 6.5rem)',
+                color: palette.cream,
+                lineHeight: 1,
+              }}
+            >
+              Raff
+            </span>
           </h2>
         </div>
 
-        {/* Date block — three columns */}
+        {/* Date block — three columns, framed by hairline rules */}
         <div
-          className="std-date-grid"
           style={{
-            display: 'grid',
-            gap: '1.5rem',
             marginBottom: '2.5rem',
             opacity: isDateVisible ? 1 : 0,
             transition: 'opacity 1s ease',
           }}
         >
-          {[
-            { label: 'Date', value: formatWeddingDate(weddingDate) },
-            { label: 'Where', value: weddingLocation },
-            { label: 'From', value: (settings?.wedding_time || '3:00 PM').replace(/\b(am|pm)\b/gi, (m) => m.toUpperCase()) },
-          ].map(({ label, value }) => (
-            <div key={label}>
-              <p
-                style={{
-                  fontFamily: 'var(--font-dm-sans)',
-                  fontSize: '0.55rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.3em',
-                  color: '#E8B89E',
-                  marginBottom: '0.4rem',
-                }}
-              >
-                {label}
-              </p>
-              <p
-                style={{
-                  fontFamily: 'var(--font-cinzel)',
-                  fontStyle: 'italic',
-                  fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
-                  color: '#F2E8D0',
-                  lineHeight: 1.4,
-                  margin: 0,
-                }}
-              >
-                {value}
-              </p>
-            </div>
-          ))}
+          <div style={{ height: '1px', backgroundColor: palette.cream, opacity: 0.18 }} />
+          <div
+            className="std-date-grid"
+            style={{
+              display: 'grid',
+              gap: '1.5rem',
+              padding: '1.5rem 0',
+            }}
+          >
+            {[
+              { label: 'Date', value: formatWeddingDate(weddingDate) },
+              { label: 'Where', value: weddingLocation },
+              { label: 'From', value: (settings?.wedding_time || '3:00 PM').replace(/\b(am|pm)\b/gi, (m) => m.toUpperCase()) },
+            ].map(({ label, value }) => (
+              <div key={label}>
+                <p
+                  style={{
+                    fontFamily: 'var(--font-dm-sans)',
+                    fontSize: '0.55rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.3em',
+                    color: palette.goldBase,
+                    marginBottom: '0.4rem',
+                  }}
+                >
+                  {label}
+                </p>
+                <p
+                  style={{
+                    fontFamily: 'var(--font-cinzel)',
+                    fontStyle: 'italic',
+                    fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
+                    color: palette.cream,
+                    lineHeight: 1.4,
+                    margin: 0,
+                  }}
+                >
+                  {value}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div style={{ height: '1px', backgroundColor: palette.cream, opacity: 0.18 }} />
         </div>
 
         {/* Tagline */}
@@ -331,7 +330,8 @@ export default function SaveTheDatePhase({
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
               fontSize: 'clamp(0.85rem, 2.5vw, 1rem)',
-              color: 'rgba(242,232,208,0.72)',
+              color: palette.cream,
+              opacity: 0.72,
               lineHeight: 1.7,
               margin: 0,
             }}
@@ -378,23 +378,24 @@ export default function SaveTheDatePhase({
           >
             <div
               style={{
-                borderLeft: '3px solid #1F4D3A',
+                borderLeft: `3px solid ${palette.forestAccent}`,
                 padding: '1.25rem 1.5rem',
-                background: 'rgba(31,77,58,0.18)',
+                background: `${palette.forestAccent}2e`,
                 backdropFilter: 'blur(8px)',
                 position: 'relative',
               }}
             >
-              {/* Small peach parallelogram top-right */}
+              {/* Small gold parallelogram top-right */}
               <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', pointerEvents: 'none' }}>
-                <Parallelogram width={22} height={11} color="#E8B89E" fillOpacity={0.45} skew={6} />
+                <Parallelogram width={22} height={11} color={palette.goldBase} fillOpacity={0.45} />
               </div>
               <p
                 style={{
                   fontFamily: 'var(--font-dm-sans)',
                   fontStyle: 'italic',
                   fontSize: '0.875rem',
-                  color: 'rgba(242,232,208,0.78)',
+                  color: palette.cream,
+                  opacity: 0.78,
                   lineHeight: 1.75,
                   margin: 0,
                 }}
@@ -421,14 +422,14 @@ export default function SaveTheDatePhase({
               marginBottom: '1.5rem',
             }}
           >
-            <Parallelogram width={14} height={7} color="#E8B89E" fillOpacity={0.6} skew={4} />
+            <Parallelogram width={14} height={7} color={palette.goldBase} fillOpacity={0.6} />
             <p
               style={{
                 fontFamily: 'var(--font-dm-sans)',
                 fontSize: '0.55rem',
                 textTransform: 'uppercase',
                 letterSpacing: '0.4em',
-                color: 'rgba(232,184,158,0.55)',
+                color: `${palette.goldBase}8c`,
                 margin: 0,
               }}
             >
@@ -446,6 +447,10 @@ export default function SaveTheDatePhase({
         .std-date-grid { grid-template-columns: 1fr; }
         @media (min-width: 640px) {
           .std-date-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+          .std-date-grid > div:not(:first-child) {
+            border-left: 1px solid ${palette.cream}2e;
+            padding-left: 1.5rem;
+          }
         }
       `}</style>
     </div>

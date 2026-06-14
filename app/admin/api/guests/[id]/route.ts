@@ -20,15 +20,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const thank_you_message = String(formData.get('thank_you_message') ?? '');
   const plus_one_allowance = Number(formData.get('plus_one_allowance') ?? 0);
 
-  const photo = formData.get('photo');
-  let photoFields: { personal_photo_url?: string } = {};
-  if (photo instanceof File && photo.size > 0) {
-    if (!photo.type.startsWith('image/')) {
-      return NextResponse.json({ message: 'Uploaded file must be an image.' }, { status: 400 });
-    }
-    const buffer = Buffer.from(await photo.arrayBuffer());
-    photoFields = { personal_photo_url: `data:${photo.type};base64,${buffer.toString('base64')}` };
-  }
+  const personal_photo_url = String(formData.get('personal_photo_url') ?? '');
 
   try {
     const upd = await supabaseServer.from('households').update({
@@ -37,7 +29,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       personal_message: personal_message || null,
       thank_you_message: thank_you_message || null,
       plus_one_allowance,
-      ...photoFields,
+      personal_photo_url: personal_photo_url || null,
     }).eq('id', id).select('id').single();
 
     if (upd.error) {

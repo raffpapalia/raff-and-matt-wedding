@@ -42,7 +42,7 @@ export default function FindInvitationForm() {
   if (submitted) {
     return (
       <p
-        className="text-sm leading-relaxed text-[#F2E8D0]/70"
+        className="text-sm leading-relaxed text-[var(--cream)]/70"
         style={{ fontFamily: 'var(--font-dm-sans)' }}
       >
         If we find your details, we&apos;ll send your invite link shortly.
@@ -55,7 +55,7 @@ export default function FindInvitationForm() {
       <div>
         <label
           htmlFor="lastName"
-          className="mb-2 block text-xs uppercase tracking-widest text-[#D4A83A]/80"
+          className="mb-2 block text-xs uppercase tracking-widest text-[var(--gold-base)]/80"
           style={{ fontFamily: 'var(--font-dm-sans)' }}
         >
           Last Name
@@ -66,12 +66,12 @@ export default function FindInvitationForm() {
           autoComplete="family-name"
           value={lastName}
           onChange={(e) => setLastName(e.target.value)}
-          className="min-h-[44px] w-full border border-[#D4A83A]/50 bg-[#0A1F14] px-4 py-3 text-sm text-[#F2E8D0] outline-none transition-colors placeholder-[#F2E8D0]/30 focus:border-[#D4A83A]"
+          className="min-h-[44px] w-full border border-[var(--gold-base)]/50 bg-[var(--bg-primary)] px-4 py-3 text-sm text-[var(--cream)] outline-none transition-colors placeholder-[var(--cream)]/30 focus:border-[var(--gold-base)]"
           style={{ fontFamily: 'var(--font-dm-sans)' }}
           placeholder="Smith"
         />
         {errors.lastName && (
-          <p className="mt-2 text-xs text-[#C4621A]" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+          <p className="mt-2 text-xs text-[var(--gold-champagne)]" style={{ fontFamily: 'var(--font-dm-sans)' }}>
             {errors.lastName}
           </p>
         )}
@@ -80,7 +80,7 @@ export default function FindInvitationForm() {
       <div>
         <label
           htmlFor="email"
-          className="mb-2 block text-xs uppercase tracking-widest text-[#D4A83A]/80"
+          className="mb-2 block text-xs uppercase tracking-widest text-[var(--gold-base)]/80"
           style={{ fontFamily: 'var(--font-dm-sans)' }}
         >
           Email Address
@@ -91,12 +91,12 @@ export default function FindInvitationForm() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="min-h-[44px] w-full border border-[#D4A83A]/50 bg-[#0A1F14] px-4 py-3 text-sm text-[#F2E8D0] outline-none transition-colors placeholder-[#F2E8D0]/30 focus:border-[#D4A83A]"
+          className="min-h-[44px] w-full border border-[var(--gold-base)]/50 bg-[var(--bg-primary)] px-4 py-3 text-sm text-[var(--cream)] outline-none transition-colors placeholder-[var(--cream)]/30 focus:border-[var(--gold-base)]"
           style={{ fontFamily: 'var(--font-dm-sans)' }}
           placeholder="you@example.com"
         />
         {errors.email && (
-          <p className="mt-2 text-xs text-[#C4621A]" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+          <p className="mt-2 text-xs text-[var(--gold-champagne)]" style={{ fontFamily: 'var(--font-dm-sans)' }}>
             {errors.email}
           </p>
         )}
@@ -105,7 +105,7 @@ export default function FindInvitationForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="mt-2 min-h-[44px] w-full bg-[#D4A83A] py-3 text-sm font-light uppercase tracking-widest text-[#0A1F14] transition-all hover:bg-[#E8B854] disabled:opacity-50"
+        className="mt-2 min-h-[44px] w-full bg-[var(--gold-base)] py-3 text-sm font-light uppercase tracking-widest text-[var(--bg-primary)] transition-all hover:bg-[var(--gold-champagne)] disabled:opacity-50"
         style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
       >
         {submitting ? 'Searching…' : 'Submit'}

@@ -5,12 +5,12 @@ import RSVPPhase from './RSVPPhase';
 import FaqAccordion from './FaqAccordion';
 import AddToCalendar from '@/app/components/AddToCalendar';
 import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Faq } from '@/lib/supabase';
+import { palette, alpha } from './v3/tokens';
 import {
   Parallelogram,
+  EmeraldJewel,
   WaterRipple,
   LightBeam,
-  Particles,
-  FloatingPetal,
   SectionNumber,
 } from './v3/primitives';
 
@@ -51,15 +51,11 @@ function getImgSrc(url: string | null | undefined): string | null {
 
 // Original Unsplash sources (re-download to /public/images/ if assets are missing):
 // BANKSIA:    https://images.unsplash.com/photo-1591289009723-aef022f3f4ee?w=600&q=80
-// PROTEA:     https://images.unsplash.com/photo-1561181286-d3fee7d55364?w=600&q=80
 // EUCALYPTUS: https://images.unsplash.com/photo-1599824192893-cd91e1f02b66?w=600&q=80
 // MAGNOLIA:   https://images.unsplash.com/photo-1582564286939-400a311013a5?w=600&q=80
-// VELVET:     https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80
 const BANKSIA_URL = '/images/banksia.jpg';
-const PROTEA_URL = '/images/protea.jpg';
 const EUCALYPTUS_URL = '/images/eucalyptus.jpg';
 const MAGNOLIA_URL = '/images/magnolia.jpg';
-const VELVET_URL = '/images/velvet.jpg';
 
 // Easter egg: Konami code
 const KONAMI_SEQUENCE = [
@@ -70,7 +66,7 @@ const KONAMI_SEQUENCE = [
 // Touch equivalent: tap the "M & R · 2027" mark several times in quick succession
 const KONAMI_TAP_COUNT = 7;
 const KONAMI_TAP_WINDOW = 1800; // ms allowed between consecutive taps
-const KONAMI_COLORS = ['#D4A83A', '#F2E8D0', '#C4621A'];
+const KONAMI_COLORS = [palette.goldBase, palette.cream, palette.goldDeep];
 
 function KonamiCelebration() {
   const pieces = Array.from({ length: 32 }, (_, i) => ({
@@ -114,7 +110,7 @@ function KonamiCelebration() {
           fontFamily: 'var(--font-cinzel)',
           fontStyle: 'italic',
           fontSize: 'clamp(1.25rem, 5vw, 2.25rem)',
-          color: '#F2E8D0',
+          color: palette.cream,
           whiteSpace: 'nowrap',
           padding: '0 1rem',
           animation: 'konamiMessage 3s ease-in-out forwards',
@@ -193,7 +189,7 @@ function PracticalCard({
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
               fontSize: '0.75rem',
-              color: '#E8B89E',
+              color: palette.goldChampagne,
               opacity: 0.75,
               marginBottom: '0.2rem',
             }}
@@ -206,7 +202,7 @@ function PracticalCard({
               fontSize: '0.6rem',
               textTransform: 'uppercase',
               letterSpacing: '0.3em',
-              color: '#F2E8D0',
+              color: palette.cream,
               opacity: 0.8,
               margin: 0,
             }}
@@ -222,7 +218,7 @@ function PracticalCard({
           fontFamily: 'var(--font-cinzel)',
           fontStyle: 'italic',
           fontSize: '1.1rem',
-          color: '#F2E8D0',
+          color: palette.cream,
           marginBottom: '0.75rem',
           marginTop: 0,
         }}
@@ -233,7 +229,7 @@ function PracticalCard({
         style={{
           fontFamily: 'var(--font-dm-sans)',
           fontSize: '0.85rem',
-          color: 'rgba(242,232,208,0.68)',
+          color: alpha(palette.cream, 0.68),
           lineHeight: 1.75,
           flex: 1,
           marginBottom: '1.25rem',
@@ -250,14 +246,14 @@ function PracticalCard({
           rel="noopener noreferrer"
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
         >
-          <Parallelogram width={12} height={6} color="#E8B89E" skew={4} />
+          <Parallelogram width={12} height={6} color={palette.goldChampagne} skew={4} />
           <span
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontSize: '0.7rem',
               textTransform: 'uppercase',
               letterSpacing: '0.2em',
-              color: '#E8B89E',
+              color: palette.goldChampagne,
             }}
           >
             {ctaLabel}
@@ -272,14 +268,14 @@ function PracticalCard({
             opacity: 0.4,
           }}
         >
-          <Parallelogram width={12} height={6} color="#E8B89E" skew={4} />
+          <Parallelogram width={12} height={6} color={palette.goldChampagne} skew={4} />
           <span
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontSize: '0.7rem',
               textTransform: 'uppercase',
               letterSpacing: '0.2em',
-              color: '#E8B89E',
+              color: palette.goldChampagne,
             }}
           >
             {ctaLabel}
@@ -354,7 +350,7 @@ export default function InvitationPhase({
   }
 
   return (
-    <div style={{ backgroundColor: '#0A1F14', color: '#F2E8D0' }}>
+    <div style={{ backgroundColor: palette.bgPrimary, color: palette.cream }}>
       {showKonami && <KonamiCelebration />}
 
       {/* ── HERO — full viewport height ── */}
@@ -367,13 +363,9 @@ export default function InvitationPhase({
           alignItems: 'center',
         }}
       >
-        {/* Hero background ambience */}
+        {/* Hero ambience — one quiet ripple + a single hero-only light beam */}
         <WaterRipple opacity={0.1} />
         <LightBeam delay={0} opacity={0.06} />
-        <LightBeam delay={4} opacity={0.035} />
-        <Particles count={20} color="rgba(232,184,158,0.6)" />
-        <FloatingPetal delay={2} top="18%" duration={22} color="#E8B89E" />
-        <FloatingPetal delay={9} top="64%" duration={18} color="#C89870" flip />
 
         {/* Top corner markers */}
         {/* Easter egg: tap the M & R mark several times for a surprise */}
@@ -391,14 +383,14 @@ export default function InvitationPhase({
             userSelect: 'none',
           }}
         >
-          <Parallelogram width={16} height={8} color="#E8B89E" skew={5} />
+          <Parallelogram width={16} height={8} color={palette.goldChampagne} skew={5} />
           <span
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontSize: '0.55rem',
               textTransform: 'uppercase',
               letterSpacing: '0.35em',
-              color: '#E8B89E',
+              color: palette.goldChampagne,
               opacity: 0.75,
             }}
           >
@@ -419,7 +411,7 @@ export default function InvitationPhase({
               fontSize: '0.55rem',
               textTransform: 'uppercase',
               letterSpacing: '0.35em',
-              color: '#E8B89E',
+              color: palette.goldChampagne,
               opacity: 0.55,
             }}
           >
@@ -449,19 +441,74 @@ export default function InvitationPhase({
                 marginBottom: '2rem',
               }}
             >
-              <Parallelogram width={24} height={12} color="#1F4D3A" skew={6} />
+              <Parallelogram width={24} height={12} color={palette.forestAccent} skew={6} fillOpacity={0.55} />
               <p
                 style={{
                   fontFamily: 'var(--font-dm-sans)',
                   fontSize: '0.6rem',
                   textTransform: 'uppercase',
                   letterSpacing: '0.4em',
-                  color: '#E8B89E',
+                  color: palette.goldChampagne,
                   margin: 0,
                 }}
               >
                 The Invitation
               </p>
+            </div>
+
+            {/* Couple names — contained large Cinzel, with the page's single bright EmeraldJewel as the ampersand */}
+            <div style={{ marginBottom: '1.75rem' }}>
+              <h2 aria-label="Matt & Raff" style={{ margin: 0 }}>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-cinzel)',
+                    fontStyle: 'italic',
+                    fontSize: 'clamp(2.25rem, 9vw, 4.25rem)',
+                    color: palette.cream,
+                    lineHeight: 1,
+                  }}
+                >
+                  Matt
+                </span>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.9rem',
+                    margin: '0.25rem 0',
+                  }}
+                >
+                  <EmeraldJewel width={30} height={18} />
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-cinzel)',
+                      fontStyle: 'italic',
+                      fontSize: '1.35rem',
+                      color: palette.cream,
+                      opacity: 0.7,
+                    }}
+                  >
+                    &amp;
+                  </span>
+                  <span style={{ flex: 1, height: '1px', backgroundColor: alpha(palette.cream, 0.18) }} />
+                </span>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-cinzel)',
+                    fontStyle: 'italic',
+                    fontSize: 'clamp(2.25rem, 9vw, 4.25rem)',
+                    color: palette.cream,
+                    lineHeight: 1,
+                  }}
+                >
+                  Raff
+                </span>
+              </h2>
             </div>
 
             {/* "For" + guest name */}
@@ -472,7 +519,7 @@ export default function InvitationPhase({
                   fontSize: '0.65rem',
                   textTransform: 'uppercase',
                   letterSpacing: '0.25em',
-                  color: '#E8B89E',
+                  color: palette.goldChampagne,
                   opacity: 0.7,
                   marginBottom: '0.4rem',
                 }}
@@ -483,9 +530,9 @@ export default function InvitationPhase({
                 style={{
                   fontFamily: 'var(--font-cinzel)',
                   fontStyle: 'italic',
-                  fontSize: 'clamp(1.75rem, 5vw, 3rem)',
-                  color: '#F2E8D0',
-                  lineHeight: 1.15,
+                  fontSize: 'clamp(1.25rem, 4vw, 1.9rem)',
+                  color: palette.cream,
+                  lineHeight: 1.2,
                   margin: 0,
                 }}
               >
@@ -497,9 +544,9 @@ export default function InvitationPhase({
             {household.personal_message && (
               <div
                 style={{
-                  borderLeft: '3px solid #1F4D3A',
+                  borderLeft: `3px solid ${palette.forestAccent}`,
                   padding: '1.1rem 1.25rem',
-                  background: 'rgba(31,77,58,0.15)',
+                  background: alpha(palette.forestAccent, 0.15),
                   marginBottom: '2rem',
                 }}
               >
@@ -508,7 +555,7 @@ export default function InvitationPhase({
                     fontFamily: 'var(--font-dm-sans)',
                     fontStyle: 'italic',
                     fontSize: '0.875rem',
-                    color: 'rgba(242,232,208,0.75)',
+                    color: alpha(palette.cream, 0.75),
                     lineHeight: 1.75,
                     margin: 0,
                   }}
@@ -525,8 +572,8 @@ export default function InvitationPhase({
                 style={{
                   display: 'inline-block',
                   padding: '0.875rem 2.25rem',
-                  backgroundColor: '#E8B89E',
-                  color: '#040B07',
+                  backgroundColor: palette.goldChampagne,
+                  color: palette.bgDeepest,
                   fontFamily: 'var(--font-dm-sans)',
                   fontSize: '0.7rem',
                   fontWeight: 500,
@@ -549,8 +596,8 @@ export default function InvitationPhase({
                   alignItems: 'center',
                   padding: '0 1.75rem',
                   minHeight: '44px',
-                  border: '1px solid rgba(232,184,158,0.45)',
-                  color: '#E8B89E',
+                  border: `1px solid ${alpha(palette.goldChampagne, 0.45)}`,
+                  color: palette.goldChampagne,
                   fontFamily: 'var(--font-dm-sans)',
                   fontSize: '0.7rem',
                   textTransform: 'uppercase',
@@ -567,7 +614,7 @@ export default function InvitationPhase({
           {/* Right: personal photo */}
           {photoSrc && (
             <div className="order-2" style={{ position: 'relative' }}>
-              {/* Emerald shadow behind */}
+              {/* Forest shadow behind */}
               <div
                 style={{
                   position: 'absolute',
@@ -575,7 +622,7 @@ export default function InvitationPhase({
                   left: '-14px',
                   right: '14px',
                   bottom: '-14px',
-                  backgroundColor: '#1F4D3A',
+                  backgroundColor: palette.forestAccent,
                   clipPath: 'polygon(8% 0, 100% 0, 92% 100%, 0 100%)',
                   pointerEvents: 'none',
                 }}
@@ -601,10 +648,6 @@ export default function InvitationPhase({
                     filter: 'grayscale(0.35) sepia(0.1) brightness(0.88) contrast(1.05) saturate(0.9)',
                   }}
                 />
-                {/* Water ripple overlay */}
-                <div style={{ position: 'absolute', inset: 0, mixBlendMode: 'overlay', pointerEvents: 'none' }}>
-                  <WaterRipple opacity={0.25} />
-                </div>
               </div>
             </div>
           )}
@@ -627,7 +670,7 @@ export default function InvitationPhase({
             style={{
               width: '1px',
               height: '40px',
-              background: 'linear-gradient(to bottom, rgba(232,184,158,0.6), transparent)',
+              background: `linear-gradient(to bottom, ${alpha(palette.goldChampagne, 0.6)}, transparent)`,
             }}
           />
           <p
@@ -636,7 +679,7 @@ export default function InvitationPhase({
               fontSize: '0.55rem',
               textTransform: 'uppercase',
               letterSpacing: '0.3em',
-              color: '#E8B89E',
+              color: palette.goldChampagne,
               opacity: 0.5,
               writingMode: 'vertical-rl',
               margin: 0,
@@ -648,59 +691,9 @@ export default function InvitationPhase({
       </section>
 
       {/* ── SECTION 01 — The Day ── */}
-      <section id="section-01" style={{ backgroundColor: '#0A1F14', padding: '6rem 2rem' }}>
+      <section id="section-01" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
           <SectionNumber n="01" label="The Day" />
-
-          {/* Couple names asymmetric */}
-          <div style={{ marginBottom: '2rem' }}>
-            <h2
-              style={{
-                fontFamily: 'var(--font-cinzel)',
-                fontStyle: 'italic',
-                fontSize: 'clamp(2.5rem, 10vw, 6rem)',
-                color: '#F2E8D0',
-                lineHeight: 1,
-                margin: 0,
-              }}
-            >
-              Matt
-            </h2>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                margin: '0.3rem 0',
-              }}
-            >
-              <Parallelogram width={72} height={28} color="#1F4D3A" skew={16} />
-              <span
-                style={{
-                  fontFamily: 'var(--font-cinzel)',
-                  fontStyle: 'italic',
-                  fontSize: '1.5rem',
-                  color: '#F2E8D0',
-                  opacity: 0.65,
-                }}
-              >
-                &amp;
-              </span>
-              <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(242,232,208,0.18)' }} />
-            </div>
-            <h2
-              style={{
-                fontFamily: 'var(--font-cinzel)',
-                fontStyle: 'italic',
-                fontSize: 'clamp(2.5rem, 10vw, 6rem)',
-                color: '#F2E8D0',
-                lineHeight: 1,
-                margin: 0,
-              }}
-            >
-              Raff
-            </h2>
-          </div>
 
           {/* Cinematic couple photo */}
           <div
@@ -729,12 +722,12 @@ export default function InvitationPhase({
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(to bottom, transparent 40%, #0A1F14 100%)',
+                background: `linear-gradient(to bottom, transparent 40%, ${palette.bgPrimary} 100%)`,
                 pointerEvents: 'none',
               }}
             />
             <div style={{ position: 'absolute', inset: 0, mixBlendMode: 'overlay', pointerEvents: 'none' }}>
-              <WaterRipple opacity={0.2} />
+              <WaterRipple opacity={0.08} />
             </div>
           </div>
 
@@ -755,7 +748,7 @@ export default function InvitationPhase({
                     fontSize: '0.55rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.3em',
-                    color: '#E8B89E',
+                    color: palette.goldChampagne,
                     marginBottom: '0.4rem',
                   }}
                 >
@@ -766,7 +759,7 @@ export default function InvitationPhase({
                     fontFamily: 'var(--font-cinzel)',
                     fontStyle: 'italic',
                     fontSize: '0.95rem',
-                    color: '#F2E8D0',
+                    color: palette.cream,
                     lineHeight: 1.45,
                     margin: 0,
                   }}
@@ -783,7 +776,7 @@ export default function InvitationPhase({
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
               fontSize: 'clamp(0.85rem, 2.5vw, 1.05rem)',
-              color: 'rgba(242,232,208,0.6)',
+              color: alpha(palette.cream, 0.6),
               lineHeight: 1.7,
               margin: 0,
             }}
@@ -794,29 +787,7 @@ export default function InvitationPhase({
       </section>
 
       {/* ── SECTION 02 — Programme ── */}
-      <section id="section-02" style={{ backgroundColor: '#0A1F14', padding: '6rem 2rem', position: 'relative', overflow: 'hidden' }}>
-        {/* Background floral — banksia, right side */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '5%',
-            right: 0,
-            width: '40%',
-            maxWidth: '320px',
-            height: '90%',
-            clipPath: 'polygon(8% 0, 100% 0, 100% 100%, 0 100%)',
-            opacity: 0.4,
-            pointerEvents: 'none',
-          }}
-          aria-hidden="true"
-        >
-          <img
-            src={BANKSIA_URL}
-            alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.25) saturate(0.6)' }}
-          />
-        </div>
-
+      <section id="section-02" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem', position: 'relative', overflow: 'hidden' }}>
         <div style={{ maxWidth: '700px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <SectionNumber n="02" label="Programme" />
 
@@ -830,18 +801,18 @@ export default function InvitationPhase({
                   gap: '1.25rem',
                   alignItems: 'start',
                   padding: '1.1rem 0',
-                  borderBottom: i < schedule.length - 1 ? '1px solid rgba(232,184,158,0.08)' : 'none',
+                  borderBottom: i < schedule.length - 1 ? `1px solid ${alpha(palette.goldChampagne, 0.08)}` : 'none',
                 }}
               >
                 <div style={{ paddingTop: '0.3rem' }}>
-                  <Parallelogram width={24} height={12} color="#E8B89E" skew={5} fillOpacity={0.6} />
+                  <Parallelogram width={24} height={12} color={palette.goldChampagne} skew={5} fillOpacity={0.6} />
                 </div>
                 <div>
                   <p
                     style={{
                       fontFamily: 'var(--font-dm-sans)',
                       fontSize: '1rem',
-                      color: '#F2E8D0',
+                      color: palette.cream,
                       margin: 0,
                       lineHeight: 1,
                     }}
@@ -855,7 +826,7 @@ export default function InvitationPhase({
                         fontSize: '0.6rem',
                         textTransform: 'uppercase',
                         letterSpacing: '0.15em',
-                        color: '#E8B89E',
+                        color: palette.goldChampagne,
                         margin: '0.15rem 0 0',
                       }}
                     >
@@ -869,7 +840,7 @@ export default function InvitationPhase({
                       fontFamily: 'var(--font-cinzel)',
                       fontStyle: 'italic',
                       fontSize: '0.95rem',
-                      color: '#F2E8D0',
+                      color: palette.cream,
                       margin: 0,
                       lineHeight: 1.2,
                     }}
@@ -880,7 +851,7 @@ export default function InvitationPhase({
                     style={{
                       fontFamily: 'var(--font-dm-sans)',
                       fontSize: '0.78rem',
-                      color: 'rgba(242,232,208,0.55)',
+                      color: alpha(palette.cream, 0.55),
                       margin: '0.2rem 0 0',
                     }}
                   >
@@ -902,34 +873,12 @@ export default function InvitationPhase({
       <section
         id="section-03"
         style={{
-          backgroundColor: '#06140C',
+          backgroundColor: palette.bgDeep,
           padding: '6rem 2rem',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        {/* Background texture — dark velvet, left */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '5%',
-            left: 0,
-            width: '35%',
-            maxWidth: '280px',
-            height: '90%',
-            clipPath: 'polygon(0 0, 92% 0, 100% 100%, 0 100%)',
-            opacity: 0.45,
-            pointerEvents: 'none',
-          }}
-          aria-hidden="true"
-        >
-          <img
-            src={VELVET_URL}
-            alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.22) saturate(0.5)' }}
-          />
-        </div>
-
         <div
           className="dress-code-content"
           style={{
@@ -946,7 +895,7 @@ export default function InvitationPhase({
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
               fontSize: 'clamp(2.5rem, 8vw, 4rem)',
-              color: '#F2E8D0',
+              color: palette.cream,
               lineHeight: 1,
               margin: '0 0 0.25rem',
             }}
@@ -958,7 +907,7 @@ export default function InvitationPhase({
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
               fontSize: 'clamp(2.5rem, 8vw, 4rem)',
-              background: 'linear-gradient(135deg, #E8B89E 0%, #C89670 100%)',
+              background: `linear-gradient(135deg, ${palette.goldChampagne} 0%, ${palette.goldDeep} 100%)`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
@@ -973,7 +922,7 @@ export default function InvitationPhase({
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontSize: '0.9rem',
-              color: 'rgba(242,232,208,0.7)',
+              color: alpha(palette.cream, 0.7),
               lineHeight: 1.8,
               marginBottom: '1rem',
               maxWidth: '380px',
@@ -986,7 +935,7 @@ export default function InvitationPhase({
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontSize: '0.9rem',
-              color: 'rgba(242,232,208,0.7)',
+              color: alpha(palette.cream, 0.7),
               lineHeight: 1.8,
               margin: 0,
               maxWidth: '380px',
@@ -998,7 +947,7 @@ export default function InvitationPhase({
       </section>
 
       {/* ── SECTION 04 — The Practicalities ── */}
-      <section id="section-04" style={{ backgroundColor: '#0A1F14', padding: '6rem 2rem' }}>
+      <section id="section-04" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <SectionNumber n="04" label="The Practicalities" />
 
@@ -1025,7 +974,7 @@ export default function InvitationPhase({
               body={
                 <>
                   Snap away and share on the day. Tag us with{' '}
-                  <em style={{ color: '#E8B89E', fontStyle: 'italic' }}>{settings.hashtag}</em>{' '}
+                  <em style={{ color: palette.goldChampagne, fontStyle: 'italic' }}>{settings.hashtag}</em>{' '}
                   in your stories and posts.
                 </>
               }
@@ -1049,34 +998,12 @@ export default function InvitationPhase({
       <section
         id="section-05"
         style={{
-          backgroundColor: '#06140C',
+          backgroundColor: palette.bgDeep,
           padding: '6rem 2rem',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        {/* Background floral bottom-right */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            right: 0,
-            width: '30%',
-            maxWidth: '240px',
-            height: '60%',
-            clipPath: 'polygon(8% 0, 100% 0, 100% 100%, 0 100%)',
-            opacity: 0.35,
-            pointerEvents: 'none',
-          }}
-          aria-hidden="true"
-        >
-          <img
-            src={PROTEA_URL}
-            alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.2) saturate(0.5)' }}
-          />
-        </div>
-
         <div style={{ maxWidth: '700px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <SectionNumber n="05" label="Questions" />
 
@@ -1087,7 +1014,7 @@ export default function InvitationPhase({
               style={{
                 fontFamily: 'var(--font-dm-sans)',
                 fontSize: '0.875rem',
-                color: 'rgba(242,232,208,0.4)',
+                color: alpha(palette.cream, 0.4),
                 fontStyle: 'italic',
               }}
             >
@@ -1098,7 +1025,7 @@ export default function InvitationPhase({
       </section>
 
       {/* ── SECTION 06 — The Reply ── */}
-      <section id="section-06" style={{ backgroundColor: '#0A1F14', padding: '6rem 2rem' }}>
+      <section id="section-06" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
           <SectionNumber n="06" label="The Reply" />
 
@@ -1107,7 +1034,7 @@ export default function InvitationPhase({
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
               fontSize: 'clamp(2rem, 6vw, 3.5rem)',
-              color: '#F2E8D0',
+              color: palette.cream,
               lineHeight: 1.1,
               margin: '0 0 1rem',
             }}
@@ -1118,22 +1045,22 @@ export default function InvitationPhase({
             style={{
               fontFamily: 'var(--font-dm-sans)',
               fontSize: '0.85rem',
-              color: 'rgba(242,232,208,0.65)',
+              color: alpha(palette.cream, 0.65),
               marginBottom: '2rem',
             }}
           >
             Please reply by{' '}
-            <em style={{ color: '#E8B89E', fontStyle: 'italic' }}>
+            <em style={{ color: palette.goldChampagne, fontStyle: 'italic' }}>
               {formatCutoffDate(settings.rsvp_cutoff_date)}
             </em>
           </p>
 
-          {/* RSVP card with emerald border + two parallelograms top-right */}
+          {/* RSVP card with forest border + two structural parallelograms top-right */}
           <div
             className="rsvp-card"
             style={{
-              borderLeft: '3px solid #1F4D3A',
-              background: 'rgba(31,77,58,0.08)',
+              borderLeft: `3px solid ${palette.forestAccent}`,
+              background: alpha(palette.forestAccent, 0.08),
               position: 'relative',
             }}
           >
@@ -1149,8 +1076,8 @@ export default function InvitationPhase({
               }}
               aria-hidden="true"
             >
-              <Parallelogram width={18} height={9} color="#1F4D3A" skew={5} fillOpacity={0.7} />
-              <Parallelogram width={12} height={9} color="#E8B89E" skew={5} fillOpacity={0.5} />
+              <Parallelogram width={18} height={9} color={palette.forestAccent} skew={5} fillOpacity={0.7} />
+              <Parallelogram width={12} height={9} color={palette.goldChampagne} skew={5} fillOpacity={0.5} />
             </div>
 
             <RSVPPhase
@@ -1167,7 +1094,7 @@ export default function InvitationPhase({
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ backgroundColor: '#040B07', padding: '2.5rem 2rem' }}>
+      <footer style={{ backgroundColor: palette.bgDeepest, padding: '2.5rem 2rem' }}>
         <div
           style={{
             maxWidth: '900px',
@@ -1183,16 +1110,16 @@ export default function InvitationPhase({
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
               fontSize: 'clamp(1.25rem, 4vw, 1.75rem)',
-              color: '#F2E8D0',
+              color: palette.cream,
               margin: 0,
             }}
           >
             Matt &amp; Raff
           </p>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <Parallelogram width={20} height={10} color="#1F4D3A" skew={5} />
-            <Parallelogram width={20} height={10} color="#E8B89E" skew={5} />
-            <Parallelogram width={20} height={10} color="#C89870" skew={5} />
+            <Parallelogram width={20} height={10} color={palette.forestAccent} skew={5} />
+            <Parallelogram width={20} height={10} color={palette.goldChampagne} skew={5} />
+            <Parallelogram width={20} height={10} color={palette.goldDeep} skew={5} />
           </div>
         </div>
       </footer>

@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import PhotoUpload from '../../components/PhotoUpload';
 
 const dietaryOptions = [
   { value: 'none', label: 'No preference' },
@@ -66,8 +67,7 @@ export default function NewHouseholdForm() {
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [personalMessage, setPersonalMessage] = useState('');
   const [plusOneAllowance, setPlusOneAllowance] = useState(0);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [personalPhotoUrl, setPersonalPhotoUrl] = useState<string | null>(null);
   const [guests, setGuests] = useState([initialGuest]);
   const [guestErrors, setGuestErrors] = useState<GuestErrors[]>([{}]);
   const [error, setError] = useState('');
@@ -79,16 +79,6 @@ export default function NewHouseholdForm() {
       setSlug(slugify(householdName));
     }
   }, [householdName, slugEdited]);
-
-  useEffect(() => {
-    if (!photoFile) {
-      setPhotoPreview(null);
-      return;
-    }
-    const objectUrl = URL.createObjectURL(photoFile);
-    setPhotoPreview(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [photoFile]);
 
   const inviteUrl = useMemo(() => `https://${baseUrl}/invite/${slug || 'your-household'}`, [slug]);
 
@@ -183,8 +173,8 @@ export default function NewHouseholdForm() {
       comms_sms: guest.commsSms,
     }))));
 
-    if (photoFile) {
-      formData.append('photo', photoFile);
+    if (personalPhotoUrl) {
+      formData.append('personal_photo_url', personalPhotoUrl);
     }
 
     startTransition(async () => {
@@ -299,23 +289,12 @@ export default function NewHouseholdForm() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <label className="space-y-2 text-sm text-slate-100">
-          Personal photo (optional)
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(event) => {
-              const file = event.target.files?.[0] ?? null;
-              setPhotoFile(file);
-            }}
-            className="w-full rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none file:border-0 file:bg-white/5 file:px-3 file:py-2 file:text-sm file:text-slate-200"
-          />
-          {photoPreview ? (
-            <div className="mt-3 overflow-hidden rounded-3xl border border-white/10 bg-slate-950/90">
-              <img src={photoPreview} alt="Preview" className="h-40 w-full object-cover" />
-            </div>
-          ) : null}
-        </label>
+        <PhotoUpload
+          value={personalPhotoUrl}
+          onChange={setPersonalPhotoUrl}
+          aspectRatio={3 / 4}
+          label="Personal photo (optional)"
+        />
         <label className="space-y-2 text-sm text-slate-100">
           Invite URL preview
           <div className="rounded-3xl border border-white/10 bg-slate-950/90 px-4 py-3 text-slate-300">

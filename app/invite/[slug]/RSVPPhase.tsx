@@ -97,13 +97,13 @@ function SongQuestionInput({
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <span className="text-[#D4A83A] text-xl shrink-0" aria-hidden>🎵</span>
+      <span className="text-[var(--gold-base)] text-xl shrink-0" aria-hidden>🎵</span>
       <input
         type="text"
         placeholder={SONG_PROMPTS[promptIdx]}
         value={parsed.artist}
         onChange={e => update('artist', e.target.value)}
-        className="flex-1 px-4 py-3 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] placeholder-[#D4A83A]/30 focus:border-[#D4A83A] outline-none transition-colors text-sm"
+        className="flex-1 px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
         style={{ fontFamily: 'var(--font-dm-sans)' }}
       />
       <input
@@ -111,7 +111,7 @@ function SongQuestionInput({
         placeholder="Song title"
         value={parsed.song}
         onChange={e => update('song', e.target.value)}
-        className="flex-1 px-4 py-3 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] placeholder-[#D4A83A]/30 focus:border-[#D4A83A] outline-none transition-colors text-sm"
+        className="flex-1 px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
         style={{ fontFamily: 'var(--font-dm-sans)' }}
       />
     </div>
@@ -300,15 +300,15 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
   if (submitted) {
     return (
       <div className="w-full">
-        {!embedded && <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent opacity-100" aria-hidden="true" />}
+        {!embedded && <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[var(--forest-accent)]/5 to-transparent opacity-100" aria-hidden="true" />}
         <div className={embedded ? 'text-center py-4' : 'relative z-10 w-full max-w-2xl px-4 sm:px-6 text-center'}>
-          <h2 className="text-5xl sm:text-6xl font-light text-[#F2E8D0] mb-8" style={{ fontFamily: 'var(--font-cinzel)' }}>
+          <h2 className="text-5xl sm:text-6xl font-light text-[var(--cream)] mb-8" style={{ fontFamily: 'var(--font-cinzel)' }}>
             Thank you!
           </h2>
           <p className="text-xl sm:text-2xl text-white/80 mb-6 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
             {getConfirmationMessage()}
           </p>
-          <p className="text-base sm:text-lg text-[#D4A83A]/80 font-light mb-8" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+          <p className="text-base sm:text-lg text-[var(--gold-base)]/80 font-light mb-8" style={{ fontFamily: 'var(--font-dm-sans)' }}>
             More details will be sent your way soon.
           </p>
           <button
@@ -317,7 +317,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
             style={{
               background: 'none',
               border: 'none',
-              color: '#D4A83A',
+              color: 'var(--gold-base)',
               textDecoration: 'underline',
               fontSize: '1rem',
               padding: '20px 40px',
@@ -340,7 +340,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
       <div className="w-full">
         <div className="w-full">
           <div className="mb-6">
-            <p className="text-lg font-light text-[#F2E8D0] mb-1" style={{ fontFamily: 'var(--font-cinzel)' }}>
+            <p className="text-lg font-light text-[var(--cream)] mb-1" style={{ fontFamily: 'var(--font-cinzel)' }}>
               You&apos;re all set!
             </p>
             <p className="text-sm text-white/50 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
@@ -350,15 +350,15 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
 
           <div className="space-y-0 mb-6">
             {guests.map(guest => (
-              <div key={guest.id} className="border-b border-[#D4A83A]/20 py-3 last:border-b-0">
+              <div key={guest.id} className="border-b border-[var(--gold-base)]/20 py-3 last:border-b-0">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-light text-[#F2E8D0]" style={{ fontFamily: 'var(--font-cinzel)' }}>
+                  <h3 className="text-lg font-light text-[var(--cream)]" style={{ fontFamily: 'var(--font-cinzel)' }}>
                     {guest.first_name} {guest.last_name}
                   </h3>
                   <span
                     className={`text-xs uppercase tracking-widest px-3 py-1 font-light border ${
                       guest.rsvp_status === 'attending'
-                        ? 'bg-[#D4A83A]/15 text-[#D4A83A] border-[#D4A83A]/40'
+                        ? 'bg-[var(--gold-base)]/15 text-[var(--gold-base)] border-[var(--gold-base)]/40'
                         : 'bg-white/5 text-white/40 border-white/20'
                     }`}
                     style={{ fontFamily: 'var(--font-dm-sans)' }}
@@ -383,7 +383,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#D4A83A',
+                color: 'var(--gold-base)',
                 textDecoration: 'underline',
                 fontSize: '1rem',
                 padding: '20px 40px',
@@ -422,7 +422,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
             </div>
           )}
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-light text-[#F2E8D0] mb-4" style={{ fontFamily: 'var(--font-cinzel)' }}>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-light text-[var(--cream)] mb-4" style={{ fontFamily: 'var(--font-cinzel)' }}>
             {householdName}
           </h1>
 
@@ -433,21 +433,21 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
             </p>
           )}
 
-          <div className="h-px w-24 bg-[#D4A83A] mx-auto" />
+          <div className="h-px w-24 bg-[var(--gold-base)] mx-auto" />
         </div>}
 
         {/* RSVP Form */}
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Invited Guests */}
           {guests.map((guest, idx) => (
-            <div key={guest.id} className="border-b border-[#D4A83A]/20 pb-8 last:border-b-0">
-              <h3 className="text-2xl text-[#F2E8D0] mb-8 font-light" style={{ fontFamily: 'var(--font-cinzel)' }}>
+            <div key={guest.id} className="border-b border-[var(--gold-base)]/20 pb-8 last:border-b-0">
+              <h3 className="text-2xl text-[var(--cream)] mb-8 font-light" style={{ fontFamily: 'var(--font-cinzel)' }}>
                 {guest.first_name} {guest.last_name}
               </h3>
 
               {/* Attending Toggle - Primary Question */}
               <div className="mb-8">
-                <p className="text-base uppercase tracking-widest text-[#D4A83A] mb-5 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+                <p className="text-base uppercase tracking-widest text-[var(--gold-base)] mb-5 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
                   Will you be attending?
                 </p>
                 <div className="flex gap-4">
@@ -456,8 +456,8 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                     onClick={() => handleAttendingChange(guest.id, true)}
                     className={`px-8 py-4 font-light text-base transition-all ${
                       formData[guest.id].attending
-                        ? 'bg-[#D4A83A] text-[#0A1F14]'
-                        : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
+                        ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
+                        : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
                     }`}
                     style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                   >
@@ -468,8 +468,8 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                     onClick={() => handleAttendingChange(guest.id, false)}
                     className={`px-8 py-4 font-light text-base transition-all ${
                       !formData[guest.id].attending
-                        ? 'bg-[#D4A83A] text-[#0A1F14]'
-                        : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
+                        ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
+                        : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
                     }`}
                     style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                   >
@@ -481,7 +481,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
               {/* Dietary Requirements - Only show if attending */}
               {formData[guest.id].attending && (
                 <div>
-                  <p className="text-xs uppercase tracking-widest text-[#D4A83A]/80 mb-3" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+                  <p className="text-xs uppercase tracking-widest text-[var(--gold-base)]/80 mb-3" style={{ fontFamily: 'var(--font-dm-sans)' }}>
                     Dietary requirements
                   </p>
                   <div className="flex gap-3 mb-4">
@@ -490,8 +490,8 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                       onClick={() => handleHasDietaryChange(guest.id, false)}
                       className={`px-4 py-2 font-light text-sm transition-all ${
                         !formData[guest.id].hasDietary
-                          ? 'bg-[#D4A83A] text-[#0A1F14]'
-                          : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
+                          ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
+                          : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
                       }`}
                       style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                     >
@@ -502,8 +502,8 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                       onClick={() => handleHasDietaryChange(guest.id, true)}
                       className={`px-4 py-2 font-light text-sm transition-all ${
                         formData[guest.id].hasDietary
-                          ? 'bg-[#D4A83A] text-[#0A1F14]'
-                          : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
+                          ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
+                          : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
                       }`}
                       style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                     >
@@ -514,13 +514,13 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                   {/* Dietary Dropdown */}
                   {formData[guest.id].hasDietary && (
                     <>
-                      <label className="text-xs uppercase tracking-widest text-[#D4A83A]/80 mb-2 block" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+                      <label className="text-xs uppercase tracking-widest text-[var(--gold-base)]/80 mb-2 block" style={{ fontFamily: 'var(--font-dm-sans)' }}>
                         What are your requirements?
                       </label>
                       <select
                         value={formData[guest.id].dietary_requirement}
                         onChange={(e) => handleDietaryChange(guest.id, e.target.value)}
-                        className="w-full px-4 py-3 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] focus:border-[#D4A83A] outline-none transition-colors mb-4 text-sm"
+                        className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] focus:border-[var(--gold-base)] outline-none transition-colors mb-4 text-sm"
                         style={{ fontFamily: 'var(--font-dm-sans)' }}
                       >
                         {DIETARY_OPTIONS.filter(opt => opt.value !== 'none').map(option => (
@@ -537,7 +537,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                           placeholder="Please specify"
                           value={formData[guest.id].dietary_other}
                           onChange={(e) => handleDietaryOtherChange(guest.id, e.target.value)}
-                          className="w-full px-4 py-3 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] placeholder-[#D4A83A]/30 focus:border-[#D4A83A] outline-none transition-colors text-sm"
+                          className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
                           style={{ fontFamily: 'var(--font-dm-sans)' }}
                         />
                       )}
@@ -550,23 +550,23 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
 
           {/* Plus One Guests Section */}
           {household.plus_one_allowance > 0 && (
-            <div className="border-t border-[#D4A83A]/20 pt-8">
+            <div className="border-t border-[var(--gold-base)]/20 pt-8">
               <div className="mb-8">
-                <p className="text-base text-[#F2E8D0] mb-4 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+                <p className="text-base text-[var(--cream)] mb-4 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
                   You're welcome to bring {household.plus_one_allowance} additional guest{household.plus_one_allowance !== 1 ? 's' : ''}
                 </p>
 
                 {/* Existing Plus Ones */}
                 {plusOnes.map((plusOne, idx) => (
-                  <div key={plusOne.id} className="mb-6 p-4 border border-[#D4A83A]/20 rounded">
+                  <div key={plusOne.id} className="mb-6 p-4 border border-[var(--gold-base)]/20 rounded">
                     <div className="flex justify-between items-center mb-4">
-                      <p className="text-sm text-[#D4A83A]" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+                      <p className="text-sm text-[var(--gold-base)]" style={{ fontFamily: 'var(--font-dm-sans)' }}>
                         Additional Guest {idx + 1}
                       </p>
                       <button
                         type="button"
                         onClick={() => removePlusOne(plusOne.id)}
-                        className="text-xs text-[#D4A83A]/60 hover:text-[#D4A83A] transition-colors"
+                        className="text-xs text-[var(--gold-base)]/60 hover:text-[var(--gold-base)] transition-colors"
                         style={{ touchAction: 'manipulation' }}
                       >
                         Remove
@@ -579,7 +579,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                         placeholder="First name"
                         value={plusOne.first_name}
                         onChange={(e) => handlePlusOneChange(plusOne.id, 'first_name', e.target.value)}
-                        className="px-4 py-2 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] placeholder-[#D4A83A]/30 focus:border-[#D4A83A] outline-none transition-colors text-sm"
+                        className="px-4 py-2 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
                         style={{ fontFamily: 'var(--font-dm-sans)' }}
                       />
                       <input
@@ -587,13 +587,13 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                         placeholder="Last name"
                         value={plusOne.last_name}
                         onChange={(e) => handlePlusOneChange(plusOne.id, 'last_name', e.target.value)}
-                        className="px-4 py-2 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] placeholder-[#D4A83A]/30 focus:border-[#D4A83A] outline-none transition-colors text-sm"
+                        className="px-4 py-2 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
                         style={{ fontFamily: 'var(--font-dm-sans)' }}
                       />
                     </div>
 
                     <div className="mb-4">
-                      <p className="text-xs uppercase tracking-widest text-[#D4A83A]/80 mb-2" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+                      <p className="text-xs uppercase tracking-widest text-[var(--gold-base)]/80 mb-2" style={{ fontFamily: 'var(--font-dm-sans)' }}>
                         Attending?
                       </p>
                       <div className="flex gap-2">
@@ -602,8 +602,8 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                           onClick={() => handlePlusOneChange(plusOne.id, 'attending', true)}
                           className={`px-3 py-2 font-light text-xs transition-all ${
                             plusOne.attending
-                              ? 'bg-[#D4A83A] text-[#0A1F14]'
-                              : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
+                              ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
+                              : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
                           }`}
                           style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                         >
@@ -614,8 +614,8 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                           onClick={() => handlePlusOneChange(plusOne.id, 'attending', false)}
                           className={`px-3 py-2 font-light text-xs transition-all ${
                             !plusOne.attending
-                              ? 'bg-[#D4A83A] text-[#0A1F14]'
-                              : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
+                              ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
+                              : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
                           }`}
                           style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                         >
@@ -626,7 +626,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
 
                     {plusOne.attending && (
                       <div>
-                        <p className="text-xs uppercase tracking-widest text-[#D4A83A]/80 mb-2" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+                        <p className="text-xs uppercase tracking-widest text-[var(--gold-base)]/80 mb-2" style={{ fontFamily: 'var(--font-dm-sans)' }}>
                           Dietary requirements?
                         </p>
                         <div className="flex gap-2 mb-2">
@@ -635,8 +635,8 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                             onClick={() => handlePlusOneChange(plusOne.id, 'hasDietary', false)}
                             className={`px-3 py-2 font-light text-xs transition-all ${
                               !plusOne.hasDietary
-                                ? 'bg-[#D4A83A] text-[#0A1F14]'
-                                : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
+                                ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
+                                : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
                             }`}
                             style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                           >
@@ -647,8 +647,8 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                             onClick={() => handlePlusOneChange(plusOne.id, 'hasDietary', true)}
                             className={`px-3 py-2 font-light text-xs transition-all ${
                               plusOne.hasDietary
-                                ? 'bg-[#D4A83A] text-[#0A1F14]'
-                                : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
+                                ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
+                                : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
                             }`}
                             style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                           >
@@ -661,7 +661,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                             <select
                               value={plusOne.dietary_requirement}
                               onChange={(e) => handlePlusOneChange(plusOne.id, 'dietary_requirement', e.target.value)}
-                              className="w-full px-3 py-2 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] focus:border-[#D4A83A] outline-none transition-colors mb-2 text-xs"
+                              className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] focus:border-[var(--gold-base)] outline-none transition-colors mb-2 text-xs"
                               style={{ fontFamily: 'var(--font-dm-sans)' }}
                             >
                               {DIETARY_OPTIONS.filter(opt => opt.value !== 'none').map(option => (
@@ -677,7 +677,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                                 placeholder="Please specify"
                                 value={plusOne.dietary_other}
                                 onChange={(e) => handlePlusOneChange(plusOne.id, 'dietary_other', e.target.value)}
-                                className="w-full px-3 py-2 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] placeholder-[#D4A83A]/30 focus:border-[#D4A83A] outline-none transition-colors text-xs"
+                                className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-xs"
                                 style={{ fontFamily: 'var(--font-dm-sans)' }}
                               />
                             )}
@@ -693,7 +693,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                   <button
                     type="button"
                     onClick={addPlusOne}
-                    className="text-sm text-[#D4A83A] hover:text-[#F2E8D0] transition-colors underline"
+                    className="text-sm text-[var(--gold-base)] hover:text-[var(--cream)] transition-colors underline"
                     style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                   >
                     + Add another guest
@@ -705,11 +705,11 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
 
           {/* Custom Questions */}
           {questions.length > 0 && (
-            <div className="border-t border-[#D4A83A]/20 pt-8 space-y-10">
+            <div className="border-t border-[var(--gold-base)]/20 pt-8 space-y-10">
               {questions.map(q => (
                 <div key={q.id}>
                   <p
-                    className="text-base uppercase tracking-widest text-[#D4A83A] mb-5 font-light"
+                    className="text-base uppercase tracking-widest text-[var(--gold-base)] mb-5 font-light"
                     style={{ fontFamily: 'var(--font-dm-sans)' }}
                   >
                     {q.question_text}
@@ -720,7 +720,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                       type="text"
                       value={questionAnswers[q.id] ?? ''}
                       onChange={e => setQuestionAnswer(q.id, e.target.value)}
-                      className="w-full px-4 py-3 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] placeholder-[#D4A83A]/30 focus:border-[#D4A83A] outline-none transition-colors text-sm"
+                      className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
                       style={{ fontFamily: 'var(--font-dm-sans)' }}
                     />
                   )}
@@ -730,7 +730,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                       rows={3}
                       value={questionAnswers[q.id] ?? ''}
                       onChange={e => setQuestionAnswer(q.id, e.target.value)}
-                      className="w-full px-4 py-3 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] placeholder-[#D4A83A]/30 focus:border-[#D4A83A] outline-none transition-colors text-sm resize-none"
+                      className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm resize-none"
                       style={{ fontFamily: 'var(--font-dm-sans)' }}
                     />
                   )}
@@ -744,8 +744,8 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                           onClick={() => setQuestionAnswer(q.id, val)}
                           className={`px-8 py-4 font-light text-base transition-all ${
                             questionAnswers[q.id] === val
-                              ? 'bg-[#D4A83A] text-[#0A1F14]'
-                              : 'border border-[#D4A83A]/50 text-[#F2E8D0] hover:border-[#D4A83A]'
+                              ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
+                              : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
                           }`}
                           style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
                         >
@@ -759,7 +759,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                     <select
                       value={questionAnswers[q.id] ?? ''}
                       onChange={e => setQuestionAnswer(q.id, e.target.value)}
-                      className="w-full px-4 py-3 bg-[#0A1F14] border border-[#D4A83A]/50 text-[#F2E8D0] focus:border-[#D4A83A] outline-none transition-colors text-sm"
+                      className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
                       style={{ fontFamily: 'var(--font-dm-sans)' }}
                     >
                       <option value="">Select an option...</option>
@@ -791,7 +791,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
           <div className="pt-8">
             {rsvpClosed ? (
               <p
-                className="text-center text-sm text-[#F2E8D0]/60 font-light"
+                className="text-center text-sm text-[var(--cream)]/60 font-light"
                 style={{ fontFamily: 'var(--font-dm-sans)' }}
               >
                 RSVP submissions are now closed. Please contact Matt &amp; Raff directly.
@@ -800,7 +800,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-[#D4A83A] text-[#0A1F14] font-light uppercase tracking-widest transition-all disabled:opacity-50 hover:bg-[#E8B854]"
+                className="w-full py-4 bg-[var(--gold-base)] text-[var(--bg-primary)] font-light uppercase tracking-widest transition-all disabled:opacity-50 hover:bg-[var(--gold-champagne)]"
                 style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
               >
                 {loading ? 'Submitting...' : 'Submit RSVP'}

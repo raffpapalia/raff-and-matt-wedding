@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Settings } from '@/lib/supabase';
+import PhotoUpload from '../components/PhotoUpload';
 
 const INPUT_CLASS =
   'w-full rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white placeholder-slate-600 outline-none transition focus:border-emerald-400';
@@ -291,15 +292,12 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
 
       {/* After the wedding */}
       <Section label="After the wedding" title="After the Wedding">
-        <Field label="Wedding day photo URL">
-          <input
-            type="text"
-            value={settings.wedding_photo_url}
-            onChange={e => update('wedding_photo_url', e.target.value)}
-            placeholder="https://..."
-            className={INPUT_CLASS}
-          />
-        </Field>
+        <PhotoUpload
+          value={settings.wedding_photo_url || null}
+          onChange={url => update('wedding_photo_url', url ?? '')}
+          aspectRatio={16 / 9}
+          label="Wedding day photo"
+        />
         <Field label="Google Photos album link">
           <input
             type="text"
