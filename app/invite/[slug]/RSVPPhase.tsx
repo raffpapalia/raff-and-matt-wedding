@@ -85,35 +85,61 @@ function SongQuestionInput({
   onChange: (serialised: string) => void;
 }) {
   const [promptIdx, setPromptIdx] = useState(0);
+  const [promptVisible, setPromptVisible] = useState(true);
   const parsed = parseSongAnswer(value);
 
   useEffect(() => {
-    const id = setInterval(() => setPromptIdx(i => (i + 1) % SONG_PROMPTS.length), 3000);
-    return () => clearInterval(id);
+    let fadeTimeout: ReturnType<typeof setTimeout>;
+    const id = setInterval(() => {
+      setPromptVisible(false);
+      fadeTimeout = setTimeout(() => {
+        setPromptIdx(i => (i + 1) % SONG_PROMPTS.length);
+        setPromptVisible(true);
+      }, 400);
+    }, 3000);
+    return () => {
+      clearInterval(id);
+      clearTimeout(fadeTimeout);
+    };
   }, []);
 
   const update = (field: 'artist' | 'song', val: string) =>
     onChange(JSON.stringify({ ...parsed, [field]: val }));
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <span className="text-[var(--gold-base)] text-xl shrink-0" aria-hidden>🎵</span>
-      <input
-        type="text"
-        placeholder={SONG_PROMPTS[promptIdx]}
-        value={parsed.artist}
-        onChange={e => update('artist', e.target.value)}
-        className="flex-1 px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
-        style={{ fontFamily: 'var(--font-dm-sans)' }}
-      />
-      <input
-        type="text"
-        placeholder="Song title"
-        value={parsed.song}
-        onChange={e => update('song', e.target.value)}
-        className="flex-1 px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
-        style={{ fontFamily: 'var(--font-dm-sans)' }}
-      />
+    <div>
+      <p
+        className="mb-3"
+        style={{
+          fontFamily: 'var(--font-dm-sans)',
+          color: 'var(--cream)',
+          fontStyle: 'italic',
+          opacity: promptVisible ? 0.7 : 0,
+          fontSize: '0.85rem',
+          transition: 'opacity 400ms ease-in-out',
+        }}
+      >
+        {SONG_PROMPTS[promptIdx]}
+      </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <span className="text-[var(--gold-base)] text-xl shrink-0" aria-hidden>🎵</span>
+        <input
+          type="text"
+          placeholder="Artist"
+          value={parsed.artist}
+          onChange={e => update('artist', e.target.value)}
+          className="flex-1 px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
+          style={{ fontFamily: 'var(--font-dm-sans)' }}
+        />
+        <input
+          type="text"
+          placeholder="Song title"
+          value={parsed.song}
+          onChange={e => update('song', e.target.value)}
+          className="flex-1 px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
+          style={{ fontFamily: 'var(--font-dm-sans)' }}
+        />
+      </div>
     </div>
   );
 }
