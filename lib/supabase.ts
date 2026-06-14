@@ -146,6 +146,26 @@ export async function getHouseholdTags(householdId: string) {
     .eq('household_id', householdId);
 }
 
+export type ScheduleItem = {
+  time: string;
+  label: string;
+};
+
+export type SectionOrderItem = {
+  id: string;
+  label: string;
+  order: number;
+  visible_phases: string[];
+};
+
+export const DEFAULT_SECTION_ORDER: SectionOrderItem[] = [
+  { id: 'the_day', label: 'The Day', order: 1, visible_phases: ['invitation', 'pre_wedding'] },
+  { id: 'on_the_day', label: 'On the Day', order: 2, visible_phases: ['invitation'] },
+  { id: 'dress_code', label: 'Dress Code', order: 3, visible_phases: ['invitation'] },
+  { id: 'practicalities', label: 'The Practicalities', order: 4, visible_phases: ['invitation', 'pre_wedding'] },
+  { id: 'faqs', label: 'FAQs', order: 5, visible_phases: ['invitation', 'pre_wedding'] },
+];
+
 export type Settings = {
   wedding_date: string;
   wedding_time: string;
@@ -163,6 +183,8 @@ export type Settings = {
   hashtag: string;
   wedding_photo_url: string;
   google_photos_url: string;
+  wedding_schedule: ScheduleItem[];
+  section_order: SectionOrderItem[];
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -182,6 +204,8 @@ export const DEFAULT_SETTINGS: Settings = {
   hashtag: '#mattraff2027',
   wedding_photo_url: '',
   google_photos_url: '',
+  wedding_schedule: [],
+  section_order: DEFAULT_SECTION_ORDER,
 };
 
 export async function getSettings(): Promise<Settings> {

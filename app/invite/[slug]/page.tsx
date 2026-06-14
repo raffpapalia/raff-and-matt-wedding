@@ -167,6 +167,9 @@ export default async function InvitePage({
         existingAnswers={existingAnswers}
         guestName={guestName}
         faqs={faqs}
+        weddingSchedule={settings.wedding_schedule}
+        sectionOrder={settings.section_order}
+        currentPhase={phase.current_phase}
       />
     );
   }

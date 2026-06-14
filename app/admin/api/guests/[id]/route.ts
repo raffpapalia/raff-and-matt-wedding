@@ -3,6 +3,15 @@ import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
 
+const PHOTO_BUCKET = 'household-photos';
+
+function storagePathFromUrl(url: string): string | null {
+  const marker = `/storage/v1/object/public/${PHOTO_BUCKET}/`;
+  const index = url.indexOf(marker);
+  if (index === -1) return null;
+  return decodeURIComponent(url.slice(index + marker.length));
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
   if (authCookie !== 'true') return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -103,5 +112,86 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   } catch (err) {
     console.error('[admin:guests:patch] unexpected error', err);
     return NextResponse.json({ message: 'Unexpected error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
+  if (authCookie !== 'true') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json({ error: 'Server not configured for writes: SUPABASE_SERVICE_ROLE_KEY missing' }, { status: 500 });
+  }
+
+  const { id } = await params;
+
+  try {
+    const householdRes = await supabaseServer
+      .from('households')
+      .select('id,personal_photo_url,thank_you_photo_url')
+      .eq('id', id)
+      .single();
+
+    if (householdRes.error || !householdRes.data) {
+      return NextResponse.json({ error: 'Household not found' }, { status: 404 });
+    }
+
+    const guestsRes = await supabaseServer.from('guests').select('id').eq('household_id', id);
+    if (guestsRes.error) {
+      console.error('[admin:guests:delete] load guests error', guestsRes.error);
+      return NextResponse.json({ error: 'Failed to load guests' }, { status: 500 });
+    }
+
+    const guestIds = (guestsRes.data ?? []).map((guest) => guest.id);
+
+    if (guestIds.length > 0) {
+      const answersRes = await supabaseServer.from('custom_answers').delete().in('guest_id', guestIds);
+      if (answersRes.error) {
+        console.error('[admin:guests:delete] delete custom_answers error', answersRes.error);
+        return NextResponse.json({ error: 'Failed to delete custom answers' }, { status: 500 });
+      }
+    }
+
+    const commsRes = await supabaseServer.from('communications').delete().eq('household_id', id);
+    if (commsRes.error) {
+      console.error('[admin:guests:delete] delete communications error', commsRes.error);
+      return NextResponse.json({ error: 'Failed to delete communications' }, { status: 500 });
+    }
+
+    const tagsRes = await supabaseServer.from('guest_tags').delete().eq('household_id', id);
+    if (tagsRes.error) {
+      console.error('[admin:guests:delete] delete guest_tags error', tagsRes.error);
+      return NextResponse.json({ error: 'Failed to delete tags' }, { status: 500 });
+    }
+
+    const guestsDeleteRes = await supabaseServer.from('guests').delete().eq('household_id', id);
+    if (guestsDeleteRes.error) {
+      console.error('[admin:guests:delete] delete guests error', guestsDeleteRes.error);
+      return NextResponse.json({ error: 'Failed to delete guests' }, { status: 500 });
+    }
+
+    const photoUrls = [householdRes.data.personal_photo_url, householdRes.data.thank_you_photo_url];
+    for (const url of photoUrls) {
+      if (typeof url === 'string' && url.includes('supabase.co/storage')) {
+        const path = storagePathFromUrl(url);
+        if (path) {
+          const removeRes = await supabaseServer.storage.from(PHOTO_BUCKET).remove([path]);
+          if (removeRes.error) {
+            console.error('[admin:guests:delete] failed to delete photo', removeRes.error);
+          }
+        }
+      }
+    }
+
+    const householdDeleteRes = await supabaseServer.from('households').delete().eq('id', id);
+    if (householdDeleteRes.error) {
+      console.error('[admin:guests:delete] delete household error', householdDeleteRes.error);
+      return NextResponse.json({ error: 'Failed to delete household' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error('[admin:guests:delete] unexpected error', err);
+    return NextResponse.json({ error: 'Unexpected error' }, { status: 500 });
   }
 }

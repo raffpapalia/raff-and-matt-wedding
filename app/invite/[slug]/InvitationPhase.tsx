@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import RSVPPhase from './RSVPPhase';
 import FaqAccordion from './FaqAccordion';
 import AddToCalendar from '@/app/components/AddToCalendar';
-import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Faq } from '@/lib/supabase';
+import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Faq, Phase, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
+import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
 import { palette, alpha } from './v3/tokens';
 import {
   Parallelogram,
@@ -22,6 +23,9 @@ interface InvitationPhaseProps {
   existingAnswers: CustomAnswer[];
   guestName: string;
   faqs: Faq[];
+  weddingSchedule: ScheduleItem[];
+  sectionOrder: SectionOrderItem[];
+  currentPhase: Phase['current_phase'];
 }
 
 const MONTHS = [
@@ -122,13 +126,19 @@ function KonamiCelebration() {
   );
 }
 
-const schedule = [
-  { time: '3:00', period: 'PM', event: 'Arrival', detail: 'Drinks in the lobby' },
-  { time: '3:30', period: 'PM', event: 'Ceremony', detail: 'A short, sharp celebration' },
-  { time: '4:00', period: 'PM', event: 'Cocktails', detail: 'Canapés & conversation' },
-  { time: '5:00', period: 'PM', event: 'Reception', detail: 'Dinner, dancing, the lot' },
-  { time: 'Late', period: '', event: 'After-hours', detail: 'The night is long' },
-];
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+// Splits a schedule time like "3:00 PM" into its value and period parts
+// so it can render in the same two-line style as the original hardcoded schedule.
+function splitScheduleTime(time: string): { value: string; period: string } {
+  const match = time.trim().match(/^(.*?)\s*(am|pm)$/i);
+  if (match) {
+    return { value: match[1].trim(), period: match[2].toUpperCase() };
+  }
+  return { value: time.trim(), period: '' };
+}
 
 function PracticalCard({
   roman,
@@ -294,6 +304,9 @@ export default function InvitationPhase({
   existingAnswers,
   guestName,
   faqs,
+  weddingSchedule,
+  sectionOrder,
+  currentPhase,
 }: InvitationPhaseProps) {
   const photoSrc = getImgSrc(household.personal_photo_url);
   const [showKonami, setShowKonami] = useState(false);
@@ -301,6 +314,14 @@ export default function InvitationPhase({
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tapCountRef = useRef(0);
   const tapResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Configurable sections: filter to those visible on this phase, sorted by order.
+  // "the_day" is always shown first and is not part of this list.
+  const configurableSections = (sectionOrder.length > 0 ? sectionOrder : DEFAULT_SECTION_ORDER)
+    .filter(section => section.id !== 'the_day' && section.visible_phases?.includes(currentPhase))
+    .sort((a, b) => a.order - b.order);
+
+  const rsvpSectionNumber = pad2(configurableSections.length + 2);
 
   // Easter egg: trigger the celebration overlay, auto-hiding after 4.5s
   const triggerKonami = useCallback(() => {
@@ -349,6 +370,252 @@ export default function InvitationPhase({
     }
   }
 
+  // Renderers for the configurable sections, keyed by section_order id.
+  const sectionRenderers: Record<string, (num: string) => React.ReactNode> = {
+    on_the_day: (num) => (
+      <section
+        key="on_the_day"
+        id="section-on_the_day"
+        style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem', position: 'relative', overflow: 'hidden' }}
+      >
+        <div style={{ maxWidth: '700px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <SectionNumber n={num} label="On the Day" />
+
+          {weddingSchedule.length > 0 && (
+            <div style={{ marginBottom: '2rem' }}>
+              {weddingSchedule.map((item, i) => {
+                const { value, period } = splitScheduleTime(item.time);
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '28px 80px 1fr',
+                      gap: '1.25rem',
+                      alignItems: 'start',
+                      padding: '1.1rem 0',
+                      borderBottom: i < weddingSchedule.length - 1 ? `1px solid ${alpha(palette.goldChampagne, 0.08)}` : 'none',
+                    }}
+                  >
+                    <div style={{ paddingTop: '0.3rem' }}>
+                      <Parallelogram width={24} height={12} color={palette.goldChampagne} skew={5} fillOpacity={0.6} />
+                    </div>
+                    <div>
+                      <p
+                        style={{
+                          fontFamily: 'var(--font-dm-sans)',
+                          fontSize: '1rem',
+                          color: palette.cream,
+                          margin: 0,
+                          lineHeight: 1,
+                        }}
+                      >
+                        {value}
+                      </p>
+                      {period && (
+                        <p
+                          style={{
+                            fontFamily: 'var(--font-dm-sans)',
+                            fontSize: '0.6rem',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.15em',
+                            color: palette.goldChampagne,
+                            margin: '0.15rem 0 0',
+                          }}
+                        >
+                          {period}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <p
+                        style={{
+                          fontFamily: 'var(--font-cinzel)',
+                          fontStyle: 'italic',
+                          fontSize: '0.95rem',
+                          color: palette.cream,
+                          margin: 0,
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {item.label}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Add to Calendar */}
+          <div>
+            <AddToCalendar mode="invitation" settings={settings} />
+          </div>
+        </div>
+      </section>
+    ),
+
+    dress_code: (num) => (
+      <section
+        key="dress_code"
+        id="section-dress_code"
+        style={{
+          backgroundColor: palette.bgDeep,
+          padding: '6rem 2rem',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          className="dress-code-content"
+          style={{
+            maxWidth: '700px',
+            margin: '0 auto',
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
+          <SectionNumber n={num} label="Dress Code" />
+
+          <p
+            style={{
+              fontFamily: 'var(--font-cinzel)',
+              fontStyle: 'italic',
+              fontSize: 'clamp(2.5rem, 8vw, 4rem)',
+              color: palette.cream,
+              lineHeight: 1,
+              margin: '0 0 0.25rem',
+            }}
+          >
+            Elevated
+          </p>
+          <p
+            style={{
+              fontFamily: 'var(--font-cinzel)',
+              fontStyle: 'italic',
+              fontSize: 'clamp(2.5rem, 8vw, 4rem)',
+              background: `linear-gradient(135deg, ${palette.goldChampagne} 0%, ${palette.goldDeep} 100%)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              lineHeight: 1,
+              margin: '0 0 2rem',
+            }}
+          >
+            Cocktail
+          </p>
+
+          <p
+            style={{
+              fontFamily: 'var(--font-dm-sans)',
+              fontSize: '0.9rem',
+              color: alpha(palette.cream, 0.7),
+              lineHeight: 1.8,
+              marginBottom: '1rem',
+              maxWidth: '380px',
+            }}
+          >
+            We&apos;ll be dressed up and we&apos;d love you to be too. Think glamorous cocktail —
+            dresses and suits.
+          </p>
+          <p
+            style={{
+              fontFamily: 'var(--font-dm-sans)',
+              fontSize: '0.9rem',
+              color: alpha(palette.cream, 0.7),
+              lineHeight: 1.8,
+              margin: 0,
+              maxWidth: '380px',
+            }}
+          >
+            Black tie is absolutely welcome if that&apos;s your vibe.
+          </p>
+        </div>
+      </section>
+    ),
+
+    practicalities: (num) => (
+      <section key="practicalities" id="section-practicalities" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <SectionNumber n={num} label="The Practicalities" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            <PracticalCard
+              roman="i."
+              category="Stay"
+              imageUrl={EUCALYPTUS_URL}
+              title="Accommodation"
+              body={
+                <>
+                  We&apos;ve arranged a special rate at <em>{settings.venue_name}</em>. Plenty of other
+                  CBD hotels are nearby if you prefer.
+                </>
+              }
+              ctaLabel="Book a room"
+              ctaUrl={settings.accommodation_url || undefined}
+            />
+            <PracticalCard
+              roman="ii."
+              category="Capture"
+              imageUrl={BANKSIA_URL}
+              title="Photos"
+              body={
+                <>
+                  Snap away and share on the day. Tag us with{' '}
+                  <em style={{ color: palette.goldChampagne, fontStyle: 'italic' }}>{settings.hashtag}</em>{' '}
+                  in your stories and posts.
+                </>
+              }
+              ctaLabel="Upload yours"
+              ctaUrl={settings.photos_upload_url || undefined}
+            />
+            <PracticalCard
+              roman="iii."
+              category="Gift"
+              imageUrl={MAGNOLIA_URL}
+              title="Registry"
+              body="Your presence is the greatest gift. If you'd like to give something more, we've put together a small wish list."
+              ctaLabel="View registry"
+              ctaUrl={settings.registry_url || undefined}
+            />
+          </div>
+        </div>
+      </section>
+    ),
+
+    faqs: (num) => (
+      <section
+        key="faqs"
+        id="section-faqs"
+        style={{
+          backgroundColor: palette.bgDeep,
+          padding: '6rem 2rem',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ maxWidth: '700px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <SectionNumber n={num} label="Questions" />
+
+          {faqs.length > 0 ? (
+            <FaqAccordion faqs={faqs} />
+          ) : (
+            <p
+              style={{
+                fontFamily: 'var(--font-dm-sans)',
+                fontSize: '0.875rem',
+                color: alpha(palette.cream, 0.4),
+                fontStyle: 'italic',
+              }}
+            >
+              Frequently asked questions coming soon.
+            </p>
+          )}
+        </div>
+      </section>
+    ),
+  };
+
   return (
     <div style={{ backgroundColor: palette.bgPrimary, color: palette.cream }}>
       {showKonami && <KonamiCelebration />}
@@ -368,7 +635,7 @@ export default function InvitationPhase({
         <LightBeam delay={0} opacity={0.06} />
 
         {/* Top corner markers */}
-        {/* Easter egg: tap the M & R mark several times for a surprise */}
+        {/* Easter egg: tap the "M & R" mark several times for a surprise */}
         <div
           onClick={handleLogoTap}
           style={{
@@ -568,7 +835,7 @@ export default function InvitationPhase({
             {/* CTAs */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
               <a
-                href="#section-06"
+                href="#section-rsvp"
                 style={{
                   display: 'inline-block',
                   padding: '0.875rem 2.25rem',
@@ -590,7 +857,7 @@ export default function InvitationPhase({
                 RSVP
               </a>
               <a
-                href="#section-01"
+                href="#section-the_day"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -690,46 +957,10 @@ export default function InvitationPhase({
         </div>
       </section>
 
-      {/* ── SECTION 01 — The Day ── */}
-      <section id="section-01" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
+      {/* ── THE DAY — date, time, venue (always shown) ── */}
+      <section id="section-the_day" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
           <SectionNumber n="01" label="The Day" />
-
-          {/* Cinematic couple photo */}
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              marginBottom: '2.5rem',
-              clipPath: 'polygon(2% 0, 100% 0, 98% 100%, 0 100%)',
-              overflow: 'hidden',
-            }}
-          >
-            <img
-              src={photoSrc || 'https://images.unsplash.com/photo-1604017011826-d3b4c23f8914?w=1200&q=80'}
-              alt=""
-              aria-hidden="true"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              className="section-01-couple-photo"
-              style={{
-                width: '100%',
-                display: 'block',
-                objectFit: 'cover',
-                filter: 'grayscale(0.3) sepia(0.1) brightness(0.75) contrast(1.08) saturate(0.85)',
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: `linear-gradient(to bottom, transparent 40%, ${palette.bgPrimary} 100%)`,
-                pointerEvents: 'none',
-              }}
-            />
-            <div style={{ position: 'absolute', inset: 0, mixBlendMode: 'overlay', pointerEvents: 'none' }}>
-              <WaterRipple opacity={0.08} />
-            </div>
-          </div>
 
           {/* Date block — three columns */}
           <div
@@ -786,248 +1017,13 @@ export default function InvitationPhase({
         </div>
       </section>
 
-      {/* ── SECTION 02 — Programme ── */}
-      <section id="section-02" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ maxWidth: '700px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <SectionNumber n="02" label="Programme" />
+      {/* ── CONFIGURABLE SECTIONS — driven by section_order setting ── */}
+      {configurableSections.map((section, i) => sectionRenderers[section.id]?.(pad2(i + 2)))}
 
-          <div style={{ marginBottom: '2rem' }}>
-            {schedule.map(({ time, period, event, detail }, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '28px 80px 1fr',
-                  gap: '1.25rem',
-                  alignItems: 'start',
-                  padding: '1.1rem 0',
-                  borderBottom: i < schedule.length - 1 ? `1px solid ${alpha(palette.goldChampagne, 0.08)}` : 'none',
-                }}
-              >
-                <div style={{ paddingTop: '0.3rem' }}>
-                  <Parallelogram width={24} height={12} color={palette.goldChampagne} skew={5} fillOpacity={0.6} />
-                </div>
-                <div>
-                  <p
-                    style={{
-                      fontFamily: 'var(--font-dm-sans)',
-                      fontSize: '1rem',
-                      color: palette.cream,
-                      margin: 0,
-                      lineHeight: 1,
-                    }}
-                  >
-                    {time}
-                  </p>
-                  {period && (
-                    <p
-                      style={{
-                        fontFamily: 'var(--font-dm-sans)',
-                        fontSize: '0.6rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.15em',
-                        color: palette.goldChampagne,
-                        margin: '0.15rem 0 0',
-                      }}
-                    >
-                      {period}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <p
-                    style={{
-                      fontFamily: 'var(--font-cinzel)',
-                      fontStyle: 'italic',
-                      fontSize: '0.95rem',
-                      color: palette.cream,
-                      margin: 0,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {event}
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: 'var(--font-dm-sans)',
-                      fontSize: '0.78rem',
-                      color: alpha(palette.cream, 0.55),
-                      margin: '0.2rem 0 0',
-                    }}
-                  >
-                    {detail}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Add to Calendar */}
-          <div>
-            <AddToCalendar mode="invitation" settings={settings} />
-          </div>
-        </div>
-      </section>
-
-      {/* ── SECTION 03 — Dress Code ── */}
-      <section
-        id="section-03"
-        style={{
-          backgroundColor: palette.bgDeep,
-          padding: '6rem 2rem',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          className="dress-code-content"
-          style={{
-            maxWidth: '700px',
-            margin: '0 auto',
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          <SectionNumber n="03" label="Dress Code" />
-
-          <p
-            style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: 'clamp(2.5rem, 8vw, 4rem)',
-              color: palette.cream,
-              lineHeight: 1,
-              margin: '0 0 0.25rem',
-            }}
-          >
-            Elevated
-          </p>
-          <p
-            style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: 'clamp(2.5rem, 8vw, 4rem)',
-              background: `linear-gradient(135deg, ${palette.goldChampagne} 0%, ${palette.goldDeep} 100%)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              lineHeight: 1,
-              margin: '0 0 2rem',
-            }}
-          >
-            Cocktail
-          </p>
-
-          <p
-            style={{
-              fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.9rem',
-              color: alpha(palette.cream, 0.7),
-              lineHeight: 1.8,
-              marginBottom: '1rem',
-              maxWidth: '380px',
-            }}
-          >
-            We&apos;ll be dressed up and we&apos;d love you to be too. Think glamorous cocktail —
-            dresses and suits.
-          </p>
-          <p
-            style={{
-              fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.9rem',
-              color: alpha(palette.cream, 0.7),
-              lineHeight: 1.8,
-              margin: 0,
-              maxWidth: '380px',
-            }}
-          >
-            Black tie is absolutely welcome if that&apos;s your vibe.
-          </p>
-        </div>
-      </section>
-
-      {/* ── SECTION 04 — The Practicalities ── */}
-      <section id="section-04" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <SectionNumber n="04" label="The Practicalities" />
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            <PracticalCard
-              roman="i."
-              category="Stay"
-              imageUrl={EUCALYPTUS_URL}
-              title="Accommodation"
-              body={
-                <>
-                  We&apos;ve arranged a special rate at <em>{settings.venue_name}</em>. Plenty of other
-                  CBD hotels are nearby if you prefer.
-                </>
-              }
-              ctaLabel="Book a room"
-              ctaUrl={settings.accommodation_url || undefined}
-            />
-            <PracticalCard
-              roman="ii."
-              category="Capture"
-              imageUrl={BANKSIA_URL}
-              title="Photos"
-              body={
-                <>
-                  Snap away and share on the day. Tag us with{' '}
-                  <em style={{ color: palette.goldChampagne, fontStyle: 'italic' }}>{settings.hashtag}</em>{' '}
-                  in your stories and posts.
-                </>
-              }
-              ctaLabel="Upload yours"
-              ctaUrl={settings.photos_upload_url || undefined}
-            />
-            <PracticalCard
-              roman="iii."
-              category="Gift"
-              imageUrl={MAGNOLIA_URL}
-              title="Registry"
-              body="Your presence is the greatest gift. If you'd like to give something more, we've put together a small wish list."
-              ctaLabel="View registry"
-              ctaUrl={settings.registry_url || undefined}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ── SECTION 05 — Questions ── */}
-      <section
-        id="section-05"
-        style={{
-          backgroundColor: palette.bgDeep,
-          padding: '6rem 2rem',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ maxWidth: '700px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <SectionNumber n="05" label="Questions" />
-
-          {faqs.length > 0 ? (
-            <FaqAccordion faqs={faqs} />
-          ) : (
-            <p
-              style={{
-                fontFamily: 'var(--font-dm-sans)',
-                fontSize: '0.875rem',
-                color: alpha(palette.cream, 0.4),
-                fontStyle: 'italic',
-              }}
-            >
-              Frequently asked questions coming soon.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* ── SECTION 06 — The Reply ── */}
-      <section id="section-06" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
+      {/* ── THE REPLY — RSVP, always last ── */}
+      <section id="section-rsvp" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-          <SectionNumber n="06" label="The Reply" />
+          <SectionNumber n={rsvpSectionNumber} label="The Reply" />
 
           <h2
             style={{
@@ -1125,10 +1121,6 @@ export default function InvitationPhase({
       </footer>
 
       <style>{`
-        .section-01-couple-photo { aspect-ratio: 16/9; }
-        @media (min-width: 768px) {
-          .section-01-couple-photo { aspect-ratio: 21/9; }
-        }
         .dress-code-content { padding-left: 0; }
         @media (min-width: 768px) {
           .dress-code-content { padding-left: min(20%, 200px); }
@@ -1137,7 +1129,7 @@ export default function InvitationPhase({
         @media (min-width: 768px) {
           .rsvp-card { padding: 2rem 1.75rem; }
         }
-        #section-05 button { min-height: 44px; }
+        #section-faqs button { min-height: 44px; }
       `}</style>
     </div>
   );

@@ -1,26 +1,22 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type GuestRow = {
   id: string;
   name: string;
   slug: string;
-  tags: string[];
+  guestNames: string[];
   invited: number;
   attending: number;
   declined: number;
   pending: number;
-  commsEmail: number;
-  commsSms: number;
-  linkOpenCount: number;
-  linkFirstOpenedAt: string | null;
-  thankYouPhotoUrl: string | null;
-  thankYouMessage: string | null;
 };
 
 const PAGE_SIZE = 20;
+const SITE_URL = 'https://www.mattandraff.com';
+
 const tabKeys = ['all', 'confirmed', 'pending', 'declined'] as const;
 const tabLabels: Record<typeof tabKeys[number], string> = {
   all: 'All',
@@ -29,69 +25,214 @@ const tabLabels: Record<typeof tabKeys[number], string> = {
   declined: 'Declined',
 };
 
-function statusBadge(label: string, value: number, colorClass: string) {
-  if (value <= 0) return null;
+type SortKey = 'household' | 'guests' | 'rsvp';
+type SortDir = 'asc' | 'desc';
+
+const defaultSortDir: Record<SortKey, SortDir> = {
+  household: 'asc',
+  guests: 'desc',
+  rsvp: 'desc',
+};
+
+const sortHeaderClass = 'inline-flex items-center gap-1 transition hover:text-accent-gold';
+
+function SortArrow({ direction }: { direction: SortDir }) {
+  return <span className="text-[10px] text-accent-gold">{direction === 'asc' ? '▲' : '▼'}</span>;
+}
+
+function TrashIcon({ className }: { className?: string }) {
   return (
-    <span className={`${colorClass} inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em]`}>
-      {label}: {value}
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18" />
+      <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+      <path d="M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
+function ClipboardIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+}
+
+function RsvpSummary({ attending, declined, pending }: { attending: number; declined: number; pending: number }) {
+  const parts: { text: string; className: string }[] = [];
+  if (attending > 0) parts.push({ text: `✓ ${attending} attending`, className: 'text-emerald-400' });
+  if (declined > 0) parts.push({ text: `${declined} declined`, className: 'text-rose-400' });
+  if (pending > 0) parts.push({ text: `${pending} pending`, className: 'text-amber-400' });
+
+  if (parts.length === 0) {
+    return <span className="text-xs text-[#F2E8D0]/30">—</span>;
+  }
+
+  return (
+    <span className="text-xs">
+      {parts.map((part, index) => (
+        <span key={part.text}>
+          <span className={part.className}>{part.text}</span>
+          {index < parts.length - 1 ? <span className="mx-1.5 text-[#F2E8D0]/25">·</span> : null}
+        </span>
+      ))}
     </span>
   );
 }
 
-function ThankYouBadge({ photoUrl, message }: { photoUrl: string | null; message: string | null }) {
-  const hasPhoto = !!photoUrl && photoUrl.trim().length > 0;
-  const hasMessage = !!message && message.trim().length > 0;
+function GuestCountCell({ count, names }: { count: number; names: string[] }) {
+  if (names.length === 0) {
+    return <span className="text-[#F2E8D0]/80">{count}</span>;
+  }
 
-  if (hasPhoto && hasMessage) {
-    return (
-      <span
-        title="Thank you page complete"
-        className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-300"
-      >
-        ✓
+  return (
+    <span className="group relative inline-block cursor-default border-b border-dotted border-[#F2E8D0]/25 text-[#F2E8D0]/80">
+      {count}
+      <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 w-max max-w-[240px] rounded-xl border border-[#F2E8D0]/15 bg-[#06120B] px-3 py-2 text-xs leading-relaxed text-[#F2E8D0]/80 opacity-0 shadow-xl shadow-black/40 transition group-hover:opacity-100">
+        {names.join(', ')}
       </span>
-    );
-  }
-
-  if (hasPhoto || hasMessage) {
-    return (
-      <span
-        title="Thank you page partially complete"
-        className="inline-block h-2.5 w-2.5 rounded-full bg-amber-400"
-      />
-    );
-  }
-
-  return null;
+    </span>
+  );
 }
 
-function CopySlugChip({ slug }: { slug: string }) {
+function CopyInviteButton({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false);
-  const siteUrl = typeof window !== 'undefined'
-    ? window.location.origin
-    : ((process.env.NEXT_PUBLIC_SITE_URL || 'https://mattandraff.com').replace(/\/$/, ''));
-  const full = siteUrl.replace(/\/$/, '') + `/invite/${slug}`;
 
   return (
     <button
       type="button"
       onClick={async () => {
-        await navigator.clipboard.writeText(full);
+        await navigator.clipboard.writeText(`${SITE_URL}/invite/${slug}`);
         setCopied(true);
         window.setTimeout(() => setCopied(false), 1600);
       }}
-      className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-left text-[11px] font-medium text-slate-200 transition hover:border-emerald-300/40 hover:bg-emerald-300/10"
+      title="Copy invite link"
+      className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#F2E8D0]/15 text-[#F2E8D0]/60 transition hover:border-accent-gold/40 hover:text-accent-gold"
     >
-      {copied ? 'Copied' : full}
+      <ClipboardIcon className="h-4 w-4" />
+      {copied ? (
+        <span className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-accent-gold px-2.5 py-1 text-[11px] font-semibold text-dark-green">
+          Copied!
+        </span>
+      ) : null}
     </button>
   );
 }
 
-export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
-  const router = useRouter();
+function DeleteConfirmModal({
+  household,
+  onCancel,
+  onDeleted,
+}: {
+  household: GuestRow;
+  onCancel: () => void;
+  onDeleted: (id: string) => void;
+}) {
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleConfirm = async () => {
+    setDeleting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/admin/api/guests/${household.id}`, { method: 'DELETE' });
+      const json = await response.json().catch(() => ({}));
+
+      if (!response.ok || json?.error) {
+        setError(json?.error || 'Failed to delete household.');
+        setDeleting(false);
+        return;
+      }
+
+      onDeleted(household.id);
+    } catch {
+      setError('Failed to delete household.');
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      onClick={() => !deleting && onCancel()}
+    >
+      <div
+        className="w-full max-w-md rounded-3xl border border-[#F2E8D0]/10 bg-dark-green p-6 shadow-2xl shadow-black/50 sm:p-8"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <h3 className="font-cinzel text-xl font-semibold text-[#F2E8D0]">Delete {household.name}?</h3>
+        <p className="mt-3 text-sm leading-relaxed text-[#F2E8D0]/70">
+          This will permanently delete the household, all guests, and all their RSVP responses. This cannot be undone.
+        </p>
+        {error ? (
+          <div className="mt-4 rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
+        ) : null}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={deleting}
+            className="rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {deleting ? 'Deleting…' : 'Delete'}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={deleting}
+            className="rounded-full border border-[#F2E8D0]/15 px-5 py-3 text-sm text-[#F2E8D0]/85 transition hover:border-accent-gold/40 hover:text-accent-gold disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[] }) {
+  const [rows, setRows] = useState(initialRows);
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<typeof tabKeys[number]>('all');
   const [page, setPage] = useState(0);
+  const [sortKey, setSortKey] = useState<SortKey>('household');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [deleteTarget, setDeleteTarget] = useState<GuestRow | null>(null);
+  const [fadingIds, setFadingIds] = useState<Set<string>>(new Set());
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((current) => (current === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(defaultSortDir[key]);
+    }
+    setPage(0);
+  };
+
+  const handleDeleted = (id: string) => {
+    setDeleteTarget(null);
+    setFadingIds((prev) => new Set(prev).add(id));
+    window.setTimeout(() => {
+      setRows((prev) => prev.filter((row) => row.id !== id));
+      setFadingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }, 300);
+  };
 
   const counts = useMemo(
     () => ({
@@ -123,16 +264,27 @@ export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
     });
   }, [rows, query, activeTab]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
-  const pageRows = filteredRows.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+  const sortedRows = useMemo(() => {
+    const sorted = [...filteredRows];
+    sorted.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'household') cmp = a.name.localeCompare(b.name);
+      else if (sortKey === 'guests') cmp = a.invited - b.invited;
+      else cmp = a.attending - b.attending;
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [filteredRows, sortKey, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
+  const pageRows = sortedRows.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   return (
-    <div className="space-y-6 rounded-[2rem] border border-white/10 bg-slate-950/80 p-6 shadow-xl shadow-slate-950/20">
+    <div className="space-y-6 rounded-[2rem] border border-[#F2E8D0]/10 bg-dark-green p-6 font-dm-sans shadow-xl shadow-black/30 sm:p-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.35em] text-emerald-200/70">Guest manager</p>
-          <h2 className="mt-3 text-2xl font-semibold text-white">Household roster</h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">Search and filter households by RSVP status, then copy invite links quickly.</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-accent-gold/60">Guest manager</p>
+          <h2 className="mt-2 font-cinzel text-2xl font-semibold text-[#F2E8D0]">Household roster</h2>
         </div>
         <div className="max-w-md flex-1">
           <label className="relative block">
@@ -143,8 +295,8 @@ export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
                 setQuery(event.target.value);
                 setPage(0);
               }}
-              placeholder="Search households..."
-              className="w-full rounded-3xl border border-white/10 bg-slate-900/95 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-400"
+              placeholder="Search households…"
+              className="w-full rounded-2xl border border-[#F2E8D0]/15 bg-black/20 px-4 py-3 text-sm text-[#F2E8D0] placeholder-[#F2E8D0]/30 outline-none transition focus:border-accent-gold"
             />
           </label>
         </div>
@@ -159,10 +311,10 @@ export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
               setActiveTab(key);
               setPage(0);
             }}
-            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
               activeTab === key
-                ? 'border-emerald-400 bg-emerald-400/10 text-emerald-100'
-                : 'border-white/10 bg-white/5 text-slate-200 hover:border-emerald-300/30 hover:bg-white/10'
+                ? 'border-accent-gold bg-accent-gold/10 text-accent-gold'
+                : 'border-[#F2E8D0]/15 bg-black/20 text-[#F2E8D0]/70 hover:border-accent-gold/40 hover:text-accent-gold'
             }`}
           >
             {tabLabels[key]} ({counts[key]})
@@ -173,75 +325,82 @@ export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
       <div className="overflow-x-auto">
         <table className="min-w-full border-separate border-spacing-0 text-sm">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-[0.35em] text-slate-400">
-              <th className="px-4 py-3">Household</th>
-              <th className="px-4 py-3">Guests</th>
-              <th className="px-4 py-3">RSVP summary</th>
-              <th className="px-4 py-3">Comms</th>
-              <th className="px-4 py-3">Link opens</th>
-              <th className="px-4 py-3">First opened</th>
-              <th className="px-4 py-3">TY page</th>
-              <th className="px-4 py-3">Tags</th>
-              <th className="px-4 py-3">Invite link</th>
-              <th className="px-4 py-3">Actions</th>
+            <tr className="border-b border-[#F2E8D0]/10 text-left text-xs uppercase tracking-[0.25em] text-[#F2E8D0]/50">
+              <th className="px-4 py-3 font-cinzel font-semibold">
+                <button type="button" onClick={() => handleSort('household')} className={sortHeaderClass}>
+                  Household
+                  {sortKey === 'household' ? <SortArrow direction={sortDir} /> : null}
+                </button>
+              </th>
+              <th className="px-4 py-3 font-cinzel font-semibold">
+                <button type="button" onClick={() => handleSort('guests')} className={sortHeaderClass}>
+                  Guests
+                  {sortKey === 'guests' ? <SortArrow direction={sortDir} /> : null}
+                </button>
+              </th>
+              <th className="hidden px-4 py-3 font-cinzel font-semibold sm:table-cell">
+                <button type="button" onClick={() => handleSort('rsvp')} className={sortHeaderClass}>
+                  RSVP
+                  {sortKey === 'rsvp' ? <SortArrow direction={sortDir} /> : null}
+                </button>
+              </th>
+              <th className="px-4 py-3 font-cinzel font-semibold">Invite link</th>
+              <th className="px-4 py-3 font-cinzel font-semibold">
+                <span className="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             {pageRows.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-4 py-8 text-center text-sm text-slate-400">
-                  No households match this filter.
+                <td colSpan={5} className="px-4 py-10 text-center text-sm text-[#F2E8D0]/50">
+                  No households match your search or filters.
                 </td>
               </tr>
             ) : (
               pageRows.map((row) => (
-                <tr key={row.id} className="border-t border-white/10 hover:bg-white/5">
-                  <td className="px-4 py-3 align-top">
-                    <div className="font-medium text-white">{row.name}</div>
-                  </td>
-                  <td className="px-4 py-3 align-top text-slate-300">{row.invited}</td>
-                  <td className="px-4 py-3 align-top space-x-2">
-                    {statusBadge('Attending', row.attending, 'bg-emerald-400/10 text-emerald-300')}
-                    {statusBadge('Pending', row.pending, 'bg-amber-400/10 text-amber-300')}
-                    {statusBadge('Declined', row.declined, 'bg-rose-500/10 text-rose-300')}
-                  </td>
-                  <td className="px-4 py-3 align-top">
-                    <div className="flex flex-wrap gap-1.5">
-                      {row.commsEmail > 0 ? (
-                        <span className="inline-flex items-center rounded-full bg-sky-400/10 px-2.5 py-1 text-[11px] font-medium text-sky-300">
-                          ✉ {row.commsEmail}
-                        </span>
-                      ) : null}
-                      {row.commsSms > 0 ? (
-                        <span className="inline-flex items-center rounded-full bg-violet-400/10 px-2.5 py-1 text-[11px] font-medium text-violet-300">
-                          SMS {row.commsSms}
-                        </span>
-                      ) : null}
+                <tr
+                  key={row.id}
+                  className={`border-t border-[#F2E8D0]/5 transition-opacity duration-300 hover:bg-white/5 ${
+                    fadingIds.has(row.id) ? 'opacity-0' : 'opacity-100'
+                  }`}
+                >
+                  <td className="px-4 py-4 align-top">
+                    <Link href={`/admin/guests/${row.id}/edit`} className="font-medium text-[#F2E8D0] transition hover:text-accent-gold">
+                      {row.name}
+                    </Link>
+                    <p className="mt-1 text-xs text-[#F2E8D0]/40">invite/{row.slug}</p>
+                    <div className="mt-2 sm:hidden">
+                      <RsvpSummary attending={row.attending} declined={row.declined} pending={row.pending} />
                     </div>
                   </td>
-                  <td className="px-4 py-3 align-top text-slate-300">
-                    {row.linkOpenCount > 0 ? row.linkOpenCount : <span className="text-slate-600">—</span>}
+                  <td className="px-4 py-4 align-top">
+                    <GuestCountCell count={row.invited} names={row.guestNames} />
                   </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {row.linkFirstOpenedAt
-                      ? new Date(row.linkFirstOpenedAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
-                      : <span className="text-slate-600">—</span>}
+                  <td className="hidden px-4 py-4 align-top sm:table-cell">
+                    <RsvpSummary attending={row.attending} declined={row.declined} pending={row.pending} />
                   </td>
-                  <td className="px-4 py-3 align-top">
-                    <ThankYouBadge photoUrl={row.thankYouPhotoUrl} message={row.thankYouMessage} />
+                  <td className="px-4 py-4 align-top">
+                    <CopyInviteButton slug={row.slug} />
                   </td>
-                  <td className="px-4 py-3 align-top">
-                    <div className="flex flex-wrap gap-2">
-                      {row.tags.slice(0, 3).map((tag) => (
-                        <span key={tag} className="rounded-full bg-white/5 px-2.5 py-1 text-[11px] text-slate-200">{tag}</span>
-                      ))}
+                  <td className="px-4 py-4 align-top">
+                    <div className="flex items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(row)}
+                        title="Delete household"
+                        className="text-red-900/50 transition hover:text-red-400"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                      <Link
+                        href={`/admin/guests/${row.id}/edit`}
+                        className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-[0.2em] text-[#F2E8D0]/60 transition hover:text-accent-gold"
+                      >
+                        <span className="hidden sm:inline">Details →</span>
+                        <ChevronRightIcon className="h-4 w-4 sm:hidden" />
+                      </Link>
                     </div>
-                  </td>
-                  <td className="px-4 py-3 align-top">
-                    <CopySlugChip slug={row.slug} />
-                  </td>
-                  <td className="px-4 py-3 align-top">
-                    <EditButton id={row.id} />
                   </td>
                 </tr>
               ))
@@ -251,44 +410,40 @@ export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
       </div>
 
       {totalPages > 1 ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-sm text-slate-300">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#F2E8D0]/10 pt-4 text-sm text-[#F2E8D0]/70">
           <p>
-            Showing <span className="font-semibold text-white">{pageRows.length}</span> of <span className="font-semibold text-white">{filteredRows.length}</span> households.
+            Showing <span className="font-semibold text-[#F2E8D0]">{pageRows.length}</span> of{' '}
+            <span className="font-semibold text-[#F2E8D0]">{sortedRows.length}</span> households.
           </p>
           <div className="flex items-center gap-2">
             <button
               type="button"
               disabled={page === 0}
               onClick={() => setPage((current) => Math.max(current - 1, 0))}
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-2xl border border-[#F2E8D0]/15 px-4 py-2 text-sm text-[#F2E8D0]/85 transition hover:border-accent-gold/40 hover:text-accent-gold disabled:cursor-not-allowed disabled:opacity-40"
             >
               Previous
             </button>
-            <span className="text-slate-400">Page {page + 1} of {totalPages}</span>
+            <span className="text-[#F2E8D0]/50">Page {page + 1} of {totalPages}</span>
             <button
               type="button"
               disabled={page >= totalPages - 1}
               onClick={() => setPage((current) => Math.min(current + 1, totalPages - 1))}
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-2xl border border-[#F2E8D0]/15 px-4 py-2 text-sm text-[#F2E8D0]/85 transition hover:border-accent-gold/40 hover:text-accent-gold disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next
             </button>
           </div>
         </div>
       ) : null}
-    </div>
-  );
-}
 
-function EditButton({ id }: { id: string }) {
-  const router = useRouter();
-  return (
-    <button
-      type="button"
-      onClick={() => router.push(`/admin/guests/${id}/edit`)}
-      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-100 transition hover:border-emerald-300/40 hover:bg-emerald-300/10"
-    >
-      Edit
-    </button>
+      {deleteTarget ? (
+        <DeleteConfirmModal
+          household={deleteTarget}
+          onCancel={() => setDeleteTarget(null)}
+          onDeleted={handleDeleted}
+        />
+      ) : null}
+    </div>
   );
 }
