@@ -21,6 +21,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const plus_one_allowance = Number(formData.get('plus_one_allowance') ?? 0);
 
   const personal_photo_url = String(formData.get('personal_photo_url') ?? '');
+  const thank_you_photo_url = String(formData.get('thank_you_photo_url') ?? '');
 
   try {
     const upd = await supabaseServer.from('households').update({
@@ -30,6 +31,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       thank_you_message: thank_you_message || null,
       plus_one_allowance,
       personal_photo_url: personal_photo_url || null,
+      thank_you_photo_url: thank_you_photo_url || null,
     }).eq('id', id).select('id').single();
 
     if (upd.error) {

@@ -22,6 +22,7 @@ export type Household = {
   personal_photo_url: string | null;
   personal_message: string | null;
   thank_you_message: string | null;
+  thank_you_photo_url: string | null;
   plus_one_allowance: number;
   link_open_count: number;
   link_first_opened_at: string | null;

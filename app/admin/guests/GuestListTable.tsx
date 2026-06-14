@@ -16,6 +16,8 @@ type GuestRow = {
   commsSms: number;
   linkOpenCount: number;
   linkFirstOpenedAt: string | null;
+  thankYouPhotoUrl: string | null;
+  thankYouMessage: string | null;
 };
 
 const PAGE_SIZE = 20;
@@ -34,6 +36,33 @@ function statusBadge(label: string, value: number, colorClass: string) {
       {label}: {value}
     </span>
   );
+}
+
+function ThankYouBadge({ photoUrl, message }: { photoUrl: string | null; message: string | null }) {
+  const hasPhoto = !!photoUrl && photoUrl.trim().length > 0;
+  const hasMessage = !!message && message.trim().length > 0;
+
+  if (hasPhoto && hasMessage) {
+    return (
+      <span
+        title="Thank you page complete"
+        className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-300"
+      >
+        ✓
+      </span>
+    );
+  }
+
+  if (hasPhoto || hasMessage) {
+    return (
+      <span
+        title="Thank you page partially complete"
+        className="inline-block h-2.5 w-2.5 rounded-full bg-amber-400"
+      />
+    );
+  }
+
+  return null;
 }
 
 function CopySlugChip({ slug }: { slug: string }) {
@@ -151,6 +180,7 @@ export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
               <th className="px-4 py-3">Comms</th>
               <th className="px-4 py-3">Link opens</th>
               <th className="px-4 py-3">First opened</th>
+              <th className="px-4 py-3">TY page</th>
               <th className="px-4 py-3">Tags</th>
               <th className="px-4 py-3">Invite link</th>
               <th className="px-4 py-3">Actions</th>
@@ -159,7 +189,7 @@ export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
           <tbody>
             {pageRows.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-400">
+                <td colSpan={10} className="px-4 py-8 text-center text-sm text-slate-400">
                   No households match this filter.
                 </td>
               </tr>
@@ -196,6 +226,9 @@ export default function GuestListTable({ rows }: { rows: GuestRow[] }) {
                     {row.linkFirstOpenedAt
                       ? new Date(row.linkFirstOpenedAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
                       : <span className="text-slate-600">—</span>}
+                  </td>
+                  <td className="px-4 py-3 align-top">
+                    <ThankYouBadge photoUrl={row.thankYouPhotoUrl} message={row.thankYouMessage} />
                   </td>
                   <td className="px-4 py-3 align-top">
                     <div className="flex flex-wrap gap-2">

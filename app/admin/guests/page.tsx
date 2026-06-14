@@ -6,7 +6,7 @@ export default async function AdminGuestsPage() {
   await requireAdminAuth();
 
   const [householdsRes, tagsRes, guestsRes] = await Promise.all([
-    supabase.from('households').select('id,name,slug,personal_message,link_open_count,link_first_opened_at').order('created_at', { ascending: false }),
+    supabase.from('households').select('id,name,slug,personal_message,thank_you_message,thank_you_photo_url,link_open_count,link_first_opened_at').order('created_at', { ascending: false }),
     supabase.from('guest_tags').select('household_id,tag'),
     supabase.from('guests').select('household_id,rsvp_status,comms_email,comms_sms'),
   ]);
@@ -38,6 +38,8 @@ export default async function AdminGuestsPage() {
       commsSms,
       linkOpenCount: (household as any).link_open_count ?? 0,
       linkFirstOpenedAt: (household as any).link_first_opened_at ?? null,
+      thankYouPhotoUrl: (household as any).thank_you_photo_url ?? null,
+      thankYouMessage: (household as any).thank_you_message ?? null,
     };
   });
 

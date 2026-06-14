@@ -27,11 +27,11 @@ function storagePathFromUrl(url: string): string | null {
 
 export async function POST(request: NextRequest) {
   if (!(await requireAuth())) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return NextResponse.json({ message: 'Server not configured for writes: SUPABASE_SERVICE_ROLE_KEY missing' }, { status: 500 });
+    return NextResponse.json({ error: 'Server not configured for writes: SUPABASE_SERVICE_ROLE_KEY missing' }, { status: 500 });
   }
 
   const formData = await request.formData();
@@ -39,34 +39,19 @@ export async function POST(request: NextRequest) {
   const oldUrl = formData.get('oldUrl');
 
   if (!(file instanceof File) || file.size === 0) {
-    return NextResponse.json({ message: 'No file provided.' }, { status: 400 });
+    return NextResponse.json({ error: 'No file provided.' }, { status: 400 });
   }
 
   const extension = ALLOWED_TYPES[file.type];
   if (!extension) {
-    return NextResponse.json({ message: 'Unsupported file type. Please upload a JPG, PNG, or WEBP image.' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid file type. Please upload a JPG, PNG or WebP image.' }, { status: 400 });
   }
 
   if (file.size > MAX_SIZE_BYTES) {
-    return NextResponse.json({ message: 'File is too large. Maximum size is 5MB.' }, { status: 400 });
+    return NextResponse.json({ error: 'File too large. Maximum size is 5MB.' }, { status: 400 });
   }
 
-  const path = `${randomUUID()}.${extension}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  const uploadRes = await supabaseServer.storage.from(BUCKET).upload(path, buffer, {
-    contentType: file.type,
-    upsert: false,
-  });
-
-  if (uploadRes.error) {
-    console.error('[admin:upload-photo] upload failed', uploadRes.error);
-    return NextResponse.json({ message: 'Failed to upload photo.' }, { status: 500 });
-  }
-
-  const { data: publicUrlData } = supabaseServer.storage.from(BUCKET).getPublicUrl(path);
-
-  if (typeof oldUrl === 'string' && oldUrl) {
+  if (typeof oldUrl === 'string' && oldUrl.includes('supabase.co/storage')) {
     const oldPath = storagePathFromUrl(oldUrl);
     if (oldPath) {
       const removeRes = await supabaseServer.storage.from(BUCKET).remove([oldPath]);
@@ -76,5 +61,20 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ url: publicUrlData.publicUrl });
+  const filename = `${randomUUID()}.${extension}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const uploadRes = await supabaseServer.storage.from(BUCKET).upload(filename, buffer, {
+    contentType: file.type,
+    upsert: false,
+  });
+
+  if (uploadRes.error) {
+    console.error('[admin:upload-photo] upload failed', uploadRes.error);
+    return NextResponse.json({ error: 'Failed to upload photo.' }, { status: 500 });
+  }
+
+  const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${filename}`;
+
+  return NextResponse.json({ url: publicUrl });
 }
