@@ -1,8 +1,9 @@
 import { requireAdminAuth } from '@/lib/adminAuth';
-import { supabase, supabaseServer } from '@/lib/supabase';
+import { supabase, supabaseServer, getCurrentPhase, type PhaseName } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import CommsDetailClient from './CommsDetailClient';
-import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, type TemplateKey } from '../templates/page';
+import type { EmailTemplateRow } from '../templates/page';
+import { EMAIL_TEMPLATE_TITLES, PHASE_LABELS, PHASE_TEMPLATE_MAP } from '@/lib/email/templateInfo';
 
 export type DetailGuest = {
   id: string;
@@ -21,15 +22,14 @@ export type DetailComm = {
   message: string;
   status: string;
   sent_at: string;
+  guest_id: string | null;
 };
 
 export default async function CommsDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdminAuth();
   const { id } = await params;
 
-  const settingsKeys = [...(TEMPLATE_KEYS as readonly string[]), 'wedding_date', 'venue_name'];
-
-  const [householdRes, guestsRes, commsRes, tagsRes, settingsRes] = await Promise.all([
+  const [householdRes, guestsRes, commsRes, tagsRes, phaseRes, templatesRes] = await Promise.all([
     supabase.from('households').select('id,name,slug').eq('id', id).single(),
     supabase
       .from('guests')
@@ -39,11 +39,14 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
       .order('first_name', { ascending: true }),
     supabaseServer
       .from('communications')
-      .select('id,type,message,status,sent_at')
+      .select('id,type,message,status,sent_at,guest_id')
       .eq('household_id', id)
       .order('sent_at', { ascending: false }),
     supabase.from('guest_tags').select('tag').eq('household_id', id),
-    supabaseServer.from('settings').select('key,value').in('key', settingsKeys),
+    getCurrentPhase(),
+    supabaseServer
+      .from('email_templates')
+      .select('id, key, phase, subject, body, trigger_type, is_active, updated_at'),
   ]);
 
   if (!householdRes.data) notFound();
@@ -52,17 +55,12 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
   const guests: DetailGuest[] = (guestsRes.data ?? []) as DetailGuest[];
   const comms: DetailComm[] = (commsRes.data ?? []) as DetailComm[];
   const tags = (tagsRes.data ?? []).map((t: { tag: string }) => t.tag);
+  const emailTemplates = (templatesRes.data ?? []) as EmailTemplateRow[];
 
-  const settingsMap = Object.fromEntries(
-    (settingsRes.data ?? []).map((r: { key: string; value: unknown }) => [r.key, r.value])
-  );
-
-  const templates = Object.fromEntries(
-    TEMPLATE_KEYS.map((key) => [key, (settingsMap[key] as string) ?? DEFAULT_TEMPLATES[key]])
-  ) as Record<TemplateKey, string>;
-
-  const weddingDate = (settingsMap['wedding_date'] as string) ?? '';
-  const venueName = (settingsMap['venue_name'] as string) ?? '';
+  const currentPhase: PhaseName = (phaseRes.data?.current_phase as PhaseName) ?? 'save_the_date';
+  const primaryKey = PHASE_TEMPLATE_MAP[currentPhase];
+  const primaryTemplate = emailTemplates.find((t) => t.key === primaryKey);
+  const primaryTemplateActive = !!primaryTemplate?.is_active;
 
   return (
     <div className="space-y-8">
@@ -98,15 +96,32 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
         </div>
       </div>
 
+      <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-slate-300">
+        Current phase: <span className="font-semibold text-white">{PHASE_LABELS[currentPhase]}</span>
+        {primaryTemplateActive ? (
+          <> — the Email button sends the &ldquo;{EMAIL_TEMPLATE_TITLES[primaryKey]}&rdquo; email.</>
+        ) : (
+          <>
+            {' '}
+            — no active email template is set for this phase; the Email button won&apos;t send anything until one is
+            activated on the{' '}
+            <a href="/admin/comms/templates" className="underline transition hover:text-white">
+              Templates page
+            </a>
+            .
+          </>
+        )}
+      </div>
+
       <CommsDetailClient
         householdId={household.id}
         householdName={household.name}
         householdSlug={household.slug}
         guests={guests}
         comms={comms}
-        templates={templates}
-        weddingDate={weddingDate}
-        venueName={venueName}
+        templates={emailTemplates}
+        currentPhase={currentPhase}
+        defaultTemplateKey={primaryTemplateActive ? primaryKey : null}
       />
     </div>
   );

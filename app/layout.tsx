@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Cinzel, DM_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Cinzel, DM_Sans, Bebas_Neue } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,9 +25,16 @@ const dmSans = DM_Sans({
   weight: ["300", "400", "500"],
 });
 
+const bebasNeue = Bebas_Neue({
+  variable: "--font-bebas-neue",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Matt & Raff — 12.07.2027",
-  description: "You're invited to celebrate the wedding of Matt & Raff on 12 July 2027 in Melbourne.",
+  title: "Matt & Raff — 10.07.2027",
+  description: "You're invited to celebrate the wedding of Matt & Raff on 10 July 2027 in Melbourne.",
 };
 
 export default function RootLayout({
@@ -38,7 +45,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${dmSans.variable} antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${dmSans.variable} ${bebasNeue.variable} antialiased`}
     >
       <body>{children}</body>
     </html>

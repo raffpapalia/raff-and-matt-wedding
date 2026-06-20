@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getSettings } from '@/lib/supabase';
 import { isAdminAuthenticated } from '@/lib/adminAuth';
 
 const phaseLabels: Record<string, string> = {
@@ -198,8 +198,8 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
     return <LoginForm error={params?.error} />;
   }
 
-  const dashboard = await getDashboardData();
-  const weddingDate = new Date('2027-07-12T00:00:00Z');
+  const [dashboard, settings] = await Promise.all([getDashboardData(), getSettings()]);
+  const weddingDate = new Date(settings.wedding_date + 'T00:00:00Z');
   const today = new Date();
   const daysUntil = Math.max(0, Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
 

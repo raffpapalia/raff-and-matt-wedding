@@ -1,6 +1,18 @@
 import { requireAdminAuth } from '@/lib/adminAuth';
-import { supabaseServer } from '@/lib/supabase';
+import { supabaseServer, getSettings } from '@/lib/supabase';
 import LogClient from './LogClient';
+
+function formatWeddingDate(iso: string): string {
+  try {
+    return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-AU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return iso;
+  }
+}
 
 export type LogRow = {
   id: string;
@@ -17,15 +29,16 @@ const PAGE_SIZE = 50;
 export default async function CommsLogPage({
   searchParams,
 }: {
-  searchParams?: { page?: string; channel?: string; status?: string; from?: string; to?: string };
+  searchParams?: Promise<{ page?: string; channel?: string; status?: string; from?: string; to?: string }>;
 }) {
   await requireAdminAuth();
 
-  const page = Math.max(0, parseInt(searchParams?.page ?? '0', 10));
-  const channel = searchParams?.channel ?? '';
-  const status = searchParams?.status ?? '';
-  const from = searchParams?.from ?? '';
-  const to = searchParams?.to ?? '';
+  const resolvedSearchParams = await searchParams;
+  const page = Math.max(0, parseInt(resolvedSearchParams?.page ?? '0', 10));
+  const channel = resolvedSearchParams?.channel ?? '';
+  const status = resolvedSearchParams?.status ?? '';
+  const from = resolvedSearchParams?.from ?? '';
+  const to = resolvedSearchParams?.to ?? '';
 
   let query = supabaseServer
     .from('communications')
@@ -40,7 +53,7 @@ export default async function CommsLogPage({
   if (from) query = query.gte('sent_at', from);
   if (to) query = query.lte('sent_at', to + 'T23:59:59Z');
 
-  const { data, count } = await query;
+  const [{ data, count }, settings] = await Promise.all([query, getSettings()]);
 
   const rows: LogRow[] = (data ?? []).map((r: any) => ({
     id: r.id,
@@ -86,6 +99,7 @@ export default async function CommsLogPage({
         totalPages={totalPages}
         total={count ?? 0}
         filters={{ channel, status, from, to }}
+        weddingDate={formatWeddingDate(settings.wedding_date)}
       />
     </div>
   );

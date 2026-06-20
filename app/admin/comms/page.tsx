@@ -1,7 +1,8 @@
 import { requireAdminAuth } from '@/lib/adminAuth';
-import { supabase, supabaseServer } from '@/lib/supabase';
+import { supabase, supabaseServer, getCurrentPhase, type PhaseName } from '@/lib/supabase';
 import CommsClient from './CommsClient';
-import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, type TemplateKey } from './templates/page';
+import type { EmailTemplateRow } from './templates/page';
+import { EMAIL_TEMPLATE_TITLES, PHASE_LABELS, PHASE_TEMPLATE_MAP } from '@/lib/email/templateInfo';
 
 export type CommsStatus = 'not_sent' | 'sent' | 'failed' | 'partial';
 
@@ -50,9 +51,7 @@ function SummaryCard({ label, value, sub }: { label: string; value: string; sub?
 export default async function CommsPage() {
   await requireAdminAuth();
 
-  const settingsKeys = [...(TEMPLATE_KEYS as readonly string[]), 'wedding_date', 'venue_name'];
-
-  const [householdsRes, tagsRes, guestsRes, commsRes, settingsRes] = await Promise.all([
+  const [householdsRes, tagsRes, guestsRes, commsRes, phaseRes, templatesRes] = await Promise.all([
     supabase.from('households').select('id,name,slug').order('created_at', { ascending: false }),
     supabase.from('guest_tags').select('household_id,tag'),
     supabase
@@ -62,25 +61,22 @@ export default async function CommsPage() {
       .from('communications')
       .select('household_id,type,status,sent_at')
       .order('sent_at', { ascending: false }),
-    supabaseServer.from('settings').select('key,value').in('key', settingsKeys),
+    getCurrentPhase(),
+    supabaseServer
+      .from('email_templates')
+      .select('id, key, phase, subject, body, trigger_type, is_active, updated_at'),
   ]);
 
   const households = householdsRes.data ?? [];
   const tags = tagsRes.data ?? [];
   const guests = guestsRes.data ?? [];
   const comms = commsRes.data ?? [];
-  const settingsData = settingsRes.data ?? [];
+  const emailTemplates = (templatesRes.data ?? []) as EmailTemplateRow[];
 
-  const settingsMap = Object.fromEntries(
-    settingsData.map((r: { key: string; value: unknown }) => [r.key, r.value])
-  );
-
-  const templates = Object.fromEntries(
-    TEMPLATE_KEYS.map((key) => [key, (settingsMap[key] as string) ?? DEFAULT_TEMPLATES[key]])
-  ) as Record<TemplateKey, string>;
-
-  const weddingDate = (settingsMap['wedding_date'] as string) ?? '';
-  const venueName = (settingsMap['venue_name'] as string) ?? '';
+  const currentPhase: PhaseName = (phaseRes.data?.current_phase as PhaseName) ?? 'save_the_date';
+  const primaryKey = PHASE_TEMPLATE_MAP[currentPhase];
+  const primaryTemplate = emailTemplates.find((t) => t.key === primaryKey);
+  const primaryTemplateActive = !!primaryTemplate?.is_active;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -158,6 +154,23 @@ export default async function CommsPage() {
         </div>
       </div>
 
+      <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-slate-300">
+        Current phase: <span className="font-semibold text-white">{PHASE_LABELS[currentPhase]}</span>
+        {primaryTemplateActive ? (
+          <> — the Email button sends the &ldquo;{EMAIL_TEMPLATE_TITLES[primaryKey]}&rdquo; email.</>
+        ) : (
+          <>
+            {' '}
+            — no active email template is set for this phase; the Email button won&apos;t send anything until one is
+            activated on the{' '}
+            <a href="/admin/comms/templates" className="underline transition hover:text-white">
+              Templates page
+            </a>
+            .
+          </>
+        )}
+      </div>
+
       <div className="grid gap-6 md:grid-cols-4">
         <SummaryCard label="Total households" value={`${households.length}`} />
         <SummaryCard label="SMS-ready guests" value={`${smsReadyTotal}`} />
@@ -171,9 +184,9 @@ export default async function CommsPage() {
 
       <CommsClient
         rows={rows}
-        templates={templates}
-        weddingDate={weddingDate}
-        venueName={venueName}
+        templates={emailTemplates}
+        currentPhase={currentPhase}
+        defaultTemplateKey={primaryTemplateActive ? primaryKey : null}
       />
     </div>
   );

@@ -74,6 +74,10 @@ body::after {
   font-family: var(--font-dm-sans);
 }
 
+.font-bebas-neue {
+  font-family: var(--font-bebas-neue);
+}
+
 /* v3 invite design keyframes */
 @keyframes petal { 0% { left: -15%; } 100% { left: 115%; } }
 @keyframes petalSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }

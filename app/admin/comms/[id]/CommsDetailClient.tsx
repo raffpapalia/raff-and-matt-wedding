@@ -3,41 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { DetailGuest, DetailComm } from './page';
-import type { TemplateKey } from '../templates/page';
+import type { EmailTemplateRow } from '../templates/page';
+import type { EmailTemplateKey } from '@/lib/email/renderTemplate';
+import type { PhaseName } from '@/lib/supabase';
+import { PHASE_LABELS } from '@/lib/email/templateInfo';
+import TemplateChooserModal from '../TemplateChooserModal';
+import EmailConfirmModal, { type EmailPreview } from '../EmailConfirmModal';
 
 // --- Helpers ---
-
-function resolveMergeTags(
-  template: string,
-  firstName: string,
-  slug: string,
-  weddingDate: string,
-  venueName: string
-): string {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? (typeof window !== 'undefined' ? window.location.origin : '');
-  return template
-    .replace(/\{\{first_name\}\}/g, firstName)
-    .replace(/\{\{invite_link\}\}/g, `${siteUrl}/invite/${slug}`)
-    .replace(/\{\{wedding_date\}\}/g, weddingDate)
-    .replace(/\{\{venue\}\}/g, venueName);
-}
-
-const GSM7_CHARS = new Set(
-  '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !"#¤%&\'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà'
-);
-
-function getSmsInfo(text: string) {
-  const chars = text.length;
-  const isGsm = [...text].every((c) => GSM7_CHARS.has(c));
-  const singleLimit = isGsm ? 160 : 70;
-  const concatLimit = isGsm ? 153 : 67;
-  const segments = chars === 0 ? 0 : chars <= singleLimit ? 1 : Math.ceil(chars / concatLimit);
-  return { chars, segments, isGsm };
-}
-
-function hasUnresolvedTags(text: string): boolean {
-  return /\{\{[^}]+\}\}/.test(text);
-}
 
 function relativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -71,353 +44,169 @@ function RsvpBadge({ status }: { status: string }) {
   );
 }
 
-// --- Template helpers ---
-
-type TemplateOption = 'save_the_date' | 'rsvp_reminder' | 'rsvp_confirmation';
-
-const TEMPLATE_OPTION_LABELS: Record<TemplateOption, string> = {
-  save_the_date: 'Save the Date',
-  rsvp_reminder: 'RSVP Reminder',
-  rsvp_confirmation: 'RSVP Confirmation',
-};
-
-function getTemplateBody(
-  option: TemplateOption,
-  type: 'sms' | 'email' | 'both',
-  templates: Record<TemplateKey, string>
-): string {
-  if (option === 'save_the_date') {
-    return type === 'email'
-      ? templates.tmpl_email_save_the_date_body
-      : templates.tmpl_sms_save_the_date;
-  }
-  if (option === 'rsvp_reminder') {
-    return templates.tmpl_sms_rsvp_reminder;
-  }
-  return type === 'email'
-    ? templates.tmpl_email_rsvp_confirmation_body
-    : templates.tmpl_sms_rsvp_confirmation;
-}
-
-function getTemplateSubject(
-  option: TemplateOption,
-  templates: Record<TemplateKey, string>
-): string {
-  if (option === 'save_the_date') return templates.tmpl_email_save_the_date_subject;
-  if (option === 'rsvp_confirmation') return templates.tmpl_email_rsvp_confirmation_subject;
-  return '';
-}
-
-function getAvailableTemplates(type: 'sms' | 'email' | 'both'): TemplateOption[] {
-  if (type === 'email') return ['save_the_date', 'rsvp_confirmation'];
-  return ['save_the_date', 'rsvp_reminder', 'rsvp_confirmation'];
-}
-
-// --- Modal ---
-
-type ModalState = {
-  type: 'sms' | 'email' | 'both';
-  guestIds: string[] | null;
-  initialMessage?: string;
-};
-
-function SendModal({
-  modalState,
-  guests,
-  householdSlug,
-  templates,
-  weddingDate,
-  venueName,
-  onClose,
-  onConfirm,
-  sending,
-}: {
-  modalState: ModalState;
-  guests: DetailGuest[];
-  householdSlug: string;
-  templates: Record<TemplateKey, string>;
-  weddingDate: string;
-  venueName: string;
-  onClose: () => void;
-  onConfirm: (message: string, guestIds?: string[]) => void;
-  sending: boolean;
-}) {
-  const { type, guestIds, initialMessage } = modalState;
-
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateOption>('save_the_date');
-  const [message, setMessage] = useState(
-    initialMessage ?? getTemplateBody('save_the_date', type, templates)
-  );
-  const [emailSubject, setEmailSubject] = useState(
-    type !== 'sms' ? getTemplateSubject('save_the_date', templates) : ''
-  );
-
-  const targetGuests = guestIds ? guests.filter((g) => guestIds.includes(g.id)) : guests;
-
-  function isEligibleSms(g: DetailGuest) { return g.comms_sms && !!g.mobile; }
-  function isEligibleEmail(g: DetailGuest) { return g.comms_email && !!g.email; }
-
-  const eligibleCount = targetGuests.filter((g) => {
-    if (type === 'sms') return isEligibleSms(g);
-    if (type === 'email') return isEligibleEmail(g);
-    return isEligibleSms(g) || isEligibleEmail(g);
-  }).length;
-
-  const firstEligible = targetGuests.find((g) =>
-    type === 'email' ? isEligibleEmail(g) : isEligibleSms(g)
-  ) ?? targetGuests[0];
-
-  const previewResolved = firstEligible
-    ? resolveMergeTags(message, firstEligible.first_name, householdSlug, weddingDate, venueName)
-    : resolveMergeTags(message, 'Guest', householdSlug, weddingDate, venueName);
-
-  const unresolvedWarning = hasUnresolvedTags(previewResolved);
-  const availableTemplates = getAvailableTemplates(type);
-
-  function handleTemplateChange(opt: TemplateOption) {
-    setSelectedTemplate(opt);
-    setMessage(getTemplateBody(opt, type, templates));
-    if (type !== 'sms') setEmailSubject(getTemplateSubject(opt, templates));
-  }
-
-  const channelLabel = type === 'both' ? 'SMS & Email' : type.toUpperCase();
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[2rem] border border-white/10 bg-slate-950 p-8 shadow-2xl">
-        <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Confirm send</p>
-        <h2 className="mt-2 text-2xl font-semibold text-white">
-          Send {channelLabel} to {eligibleCount} guest{eligibleCount !== 1 ? 's' : ''}
-        </h2>
-
-        {/* Recipient list */}
-        <div className="mt-4 divide-y divide-white/5 rounded-2xl border border-white/5 bg-slate-900/60">
-          {targetGuests.map((guest) => {
-            const smsOk = isEligibleSms(guest);
-            const emailOk = isEligibleEmail(guest);
-            const relevant = type === 'sms' ? smsOk : type === 'email' ? emailOk : smsOk || emailOk;
-            return (
-              <div
-                key={guest.id}
-                className={`flex items-start justify-between gap-3 px-4 py-2.5 text-sm ${
-                  relevant ? '' : 'opacity-40'
-                }`}
-              >
-                <span className="font-medium text-white">
-                  {guest.first_name} {guest.last_name}
-                </span>
-                <div className="text-right text-xs text-slate-400">
-                  {type !== 'email' && (
-                    <div>
-                      {smsOk
-                        ? guest.mobile
-                        : !guest.mobile
-                        ? '— no mobile'
-                        : '— SMS off'}
-                    </div>
-                  )}
-                  {type !== 'sms' && (
-                    <div>
-                      {emailOk
-                        ? guest.email
-                        : !guest.email
-                        ? '— no email'
-                        : '— email off'}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Template selector */}
-        <div className="mt-6">
-          <p className="mb-2 text-xs uppercase tracking-[0.25em] text-slate-400">Template</p>
-          <select
-            value={selectedTemplate}
-            onChange={(e) => handleTemplateChange(e.target.value as TemplateOption)}
-            className="w-full rounded-2xl border border-white/10 bg-slate-900/90 px-4 py-2.5 text-sm text-white outline-none transition focus:border-emerald-400"
-          >
-            {availableTemplates.map((opt) => (
-              <option key={opt} value={opt}>
-                {TEMPLATE_OPTION_LABELS[opt]}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Email subject */}
-        {type !== 'sms' && (
-          <div className="mt-4">
-            <p className="mb-2 text-xs uppercase tracking-[0.25em] text-slate-400">Subject</p>
-            <input
-              value={emailSubject}
-              onChange={(e) => setEmailSubject(e.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-slate-900/90 px-4 py-2.5 text-sm text-white outline-none transition focus:border-emerald-400"
-            />
-          </div>
-        )}
-
-        {/* Message body */}
-        <div className="mt-4 space-y-2">
-          <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
-            {type === 'sms' ? 'Message' : 'Body'}
-          </p>
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={5}
-            className="w-full resize-none rounded-2xl border border-white/10 bg-slate-900/90 px-4 py-3 text-sm text-white outline-none transition focus:border-emerald-400"
-          />
-          <p className="text-xs text-slate-500">
-            {'{{first_name}}'} · {'{{invite_link}}'} · {'{{wedding_date}}'} · {'{{venue}}'}
-          </p>
-        </div>
-
-        {/* Preview */}
-        {firstEligible && (
-          <div className="mt-4">
-            <p className="mb-2 text-xs uppercase tracking-[0.25em] text-slate-400">
-              Preview — {firstEligible.first_name}
-            </p>
-            <div className="rounded-2xl border border-white/5 bg-slate-900/60 px-4 py-3 text-sm text-slate-200 whitespace-pre-wrap">
-              {previewResolved}
-            </div>
-          </div>
-        )}
-
-        {/* SMS character count */}
-        {type !== 'email' && (() => {
-          const info = getSmsInfo(previewResolved);
-          const color =
-            info.chars > 320 ? 'text-rose-400' : info.chars > 160 ? 'text-amber-400' : 'text-slate-500';
-          return (
-            <p className={`mt-2 text-xs ${color}`}>
-              {info.chars} characters · {info.segments} SMS segment{info.segments !== 1 ? 's' : ''}
-              {!info.isGsm ? ' (unicode)' : ''}
-              {info.chars > 320 ? ' — Long message, may incur higher costs' : ''}
-            </p>
-          );
-        })()}
-
-        {/* Unresolved tags warning */}
-        {unresolvedWarning && (
-          <div className="mt-3 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
-            ⚠️ This message contains unresolved tags — check your settings and guest details before sending.
-          </div>
-        )}
-
-        <div className="mt-8 flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={sending}
-            className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white transition hover:bg-white/10 disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => onConfirm(message, guestIds ?? undefined)}
-            disabled={sending || !message.trim()}
-            className="flex-1 rounded-2xl bg-amber-300 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-50"
-          >
-            {sending ? 'Sending…' : 'Confirm send'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // --- Main component ---
 
 export default function CommsDetailClient({
   householdId,
   householdName: _householdName,
-  householdSlug,
+  householdSlug: _householdSlug,
   guests,
   comms,
   templates,
-  weddingDate,
-  venueName,
+  currentPhase,
+  defaultTemplateKey,
 }: {
   householdId: string;
   householdName: string;
   householdSlug: string;
   guests: DetailGuest[];
   comms: DetailComm[];
-  templates: Record<TemplateKey, string>;
-  weddingDate: string;
-  venueName: string;
+  templates: EmailTemplateRow[];
+  currentPhase: PhaseName;
+  defaultTemplateKey: EmailTemplateKey | null;
 }) {
   const router = useRouter();
-  const [modalState, setModalState] = useState<ModalState | null>(null);
-  const [sending, setSending] = useState(false);
+  const guestById = new Map(guests.map((g) => [g.id, g]));
+  const [chooserOpen, setChooserOpen] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [sentAt, setSentAt] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [emailConfirm, setEmailConfirm] = useState<(EmailPreview & { templateKey: EmailTemplateKey }) | null>(null);
+  const [emailPreviewLoading, setEmailPreviewLoading] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
+  const [guestEmailSendingId, setGuestEmailSendingId] = useState<string | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
-  function openModal(
-    type: 'sms' | 'email' | 'both',
-    guestIds?: string[],
-    initialMessage?: string
-  ) {
-    setModalState({ type, guestIds: guestIds ?? null, initialMessage });
+  function openChooser() {
     setSendError(null);
+    setChooserOpen(true);
   }
 
-  async function handleSend(message: string, guestIds?: string[]) {
-    if (!modalState) return;
-    setSending(true);
+  async function handleChooseTemplate(key: EmailTemplateKey) {
+    setChooserOpen(false);
     setSendError(null);
+    setEmailPreviewLoading(true);
     try {
-      const body: Record<string, unknown> = {
-        household_ids: [householdId],
-        type: modalState.type,
-        message,
-      };
-      if (guestIds?.length) body.guest_ids = guestIds;
-
-      const res = await fetch('/admin/api/comms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(`/admin/api/send-email/preview?household_id=${householdId}`);
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
-        setSendError(data.error ?? 'Failed');
+        setSendError(data.error ?? 'Failed to check send status');
         return;
       }
-      setModalState(null);
-      setSentAt(new Date().toLocaleTimeString());
+      if (data.alreadyEmailed === 0) {
+        await sendEmail('all', key);
+      } else {
+        setEmailConfirm({ ...data, templateKey: key });
+      }
+    } catch {
+      setSendError('Network error');
+    } finally {
+      setEmailPreviewLoading(false);
+    }
+  }
+
+  async function sendGuestEmailDirect(guestId: string, guestLabel: string) {
+    setGuestEmailSendingId(guestId);
+    setSendError(null);
+    try {
+      const res = await fetch('/admin/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guest_id: guestId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSendError(data.error ?? 'Failed to send email');
+        return;
+      }
+      setFeedback(`Sent email to ${guestLabel}.`);
       router.refresh();
     } catch {
       setSendError('Network error');
     } finally {
-      setSending(false);
+      setGuestEmailSendingId(null);
+    }
+  }
+
+  async function resendEmail(comm: DetailComm) {
+    if (!comm.guest_id) return;
+    setResendingId(comm.id);
+    setSendError(null);
+    try {
+      const res = await fetch('/admin/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guest_id: comm.guest_id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSendError(data.error ?? 'Failed to resend email');
+        return;
+      }
+      setFeedback('Email resent.');
+      router.refresh();
+    } catch {
+      setSendError('Network error');
+    } finally {
+      setResendingId(null);
+    }
+  }
+
+  async function sendEmail(mode: 'all' | 'not_yet_emailed', templateKey: EmailTemplateKey) {
+    setEmailSending(true);
+    setSendError(null);
+    try {
+      const res = await fetch('/admin/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ household_id: householdId, mode, template: templateKey }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSendError(data.error ?? 'Failed to send email');
+        return;
+      }
+      setEmailConfirm(null);
+      setFeedback(
+        `Sent ${data.sent} of ${data.total} email${data.total !== 1 ? 's' : ''}${
+          data.failed ? ` (${data.failed} failed)` : ''
+        }.`
+      );
+      router.refresh();
+    } catch {
+      setSendError('Network error');
+    } finally {
+      setEmailSending(false);
     }
   }
 
   return (
     <>
-      {modalState && (
-        <SendModal
-          modalState={modalState}
-          guests={guests}
-          householdSlug={householdSlug}
+      {chooserOpen && (
+        <TemplateChooserModal
           templates={templates}
-          weddingDate={weddingDate}
-          venueName={venueName}
-          onClose={() => setModalState(null)}
-          onConfirm={handleSend}
-          sending={sending}
+          defaultKey={defaultTemplateKey}
+          heading="Send email"
+          recipientSummary={`Current phase: ${PHASE_LABELS[currentPhase]}`}
+          onCancel={() => setChooserOpen(false)}
+          onConfirm={handleChooseTemplate}
         />
       )}
 
-      {sentAt && (
+      {emailConfirm && (
+        <EmailConfirmModal
+          title={_householdName}
+          templateKey={emailConfirm.templateKey}
+          preview={emailConfirm}
+          sending={emailSending}
+          onSendAll={() => sendEmail('all', emailConfirm.templateKey)}
+          onSendNotYetEmailed={() => sendEmail('not_yet_emailed', emailConfirm.templateKey)}
+          onCancel={() => setEmailConfirm(null)}
+        />
+      )}
+
+      {feedback && (
         <div className="rounded-2xl bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
-          Communication logged at {sentAt}.
+          {feedback}
         </div>
       )}
       {sendError && (
@@ -437,22 +226,25 @@ export default function CommsDetailClient({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => openModal('sms')}
-                className="rounded-full border border-violet-300/20 bg-violet-400/10 px-4 py-2 text-sm text-violet-200 transition hover:bg-violet-400/20"
+                disabled
+                title="SMS sending coming soon"
+                className="rounded-full border border-violet-300/20 bg-violet-400/10 px-4 py-2 text-sm text-violet-200 opacity-50 cursor-not-allowed"
               >
                 Send SMS
               </button>
               <button
                 type="button"
-                onClick={() => openModal('email')}
-                className="rounded-full border border-sky-300/20 bg-sky-400/10 px-4 py-2 text-sm text-sky-200 transition hover:bg-sky-400/20"
+                onClick={openChooser}
+                disabled={emailPreviewLoading}
+                className="rounded-full border border-sky-300/20 bg-sky-400/10 px-4 py-2 text-sm text-sky-200 transition hover:bg-sky-400/20 disabled:opacity-50"
               >
-                Send Email
+                {emailPreviewLoading ? 'Checking…' : 'Send Email'}
               </button>
               <button
                 type="button"
-                onClick={() => openModal('both')}
-                className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200"
+                disabled
+                title="SMS sending coming soon"
+                className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 opacity-50 cursor-not-allowed"
               >
                 Send Both
               </button>
@@ -510,14 +302,15 @@ export default function CommsDetailClient({
                     )}
                   </div>
 
-                  {/* Per-guest send buttons (Task 3) */}
+                  {/* Per-guest send buttons */}
                   {(guest.mobile && guest.comms_sms) || (guest.email && guest.comms_email) ? (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {guest.mobile && guest.comms_sms && (
                         <button
                           type="button"
-                          onClick={() => openModal('sms', [guest.id])}
-                          className="min-h-[44px] rounded-xl border border-violet-400/20 bg-violet-400/5 px-3 py-1 text-xs font-medium text-violet-300 transition hover:bg-violet-400/15"
+                          disabled
+                          title="SMS sending coming soon"
+                          className="min-h-[44px] rounded-xl border border-violet-400/20 bg-violet-400/5 px-3 py-1 text-xs font-medium text-violet-300 opacity-50 cursor-not-allowed"
                         >
                           SMS
                         </button>
@@ -525,10 +318,13 @@ export default function CommsDetailClient({
                       {guest.email && guest.comms_email && (
                         <button
                           type="button"
-                          onClick={() => openModal('email', [guest.id])}
-                          className="min-h-[44px] rounded-xl border border-sky-400/20 bg-sky-400/5 px-3 py-1 text-xs font-medium text-sky-300 transition hover:bg-sky-400/15"
+                          onClick={() =>
+                            sendGuestEmailDirect(guest.id, `${guest.first_name} ${guest.last_name}`)
+                          }
+                          disabled={guestEmailSendingId === guest.id}
+                          className="min-h-[44px] rounded-xl border border-sky-400/20 bg-sky-400/5 px-3 py-1 text-xs font-medium text-sky-300 transition hover:bg-sky-400/15 disabled:opacity-50"
                         >
-                          Email
+                          {guestEmailSendingId === guest.id ? '…' : 'Email'}
                         </button>
                       )}
                     </div>
@@ -561,7 +357,14 @@ export default function CommsDetailClient({
             <p className="text-sm text-slate-400">No communications sent yet.</p>
           ) : (
             <div className="space-y-3">
-              {comms.map((comm) => (
+              {comms.map((comm) => {
+                const recipient = comm.guest_id ? guestById.get(comm.guest_id) : undefined;
+                const recipientLabel = comm.guest_id
+                  ? recipient
+                    ? `${recipient.first_name} ${recipient.last_name}`
+                    : 'Guest no longer on file'
+                  : 'Whole household (sent before per-guest tracking)';
+                return (
                 <div key={comm.id} className="rounded-2xl border border-white/5 bg-slate-900/60 p-4">
                   <div className="flex items-center justify-between gap-2">
                     <span
@@ -583,18 +386,43 @@ export default function CommsDetailClient({
                       {comm.status}
                     </span>
                   </div>
-                  <p className="mt-2 text-xs text-slate-400">{relativeTime(comm.sent_at)}</p>
-                  <p className="mt-2 line-clamp-3 text-sm text-slate-300">{comm.message}</p>
-                  {/* Resend button (Task 7) */}
-                  <button
-                    type="button"
-                    onClick={() => openModal(comm.type, undefined, comm.message)}
-                    className="mt-3 min-h-[44px] rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300 transition hover:bg-white/10"
+                  <p
+                    className={`mt-2 text-sm font-medium ${
+                      comm.guest_id && recipient ? 'text-white' : 'text-amber-300'
+                    }`}
                   >
-                    Resend
-                  </button>
+                    To: {recipientLabel}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400" title={new Date(comm.sent_at).toLocaleString()}>
+                    {relativeTime(comm.sent_at)} · {new Date(comm.sent_at).toLocaleTimeString()}
+                  </p>
+                  <p className="mt-2 line-clamp-3 text-sm text-slate-300">{comm.message}</p>
+                  {comm.type === 'email' && comm.guest_id ? (
+                    <button
+                      type="button"
+                      onClick={() => resendEmail(comm)}
+                      disabled={resendingId === comm.id}
+                      className="mt-3 min-h-[44px] rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300 transition hover:bg-white/10 disabled:opacity-50"
+                    >
+                      {resendingId === comm.id ? 'Resending…' : 'Resend'}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      title={
+                        comm.type === 'email'
+                          ? 'Original recipient unknown — cannot resend'
+                          : 'SMS resend coming soon'
+                      }
+                      className="mt-3 min-h-[44px] rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300 opacity-50 cursor-not-allowed"
+                    >
+                      Resend
+                    </button>
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

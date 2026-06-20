@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
+import { sendGuestEmail } from '@/lib/email/sendEmail';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -13,30 +14,45 @@ export async function POST(request: NextRequest) {
       !lastName.trim() ||
       !EMAIL_REGEX.test(email.trim())
     ) {
-      // Never reveal validation details — same response either way
       return NextResponse.json({ success: true });
     }
 
     const trimmedLastName = lastName.trim();
     const trimmedEmail = email.trim();
 
-    // Find households where either email matches (case-insensitive)
-    const [byPrimary, bySecondary] = await Promise.all([
-      supabaseServer.from('households').select('id').ilike('primary_email', trimmedEmail),
-      supabaseServer.from('households').select('id').ilike('secondary_email', trimmedEmail),
-    ]);
+    const { data: guests } = await supabaseServer
+      .from('guests')
+      .select('id, first_name, email, household_id')
+      .ilike('last_name', trimmedLastName)
+      .ilike('email', trimmedEmail);
 
-    const householdIds = [...(byPrimary.data ?? []), ...(bySecondary.data ?? [])].map((h) => h.id);
+    if (guests && guests.length === 1) {
+      const guest = guests[0];
+      const { household_id, first_name, email: guestEmail } = guest;
 
-    if (householdIds.length > 0) {
-      const { data: guests } = await supabaseServer
-        .from('guests')
-        .select('id')
-        .in('household_id', householdIds)
-        .ilike('last_name', trimmedLastName);
+      if (household_id && first_name && guestEmail) {
+        const { data: household } = await supabaseServer
+          .from('households')
+          .select('id, slug')
+          .eq('id', household_id)
+          .single();
 
-      if (guests && guests.length > 0) {
-        // TODO Stage 5: trigger Resend email with invite link to matched household
+        if (household) {
+          // Send regardless of comms_email — the guest is actively requesting their link
+          try {
+            const result = await sendGuestEmail(
+              { id: guest.id, first_name, email: guestEmail },
+              household,
+              'link_recovery',
+              'save_the_date'
+            );
+            if (!result.success) {
+              console.error('[Lookup API] sendGuestEmail failed:', result.error);
+            }
+          } catch (err) {
+            console.error('[Lookup API] sendGuestEmail threw:', err);
+          }
+        }
       }
     }
 

@@ -45,9 +45,11 @@ export type Guest = {
   created_at: string;
 };
 
+export type PhaseName = 'save_the_date' | 'invitation' | 'pre_wedding' | 'thank_you';
+
 export type Phase = {
   id: string;
-  current_phase: 'save_the_date' | 'invitation' | 'pre_wedding' | 'thank_you';
+  current_phase: PhaseName;
   activated_at: string;
 };
 
@@ -74,10 +76,15 @@ export type CustomAnswer = {
 export type Communication = {
   id: string;
   household_id: string;
+  guest_id: string | null;
   type: 'sms' | 'email';
   message: string;
+  recipient_email: string | null;
+  provider_message_id: string | null;
+  error_message: string | null;
   sent_at: string;
   status: string;
+  phase: PhaseName | null;
   created_at: string;
 };
 
@@ -188,15 +195,15 @@ export type Settings = {
 };
 
 export const DEFAULT_SETTINGS: Settings = {
-  wedding_date: '2027-07-12',
-  wedding_time: '6:00 PM',
+  wedding_date: '2027-07-10',
+  wedding_time: '3:00 PM',
   venue_name: 'QT Hotel Melbourne',
-  location: 'Melbourne, Victoria',
+  location: '133 Russell St, Melbourne, Victoria, 3000',
   couple_names: 'Matt & Raff',
   tagline: "Cancel your plans. We've made better ones.",
   invitation_footer: 'Full invitation coming soon',
   rsvp_cutoff_date: '2027-06-01',
-  dietary_options: ['Vegetarian', 'Vegan', 'Gluten free', 'Dairy free', 'Halal', 'Kosher', 'Other'],
+  dietary_options: ['Vegetarian', 'Vegan', 'Gluten free', 'Dairy free', 'Other'],
   default_plus_one_allowance: 0,
   accommodation_url: '',
   photos_upload_url: '',
@@ -204,13 +211,27 @@ export const DEFAULT_SETTINGS: Settings = {
   hashtag: '#mattraff2027',
   wedding_photo_url: '',
   google_photos_url: '',
-  wedding_schedule: [],
+  wedding_schedule: [
+    { time: '3:00 PM', label: 'Arrive' },
+    { time: '3:30 PM', label: 'Ceremony' },
+    { time: '4:00 PM', label: 'Cocktails & Canapés' },
+    { time: '5:00 PM', label: 'Reception' },
+  ],
   section_order: DEFAULT_SECTION_ORDER,
 };
 
 export async function getSettings(): Promise<Settings> {
-  const { data } = await supabase.from('settings').select('key, value');
-  if (!data || data.length === 0) return DEFAULT_SETTINGS;
+  // settings has no anon-SELECT RLS policy — the anon client silently returns
+  // zero rows (no error), so this must use the service-role client.
+  const { data, error } = await supabaseServer.from('settings').select('key, value');
+  if (error) {
+    console.error('[getSettings] Failed to fetch settings, falling back to DEFAULT_SETTINGS:', error.message);
+    return DEFAULT_SETTINGS;
+  }
+  if (!data || data.length === 0) {
+    console.warn('[getSettings] Settings table returned no rows, falling back to DEFAULT_SETTINGS');
+    return DEFAULT_SETTINGS;
+  }
   const map = Object.fromEntries(data.map((row: { key: string; value: unknown }) => [row.key, row.value]));
   return { ...DEFAULT_SETTINGS, ...map } as Settings;
 }

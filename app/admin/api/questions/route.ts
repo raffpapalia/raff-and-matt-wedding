@@ -65,8 +65,6 @@ export async function POST(request: NextRequest) {
     display_order: typeof display_order === 'number' ? display_order : 0,
   };
 
-  console.log('[admin:questions] inserting', payload);
-
   const { data, error } = await supabaseServer
     .from('custom_questions')
     .insert(payload)

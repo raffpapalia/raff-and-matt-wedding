@@ -10,6 +10,8 @@ const config: Config = {
       colors: {
         'dark-green': '#0A1F14',
         'accent-gold': '#D4A83A',
+        cream: '#F2E8D0',
+        'brand-amber': '#C4621A',
       },
       fontFamily: {
         'bebas-neue': 'var(--font-bebas-neue)',
