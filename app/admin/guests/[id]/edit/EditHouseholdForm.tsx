@@ -19,7 +19,7 @@ const dietaryOptions = [
 ];
 
 const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mattandraff.com';
-const baseUrl = rawSiteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+const siteUrl = rawSiteUrl.replace(/\/$/, '');
 
 function slugify(text: string) {
   return text
@@ -57,6 +57,36 @@ function SectionHeading({ title }: { title: string }) {
 
 function SectionDivider() {
   return <div className="border-t border-[#F2E8D0]/10" />;
+}
+
+function CopyableLink({ label, value, helper }: { label: string; value: string; helper?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <div className="space-y-2">
+      <p className={labelClass}>{label}</p>
+      <div className="flex items-center gap-2">
+        <input
+          readOnly
+          value={value}
+          onFocus={(event) => event.target.select()}
+          className={`${fieldClass} cursor-text`}
+        />
+        <button
+          type="button"
+          onClick={async () => {
+            await navigator.clipboard.writeText(value);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 1600);
+          }}
+          className="shrink-0 rounded-full border border-[#F2E8D0]/15 px-4 py-3 text-sm text-[#F2E8D0]/85 transition hover:border-accent-gold/40 hover:text-accent-gold"
+        >
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
+      </div>
+      {helper ? <p className={helperClass}>{helper}</p> : null}
+    </div>
+  );
 }
 
 interface HouseholdFormData {
@@ -145,10 +175,12 @@ export default function EditHouseholdForm({
   initial,
   prevHousehold,
   nextHousehold,
+  shortLink,
 }: {
   initial: HouseholdFormData;
   prevHousehold: HouseholdNavItem | null;
   nextHousehold: HouseholdNavItem | null;
+  shortLink: string | null;
 }) {
   const [householdName, setHouseholdName] = useState(initial?.name ?? '');
   const [slug, setSlug] = useState(initial?.slug ?? '');
@@ -356,31 +388,41 @@ export default function EditHouseholdForm({
             />
           </label>
 
-          <div className="space-y-2">
-            <label className={labelClass}>
-              Invite code
-              <input
-                value={slug}
-                onChange={(event) => {
-                  setSlug(event.target.value);
-                  setSlugStatus('idle');
-                }}
-                onBlur={handleSlugBlur}
-                className={fieldClass}
-                placeholder="smith-family"
-                required
-              />
-            </label>
-            <p className={helperClass}>Used in their unique link: yourdomain.com/invite/[code]</p>
-            <p className="text-xs text-[#F2E8D0]/70">{baseUrl}/invite/{previewSlug}</p>
+          <label className={labelClass}>
+            Invite code
+            <input
+              value={slug}
+              onChange={(event) => {
+                setSlug(event.target.value);
+                setSlugStatus('idle');
+              }}
+              onBlur={handleSlugBlur}
+              className={fieldClass}
+              placeholder="smith-family"
+              required
+            />
             {slugStatus === 'checking' ? (
-              <p className="text-xs text-[#F2E8D0]/50">Checking availability...</p>
+              <span className="block text-xs text-[#F2E8D0]/50">Checking availability...</span>
             ) : slugStatus === 'available' ? (
-              <p className="text-xs text-emerald-400">✓ Available</p>
+              <span className="block text-xs text-emerald-400">✓ Available</span>
             ) : slugStatus === 'taken' ? (
-              <p className="text-xs text-red-400">✗ Already in use — please choose another</p>
+              <span className="block text-xs text-red-400">✗ Already in use — please choose another</span>
             ) : null}
-          </div>
+          </label>
+
+          <CopyableLink
+            label="Full invite link"
+            value={`${siteUrl}/invite/${previewSlug}`}
+            helper="The complete invitation page for this household."
+          />
+
+          {shortLink ? (
+            <CopyableLink
+              label="Short link"
+              value={shortLink}
+              helper="Shareable short link for SMS — redirects to the full invite link above. Auto-assigned, not editable."
+            />
+          ) : null}
 
           <label className={labelClass}>
             Plus one allowance

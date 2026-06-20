@@ -7,6 +7,7 @@ type GuestRow = {
   id: string;
   name: string;
   slug: string;
+  shortCode: string;
   guestNames: string[];
   invited: number;
   attending: number;
@@ -105,18 +106,18 @@ function GuestCountCell({ count, names }: { count: number; names: string[] }) {
   );
 }
 
-function CopyInviteButton({ slug }: { slug: string }) {
+function CopyLinkButton({ url, title }: { url: string; title: string }) {
   const [copied, setCopied] = useState(false);
 
   return (
     <button
       type="button"
       onClick={async () => {
-        await navigator.clipboard.writeText(`${SITE_URL}/invite/${slug}`);
+        await navigator.clipboard.writeText(url);
         setCopied(true);
         window.setTimeout(() => setCopied(false), 1600);
       }}
-      title="Copy invite link"
+      title={title}
       className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#F2E8D0]/15 text-[#F2E8D0]/60 transition hover:border-accent-gold/40 hover:text-accent-gold"
     >
       <ClipboardIcon className="h-4 w-4" />
@@ -370,6 +371,7 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
                       {row.name}
                     </Link>
                     <p className="mt-1 text-xs text-[#F2E8D0]/40">invite/{row.slug}</p>
+                    {row.shortCode ? <p className="text-xs text-[#F2E8D0]/40">i/{row.shortCode}</p> : null}
                     <div className="mt-2 sm:hidden">
                       <RsvpSummary attending={row.attending} declined={row.declined} pending={row.pending} />
                     </div>
@@ -381,7 +383,7 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
                     <RsvpSummary attending={row.attending} declined={row.declined} pending={row.pending} />
                   </td>
                   <td className="px-4 py-4 align-top">
-                    <CopyInviteButton slug={row.slug} />
+                    <CopyLinkButton url={`${SITE_URL}/invite/${row.slug}`} title="Copy invite link" />
                   </td>
                   <td className="px-4 py-4 align-top">
                     <div className="flex items-center justify-end gap-3">

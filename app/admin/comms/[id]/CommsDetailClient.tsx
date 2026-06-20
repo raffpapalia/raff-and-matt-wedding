@@ -3,12 +3,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { DetailGuest, DetailComm } from './page';
-import type { EmailTemplateRow } from '../templates/page';
+import type { EmailTemplateRow, SmsTemplateRow } from '../templates/page';
 import type { EmailTemplateKey } from '@/lib/email/renderTemplate';
 import type { PhaseName } from '@/lib/supabase';
 import { PHASE_LABELS } from '@/lib/email/templateInfo';
 import TemplateChooserModal from '../TemplateChooserModal';
 import EmailConfirmModal, { type EmailPreview } from '../EmailConfirmModal';
+import SmsConfirmModal, { type SmsPreview } from '../SmsConfirmModal';
+import BothTemplateChooserModal from '../BothTemplateChooserModal';
+import BothConfirmModal, { type BothPreview } from '../BothConfirmModal';
 
 // --- Helpers ---
 
@@ -53,8 +56,10 @@ export default function CommsDetailClient({
   guests,
   comms,
   templates,
+  smsTemplates,
   currentPhase,
   defaultTemplateKey,
+  defaultSmsTemplateKey,
 }: {
   householdId: string;
   householdName: string;
@@ -62,50 +67,85 @@ export default function CommsDetailClient({
   guests: DetailGuest[];
   comms: DetailComm[];
   templates: EmailTemplateRow[];
+  smsTemplates: SmsTemplateRow[];
   currentPhase: PhaseName;
   defaultTemplateKey: EmailTemplateKey | null;
+  defaultSmsTemplateKey: EmailTemplateKey | null;
 }) {
   const router = useRouter();
   const guestById = new Map(guests.map((g) => [g.id, g]));
-  const [chooserOpen, setChooserOpen] = useState(false);
+  const [chooserOpen, setChooserOpen] = useState<'email' | 'sms' | null>(null);
+  const [bothChooserOpen, setBothChooserOpen] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [emailConfirm, setEmailConfirm] = useState<(EmailPreview & { templateKey: EmailTemplateKey }) | null>(null);
-  const [emailPreviewLoading, setEmailPreviewLoading] = useState(false);
-  const [emailSending, setEmailSending] = useState(false);
-  const [guestEmailSendingId, setGuestEmailSendingId] = useState<string | null>(null);
+  const [smsConfirm, setSmsConfirm] = useState<(SmsPreview & { templateKey: EmailTemplateKey }) | null>(null);
+  const [bothConfirm, setBothConfirm] = useState<(BothPreview & { emailKey: EmailTemplateKey; smsKey: EmailTemplateKey }) | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [bothSending, setBothSending] = useState(false);
+  const [guestSendingId, setGuestSendingId] = useState<string | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
 
-  function openChooser() {
+  async function handleChooseTemplate(key: EmailTemplateKey) {
+    const channel = chooserOpen;
+    setChooserOpen(null);
     setSendError(null);
-    setChooserOpen(true);
+    setPreviewLoading(true);
+    try {
+      if (channel === 'email') {
+        const res = await fetch(`/admin/api/send-email/preview?household_id=${householdId}`);
+        const data = await res.json();
+        if (!res.ok) {
+          setSendError(data.error ?? 'Failed to check send status');
+          return;
+        }
+        if (data.alreadyEmailed === 0) {
+          await sendEmail('all', key);
+        } else {
+          setEmailConfirm({ ...data, templateKey: key });
+        }
+      } else {
+        const res = await fetch(`/admin/api/send-sms/preview?household_id=${householdId}`);
+        const data = await res.json();
+        if (!res.ok) {
+          setSendError(data.error ?? 'Failed to check send status');
+          return;
+        }
+        if (data.alreadyTexted === 0) {
+          await sendSms('all', key);
+        } else {
+          setSmsConfirm({ ...data, templateKey: key });
+        }
+      }
+    } catch {
+      setSendError('Network error');
+    } finally {
+      setPreviewLoading(false);
+    }
   }
 
-  async function handleChooseTemplate(key: EmailTemplateKey) {
-    setChooserOpen(false);
+  async function handleChooseBothTemplates(emailKey: EmailTemplateKey, smsKey: EmailTemplateKey) {
+    setBothChooserOpen(false);
     setSendError(null);
-    setEmailPreviewLoading(true);
+    setPreviewLoading(true);
     try {
-      const res = await fetch(`/admin/api/send-email/preview?household_id=${householdId}`);
+      const res = await fetch(`/admin/api/send-both/preview?household_id=${householdId}`);
       const data = await res.json();
       if (!res.ok) {
         setSendError(data.error ?? 'Failed to check send status');
         return;
       }
-      if (data.alreadyEmailed === 0) {
-        await sendEmail('all', key);
-      } else {
-        setEmailConfirm({ ...data, templateKey: key });
-      }
+      setBothConfirm({ ...data, emailKey, smsKey });
     } catch {
       setSendError('Network error');
     } finally {
-      setEmailPreviewLoading(false);
+      setPreviewLoading(false);
     }
   }
 
   async function sendGuestEmailDirect(guestId: string, guestLabel: string) {
-    setGuestEmailSendingId(guestId);
+    setGuestSendingId(`${guestId}-email`);
     setSendError(null);
     try {
       const res = await fetch('/admin/api/send-email', {
@@ -123,26 +163,50 @@ export default function CommsDetailClient({
     } catch {
       setSendError('Network error');
     } finally {
-      setGuestEmailSendingId(null);
+      setGuestSendingId(null);
     }
   }
 
-  async function resendEmail(comm: DetailComm) {
+  async function sendGuestSmsDirect(guestId: string, guestLabel: string) {
+    setGuestSendingId(`${guestId}-sms`);
+    setSendError(null);
+    try {
+      const res = await fetch('/admin/api/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guest_id: guestId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSendError(data.error ?? 'Failed to send SMS');
+        return;
+      }
+      setFeedback(`Sent SMS to ${guestLabel}.`);
+      router.refresh();
+    } catch {
+      setSendError('Network error');
+    } finally {
+      setGuestSendingId(null);
+    }
+  }
+
+  async function resendComm(comm: DetailComm) {
     if (!comm.guest_id) return;
     setResendingId(comm.id);
     setSendError(null);
     try {
-      const res = await fetch('/admin/api/send-email', {
+      const endpoint = comm.type === 'sms' ? '/admin/api/send-sms' : '/admin/api/send-email';
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ guest_id: comm.guest_id }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setSendError(data.error ?? 'Failed to resend email');
+        setSendError(data.error ?? `Failed to resend ${comm.type}`);
         return;
       }
-      setFeedback('Email resent.');
+      setFeedback(`${comm.type === 'sms' ? 'SMS' : 'Email'} resent.`);
       router.refresh();
     } catch {
       setSendError('Network error');
@@ -152,7 +216,7 @@ export default function CommsDetailClient({
   }
 
   async function sendEmail(mode: 'all' | 'not_yet_emailed', templateKey: EmailTemplateKey) {
-    setEmailSending(true);
+    setSending(true);
     setSendError(null);
     try {
       const res = await fetch('/admin/api/send-email', {
@@ -175,20 +239,106 @@ export default function CommsDetailClient({
     } catch {
       setSendError('Network error');
     } finally {
-      setEmailSending(false);
+      setSending(false);
+    }
+  }
+
+  async function sendSms(mode: 'all' | 'not_yet_texted', templateKey: EmailTemplateKey) {
+    setSending(true);
+    setSendError(null);
+    try {
+      const res = await fetch('/admin/api/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ household_id: householdId, mode, template: templateKey }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSendError(data.error ?? 'Failed to send SMS');
+        return;
+      }
+      setSmsConfirm(null);
+      setFeedback(
+        `Sent ${data.sent} of ${data.total} SMS${
+          data.failed || data.skipped ? ` (${data.failed} failed, ${data.skipped} skipped)` : ''
+        }.`
+      );
+      router.refresh();
+    } catch {
+      setSendError('Network error');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function sendBoth() {
+    if (!bothConfirm) return;
+    setBothSending(true);
+    setSendError(null);
+    try {
+      const res = await fetch('/admin/api/send-both', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          household_id: householdId,
+          email_template: bothConfirm.emailKey,
+          sms_template: bothConfirm.smsKey,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSendError(data.error ?? 'Failed to send');
+        return;
+      }
+      setBothConfirm(null);
+      setFeedback(
+        `Sent ${data.email.sent}/${data.email.total} emails, ${data.sms.sent}/${data.sms.total} SMS${
+          data.email.failed || data.sms.failed ? ` (${data.email.failed + data.sms.failed} failed)` : ''
+        }.`
+      );
+      router.refresh();
+    } catch {
+      setSendError('Network error');
+    } finally {
+      setBothSending(false);
     }
   }
 
   return (
     <>
-      {chooserOpen && (
+      {chooserOpen === 'email' && (
         <TemplateChooserModal
           templates={templates}
           defaultKey={defaultTemplateKey}
           heading="Send email"
           recipientSummary={`Current phase: ${PHASE_LABELS[currentPhase]}`}
-          onCancel={() => setChooserOpen(false)}
+          onCancel={() => setChooserOpen(null)}
           onConfirm={handleChooseTemplate}
+        />
+      )}
+
+      {chooserOpen === 'sms' && (
+        <TemplateChooserModal
+          templates={smsTemplates}
+          defaultKey={defaultSmsTemplateKey}
+          heading="Send SMS"
+          recipientSummary={`Current phase: ${PHASE_LABELS[currentPhase]}`}
+          emptyMessage="No active SMS templates. Activate one on the Templates page first."
+          onCancel={() => setChooserOpen(null)}
+          onConfirm={handleChooseTemplate}
+        />
+      )}
+
+      {bothChooserOpen && (
+        <BothTemplateChooserModal
+          emailTemplates={templates}
+          smsTemplates={smsTemplates}
+          defaultEmailKey={defaultTemplateKey}
+          defaultSmsKey={defaultSmsTemplateKey}
+          heading="Send to this household"
+          recipientSummary={`Current phase: ${PHASE_LABELS[currentPhase]}`}
+          onCancel={() => setBothChooserOpen(false)}
+          onConfirm={handleChooseBothTemplates}
         />
       )}
 
@@ -197,10 +347,34 @@ export default function CommsDetailClient({
           title={_householdName}
           templateKey={emailConfirm.templateKey}
           preview={emailConfirm}
-          sending={emailSending}
+          sending={sending}
           onSendAll={() => sendEmail('all', emailConfirm.templateKey)}
           onSendNotYetEmailed={() => sendEmail('not_yet_emailed', emailConfirm.templateKey)}
           onCancel={() => setEmailConfirm(null)}
+        />
+      )}
+
+      {smsConfirm && (
+        <SmsConfirmModal
+          title={_householdName}
+          templateKey={smsConfirm.templateKey}
+          preview={smsConfirm}
+          sending={sending}
+          onSendAll={() => sendSms('all', smsConfirm.templateKey)}
+          onSendNotYetTexted={() => sendSms('not_yet_texted', smsConfirm.templateKey)}
+          onCancel={() => setSmsConfirm(null)}
+        />
+      )}
+
+      {bothConfirm && (
+        <BothConfirmModal
+          title={_householdName}
+          emailTemplateKey={bothConfirm.emailKey}
+          smsTemplateKey={bothConfirm.smsKey}
+          preview={bothConfirm}
+          sending={bothSending}
+          onSend={sendBoth}
+          onCancel={() => setBothConfirm(null)}
         />
       )}
 
@@ -226,25 +400,25 @@ export default function CommsDetailClient({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                disabled
-                title="SMS sending coming soon"
-                className="rounded-full border border-violet-300/20 bg-violet-400/10 px-4 py-2 text-sm text-violet-200 opacity-50 cursor-not-allowed"
+                onClick={() => { setSendError(null); setChooserOpen('sms'); }}
+                disabled={previewLoading}
+                className="rounded-full border border-violet-300/20 bg-violet-400/10 px-4 py-2 text-sm text-violet-200 transition hover:bg-violet-400/20 disabled:opacity-50"
               >
-                Send SMS
+                {previewLoading ? 'Checking…' : 'Send SMS'}
               </button>
               <button
                 type="button"
-                onClick={openChooser}
-                disabled={emailPreviewLoading}
+                onClick={() => { setSendError(null); setChooserOpen('email'); }}
+                disabled={previewLoading}
                 className="rounded-full border border-sky-300/20 bg-sky-400/10 px-4 py-2 text-sm text-sky-200 transition hover:bg-sky-400/20 disabled:opacity-50"
               >
-                {emailPreviewLoading ? 'Checking…' : 'Send Email'}
+                {previewLoading ? 'Checking…' : 'Send Email'}
               </button>
               <button
                 type="button"
-                disabled
-                title="SMS sending coming soon"
-                className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 opacity-50 cursor-not-allowed"
+                onClick={() => { setSendError(null); setBothChooserOpen(true); }}
+                disabled={previewLoading || bothSending}
+                className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-50"
               >
                 Send Both
               </button>
@@ -308,11 +482,11 @@ export default function CommsDetailClient({
                       {guest.mobile && guest.comms_sms && (
                         <button
                           type="button"
-                          disabled
-                          title="SMS sending coming soon"
-                          className="min-h-[44px] rounded-xl border border-violet-400/20 bg-violet-400/5 px-3 py-1 text-xs font-medium text-violet-300 opacity-50 cursor-not-allowed"
+                          onClick={() => sendGuestSmsDirect(guest.id, `${guest.first_name} ${guest.last_name}`)}
+                          disabled={guestSendingId === `${guest.id}-sms`}
+                          className="min-h-[44px] rounded-xl border border-violet-400/20 bg-violet-400/5 px-3 py-1 text-xs font-medium text-violet-300 transition hover:bg-violet-400/15 disabled:opacity-50"
                         >
-                          SMS
+                          {guestSendingId === `${guest.id}-sms` ? '…' : 'SMS'}
                         </button>
                       )}
                       {guest.email && guest.comms_email && (
@@ -321,10 +495,10 @@ export default function CommsDetailClient({
                           onClick={() =>
                             sendGuestEmailDirect(guest.id, `${guest.first_name} ${guest.last_name}`)
                           }
-                          disabled={guestEmailSendingId === guest.id}
+                          disabled={guestSendingId === `${guest.id}-email`}
                           className="min-h-[44px] rounded-xl border border-sky-400/20 bg-sky-400/5 px-3 py-1 text-xs font-medium text-sky-300 transition hover:bg-sky-400/15 disabled:opacity-50"
                         >
-                          {guestEmailSendingId === guest.id ? '…' : 'Email'}
+                          {guestSendingId === `${guest.id}-email` ? '…' : 'Email'}
                         </button>
                       )}
                     </div>
@@ -397,10 +571,10 @@ export default function CommsDetailClient({
                     {relativeTime(comm.sent_at)} · {new Date(comm.sent_at).toLocaleTimeString()}
                   </p>
                   <p className="mt-2 line-clamp-3 text-sm text-slate-300">{comm.message}</p>
-                  {comm.type === 'email' && comm.guest_id ? (
+                  {comm.guest_id ? (
                     <button
                       type="button"
-                      onClick={() => resendEmail(comm)}
+                      onClick={() => resendComm(comm)}
                       disabled={resendingId === comm.id}
                       className="mt-3 min-h-[44px] rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300 transition hover:bg-white/10 disabled:opacity-50"
                     >
@@ -410,11 +584,7 @@ export default function CommsDetailClient({
                     <button
                       type="button"
                       disabled
-                      title={
-                        comm.type === 'email'
-                          ? 'Original recipient unknown — cannot resend'
-                          : 'SMS resend coming soon'
-                      }
+                      title="Original recipient unknown — cannot resend"
                       className="mt-3 min-h-[44px] rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300 opacity-50 cursor-not-allowed"
                     >
                       Resend

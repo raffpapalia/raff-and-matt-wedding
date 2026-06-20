@@ -1,9 +1,18 @@
 'use client';
 
 import { useMemo, useState, type ReactNode } from 'react';
-import type { EmailTemplateRow } from './templates/page';
 import { EMAIL_TEMPLATE_TITLES } from '@/lib/email/templateInfo';
 import type { EmailTemplateKey } from '@/lib/email/renderTemplate';
+
+// Shape shared by EmailTemplateRow and SmsTemplateRow — subject is optional so this
+// modal works for both channels (SMS templates have no subject).
+export type ChooserTemplate = {
+  id: string;
+  key: string;
+  is_active: boolean;
+  subject?: string | null;
+  body: string;
+};
 
 // Matt picks WHICH template to send for a manual send — templates themselves are
 // only ever edited on the Templates page, never free-typed here.
@@ -12,14 +21,16 @@ export default function TemplateChooserModal({
   defaultKey,
   heading,
   recipientSummary,
+  emptyMessage = 'No active email templates. Activate one on the Templates page first.',
   onCancel,
   onConfirm,
   confirming = false,
 }: {
-  templates: EmailTemplateRow[];
+  templates: ChooserTemplate[];
   defaultKey: EmailTemplateKey | null;
   heading: string;
   recipientSummary: ReactNode;
+  emptyMessage?: string;
   onCancel: () => void;
   onConfirm: (key: EmailTemplateKey) => void;
   confirming?: boolean;
@@ -39,7 +50,7 @@ export default function TemplateChooserModal({
 
         {activeTemplates.length === 0 ? (
           <div className="mt-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
-            No active email templates. Activate one on the Templates page first.
+            {emptyMessage}
           </div>
         ) : (
           <>
@@ -72,7 +83,9 @@ export default function TemplateChooserModal({
               <div className="mt-4">
                 <p className="mb-2 text-xs uppercase tracking-[0.25em] text-slate-400">Preview</p>
                 <div className="rounded-2xl border border-white/5 bg-slate-900/60 px-4 py-3 text-sm text-slate-200">
-                  <p className="font-medium text-white">{selectedTemplate.subject}</p>
+                  {selectedTemplate.subject && (
+                    <p className="font-medium text-white">{selectedTemplate.subject}</p>
+                  )}
                   <p className="mt-2 whitespace-pre-wrap text-slate-300">{selectedTemplate.body}</p>
                 </div>
               </div>

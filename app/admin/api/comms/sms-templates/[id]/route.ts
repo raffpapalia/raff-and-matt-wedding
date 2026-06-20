@@ -8,8 +8,8 @@ async function requireAuth() {
   return authCookie === 'true';
 }
 
-// Only subject/body/is_active are editable from the UI — key/phase/trigger_type
-// are structural and must stay code-owned.
+// Only body/is_active are editable from the UI — key/phase/channel/trigger_type are
+// structural and must stay code-owned, same rule as the email-templates PATCH route.
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await requireAuth())) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -21,14 +21,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const body = await request.json();
-  const { subject, body: templateBody, is_active } = body as {
-    subject?: string;
-    body?: string;
-    is_active?: boolean;
-  };
+  const { body: templateBody, is_active } = body as { body?: string; is_active?: boolean };
 
   const updates: Record<string, unknown> = {};
-  if (typeof subject === 'string') updates.subject = subject;
   if (typeof templateBody === 'string') updates.body = templateBody;
   if (typeof is_active === 'boolean') updates.is_active = is_active;
 
@@ -36,22 +31,21 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ message: 'No editable fields provided' }, { status: 400 });
   }
 
-  if ((updates.subject !== undefined && !String(updates.subject).trim()) ||
-      (updates.body !== undefined && !String(updates.body).trim())) {
-    return NextResponse.json({ message: 'Subject and body cannot be empty' }, { status: 400 });
+  if (updates.body !== undefined && !String(updates.body).trim()) {
+    return NextResponse.json({ message: 'Body cannot be empty' }, { status: 400 });
   }
 
   const { data, error } = await supabaseServer
     .from('email_templates')
     .update(updates)
     .eq('id', id)
-    .eq('channel', 'email')
-    .select('id, key, phase, subject, body, trigger_type, is_active, updated_at')
+    .eq('channel', 'sms')
+    .select('id, key, phase, body, trigger_type, is_active, updated_at')
     .single();
 
   if (error) {
     return NextResponse.json(
-      { message: 'Failed to update email template', details: error.message },
+      { message: 'Failed to update SMS template', details: error.message },
       { status: 500 }
     );
   }

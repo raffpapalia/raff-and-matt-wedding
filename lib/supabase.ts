@@ -19,6 +19,7 @@ export type Household = {
   id: string;
   name: string;
   slug: string;
+  short_code: string;
   personal_photo_url: string | null;
   personal_message: string | null;
   thank_you_message: string | null;
@@ -80,6 +81,7 @@ export type Communication = {
   type: 'sms' | 'email';
   message: string;
   recipient_email: string | null;
+  recipient_number: string | null;
   provider_message_id: string | null;
   error_message: string | null;
   sent_at: string;

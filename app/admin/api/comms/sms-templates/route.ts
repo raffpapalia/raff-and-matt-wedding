@@ -15,13 +15,13 @@ export async function GET() {
 
   const { data, error } = await supabaseServer
     .from('email_templates')
-    .select('id, key, phase, subject, body, trigger_type, is_active, updated_at')
-    .eq('channel', 'email')
+    .select('id, key, phase, body, trigger_type, is_active, updated_at')
+    .eq('channel', 'sms')
     .order('key', { ascending: true });
 
   if (error) {
     return NextResponse.json(
-      { message: 'Failed to fetch email templates', details: error.message },
+      { message: 'Failed to fetch SMS templates', details: error.message },
       { status: 500 }
     );
   }

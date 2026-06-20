@@ -3,12 +3,15 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CommsSummaryRow, CommsStatus } from './page';
-import type { EmailTemplateRow } from './templates/page';
+import type { EmailTemplateRow, SmsTemplateRow } from './templates/page';
 import type { EmailTemplateKey } from '@/lib/email/renderTemplate';
 import type { PhaseName } from '@/lib/supabase';
 import { PHASE_LABELS } from '@/lib/email/templateInfo';
 import TemplateChooserModal from './TemplateChooserModal';
 import EmailConfirmModal, { type EmailPreview } from './EmailConfirmModal';
+import SmsConfirmModal, { type SmsPreview } from './SmsConfirmModal';
+import BothTemplateChooserModal from './BothTemplateChooserModal';
+import BothConfirmModal, { type BothPreview } from './BothConfirmModal';
 
 // --- Helpers ---
 
@@ -55,24 +58,36 @@ function StatusBadge({ status }: { status: CommsStatus }) {
 
 const PAGE_SIZE = 20;
 type FilterTab = 'all' | 'not_sent' | 'sent' | 'failed';
+type Channel = 'email' | 'sms';
 
 type ChooserTarget = {
   ids: string[];
   title: string;
   loadingKey: string;
-  defaultMode: 'all' | 'not_yet_emailed';
+  defaultMode: 'all' | 'not_yet_sent';
+  channel: Channel;
+};
+
+type BothChooserTarget = {
+  ids: string[];
+  title: string;
+  loadingKey: string;
 };
 
 export default function CommsClient({
   rows,
   templates,
+  smsTemplates,
   currentPhase,
   defaultTemplateKey,
+  defaultSmsTemplateKey,
 }: {
   rows: CommsSummaryRow[];
   templates: EmailTemplateRow[];
+  smsTemplates: SmsTemplateRow[];
   currentPhase: PhaseName;
   defaultTemplateKey: EmailTemplateKey | null;
+  defaultSmsTemplateKey: EmailTemplateKey | null;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -82,6 +97,7 @@ export default function CommsClient({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sendError, setSendError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+
   const [chooserTarget, setChooserTarget] = useState<ChooserTarget | null>(null);
   const [emailConfirm, setEmailConfirm] = useState<{
     ids: string[];
@@ -89,8 +105,24 @@ export default function CommsClient({
     preview: EmailPreview;
     templateKey: EmailTemplateKey;
   } | null>(null);
-  const [emailPreviewLoadingId, setEmailPreviewLoadingId] = useState<string | null>(null);
-  const [emailSending, setEmailSending] = useState(false);
+  const [smsConfirm, setSmsConfirm] = useState<{
+    ids: string[];
+    title: string;
+    preview: SmsPreview;
+    templateKey: EmailTemplateKey;
+  } | null>(null);
+  const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+
+  const [bothChooserTarget, setBothChooserTarget] = useState<BothChooserTarget | null>(null);
+  const [bothConfirm, setBothConfirm] = useState<{
+    ids: string[];
+    title: string;
+    preview: BothPreview;
+    emailKey: EmailTemplateKey;
+    smsKey: EmailTemplateKey;
+  } | null>(null);
+  const [bothSending, setBothSending] = useState(false);
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
@@ -145,47 +177,45 @@ export default function CommsClient({
     }
   }
 
-  function openChooser(ids: string[], title: string, loadingKey: string, defaultMode: 'all' | 'not_yet_emailed') {
+  function openChooser(
+    ids: string[],
+    title: string,
+    loadingKey: string,
+    defaultMode: 'all' | 'not_yet_sent',
+    channel: Channel
+  ) {
     if (ids.length === 0) return;
     setSendError(null);
-    setChooserTarget({ ids, title, loadingKey, defaultMode });
+    setChooserTarget({ ids, title, loadingKey, defaultMode, channel });
   }
 
   async function handleChooseTemplate(key: EmailTemplateKey) {
     if (!chooserTarget) return;
-    const { ids, title, loadingKey, defaultMode } = chooserTarget;
+    const { ids, title, loadingKey, defaultMode, channel } = chooserTarget;
     setChooserTarget(null);
-    await checkAndSendEmail(ids, title, loadingKey, defaultMode, key);
+    if (channel === 'email') {
+      await checkAndSendEmail(ids, title, loadingKey, defaultMode === 'not_yet_sent' ? 'not_yet_emailed' : 'all', key);
+    } else {
+      await checkAndSendSms(ids, title, loadingKey, defaultMode === 'not_yet_sent' ? 'not_yet_texted' : 'all', key);
+    }
   }
 
   async function checkAndSendEmail(
     ids: string[],
     title: string,
     loadingKey: string,
-    defaultMode: 'all' | 'not_yet_emailed',
+    fastPathMode: 'all' | 'not_yet_emailed',
     templateKey: EmailTemplateKey
   ) {
-    if (ids.length === 0) {
-      setSendError('No eligible households selected.');
-      return;
-    }
     setSendError(null);
-    setEmailPreviewLoadingId(loadingKey);
+    setPreviewLoadingId(loadingKey);
     try {
       const url =
         ids.length === 1
           ? `/admin/api/send-email/preview?household_id=${ids[0]}`
           : `/admin/api/send-email/preview?household_ids=${ids.join(',')}`;
       const res = await fetch(url);
-      const rawText = await res.text();
-
-      let data: any;
-      try {
-        data = JSON.parse(rawText);
-      } catch {
-        setSendError('Preview response was not valid JSON — see console');
-        return;
-      }
+      const data = await res.json();
 
       if (!res.ok) {
         setSendError(data.error ?? 'Failed to check send status');
@@ -193,24 +223,63 @@ export default function CommsClient({
       }
 
       if (data.alreadyEmailed === 0) {
-        await sendEmailForIds(ids, defaultMode, title, templateKey);
+        await sendEmailForIds(ids, fastPathMode, title, templateKey);
       } else {
-        setEmailConfirm({ ids, title, preview: data, templateKey });
+        setEmailConfirm({
+          ids,
+          title,
+          preview: { phase: data.phase, total: data.total, alreadyEmailed: data.alreadyEmailed, notYetEmailed: data.notYetEmailed },
+          templateKey,
+        });
       }
     } catch {
       setSendError('Network error');
     } finally {
-      setEmailPreviewLoadingId(null);
+      setPreviewLoadingId(null);
     }
   }
 
-  async function sendEmailForIds(
+  async function checkAndSendSms(
     ids: string[],
-    mode: 'all' | 'not_yet_emailed',
     title: string,
+    loadingKey: string,
+    fastPathMode: 'all' | 'not_yet_texted',
     templateKey: EmailTemplateKey
   ) {
-    setEmailSending(true);
+    setSendError(null);
+    setPreviewLoadingId(loadingKey);
+    try {
+      const url =
+        ids.length === 1
+          ? `/admin/api/send-sms/preview?household_id=${ids[0]}`
+          : `/admin/api/send-sms/preview?household_ids=${ids.join(',')}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setSendError(data.error ?? 'Failed to check send status');
+        return;
+      }
+
+      if (data.alreadyTexted === 0) {
+        await sendSmsForIds(ids, fastPathMode, title, templateKey);
+      } else {
+        setSmsConfirm({
+          ids,
+          title,
+          preview: { phase: data.phase, total: data.total, alreadyTexted: data.alreadyTexted, notYetTexted: data.notYetTexted },
+          templateKey,
+        });
+      }
+    } catch {
+      setSendError('Network error');
+    } finally {
+      setPreviewLoadingId(null);
+    }
+  }
+
+  async function sendEmailForIds(ids: string[], mode: 'all' | 'not_yet_emailed', title: string, templateKey: EmailTemplateKey) {
+    setSending(true);
     setSendError(null);
     try {
       const res = await fetch('/admin/api/send-email', {
@@ -222,21 +291,11 @@ export default function CommsClient({
             : { household_ids: ids, mode, template: templateKey }
         ),
       });
-      const rawText = await res.text();
-
-      let data: any;
-      try {
-        data = JSON.parse(rawText);
-      } catch {
-        setSendError('Send response was not valid JSON — see console');
-        return;
-      }
-
+      const data = await res.json();
       if (!res.ok) {
         setSendError(data.error ?? 'Failed to send email');
         return;
       }
-
       setEmailConfirm(null);
       setSelectedIds(new Set());
       setFeedback(
@@ -248,7 +307,106 @@ export default function CommsClient({
     } catch {
       setSendError('Network error');
     } finally {
-      setEmailSending(false);
+      setSending(false);
+    }
+  }
+
+  async function sendSmsForIds(ids: string[], mode: 'all' | 'not_yet_texted', title: string, templateKey: EmailTemplateKey) {
+    setSending(true);
+    setSendError(null);
+    try {
+      const res = await fetch('/admin/api/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          ids.length === 1
+            ? { household_id: ids[0], mode, template: templateKey }
+            : { household_ids: ids, mode, template: templateKey }
+        ),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSendError(data.error ?? 'Failed to send SMS');
+        return;
+      }
+      setSmsConfirm(null);
+      setSelectedIds(new Set());
+      setFeedback(
+        `Sent ${data.sent} of ${data.total} SMS to ${title}${
+          data.failed || data.skipped ? ` (${data.failed} failed, ${data.skipped} skipped)` : ''
+        }.`
+      );
+      router.refresh();
+    } catch {
+      setSendError('Network error');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  function openBothChooser(ids: string[], title: string, loadingKey: string) {
+    if (ids.length === 0) return;
+    setSendError(null);
+    setBothChooserTarget({ ids, title, loadingKey });
+  }
+
+  async function handleChooseBothTemplates(emailKey: EmailTemplateKey, smsKey: EmailTemplateKey) {
+    if (!bothChooserTarget) return;
+    const { ids, title, loadingKey } = bothChooserTarget;
+    setBothChooserTarget(null);
+    setSendError(null);
+    setPreviewLoadingId(loadingKey);
+    try {
+      const url =
+        ids.length === 1
+          ? `/admin/api/send-both/preview?household_id=${ids[0]}`
+          : `/admin/api/send-both/preview?household_ids=${ids.join(',')}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!res.ok) {
+        setSendError(data.error ?? 'Failed to check send status');
+        return;
+      }
+      setBothConfirm({ ids, title, preview: data, emailKey, smsKey });
+    } catch {
+      setSendError('Network error');
+    } finally {
+      setPreviewLoadingId(null);
+    }
+  }
+
+  async function sendBoth() {
+    if (!bothConfirm) return;
+    const { ids, title, emailKey, smsKey } = bothConfirm;
+    setBothSending(true);
+    setSendError(null);
+    try {
+      const res = await fetch('/admin/api/send-both', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          ids.length === 1
+            ? { household_id: ids[0], email_template: emailKey, sms_template: smsKey }
+            : { household_ids: ids, email_template: emailKey, sms_template: smsKey }
+        ),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSendError(data.error ?? 'Failed to send');
+        return;
+      }
+      setBothConfirm(null);
+      setSelectedIds(new Set());
+      setFeedback(
+        `Sent to ${title}: ${data.email.sent}/${data.email.total} emails, ${data.sms.sent}/${data.sms.total} SMS${
+          data.email.failed || data.sms.failed ? ` (${data.email.failed + data.sms.failed} failed)` : ''
+        }.`
+      );
+      router.refresh();
+    } catch {
+      setSendError('Network error');
+    } finally {
+      setBothSending(false);
     }
   }
 
@@ -261,7 +419,7 @@ export default function CommsClient({
 
   return (
     <>
-      {chooserTarget && (
+      {chooserTarget && chooserTarget.channel === 'email' && (
         <TemplateChooserModal
           templates={templates}
           defaultKey={defaultTemplateKey}
@@ -272,17 +430,68 @@ export default function CommsClient({
         />
       )}
 
+      {chooserTarget && chooserTarget.channel === 'sms' && (
+        <TemplateChooserModal
+          templates={smsTemplates}
+          defaultKey={defaultSmsTemplateKey}
+          heading={`Send SMS to ${chooserTarget.title}`}
+          recipientSummary={`Current phase: ${PHASE_LABELS[currentPhase]}`}
+          emptyMessage="No active SMS templates. Activate one on the Templates page first."
+          onCancel={() => setChooserTarget(null)}
+          onConfirm={handleChooseTemplate}
+        />
+      )}
+
+      {bothChooserTarget && (
+        <BothTemplateChooserModal
+          emailTemplates={templates}
+          smsTemplates={smsTemplates}
+          defaultEmailKey={defaultTemplateKey}
+          defaultSmsKey={defaultSmsTemplateKey}
+          heading={`Send to ${bothChooserTarget.title}`}
+          recipientSummary={`Current phase: ${PHASE_LABELS[currentPhase]}`}
+          onCancel={() => setBothChooserTarget(null)}
+          onConfirm={handleChooseBothTemplates}
+        />
+      )}
+
       {emailConfirm && (
         <EmailConfirmModal
           title={emailConfirm.title}
           templateKey={emailConfirm.templateKey}
           preview={emailConfirm.preview}
-          sending={emailSending}
+          sending={sending}
           onSendAll={() => sendEmailForIds(emailConfirm.ids, 'all', emailConfirm.title, emailConfirm.templateKey)}
           onSendNotYetEmailed={() =>
             sendEmailForIds(emailConfirm.ids, 'not_yet_emailed', emailConfirm.title, emailConfirm.templateKey)
           }
           onCancel={() => setEmailConfirm(null)}
+        />
+      )}
+
+      {smsConfirm && (
+        <SmsConfirmModal
+          title={smsConfirm.title}
+          templateKey={smsConfirm.templateKey}
+          preview={smsConfirm.preview}
+          sending={sending}
+          onSendAll={() => sendSmsForIds(smsConfirm.ids, 'all', smsConfirm.title, smsConfirm.templateKey)}
+          onSendNotYetTexted={() =>
+            sendSmsForIds(smsConfirm.ids, 'not_yet_texted', smsConfirm.title, smsConfirm.templateKey)
+          }
+          onCancel={() => setSmsConfirm(null)}
+        />
+      )}
+
+      {bothConfirm && (
+        <BothConfirmModal
+          title={bothConfirm.title}
+          emailTemplateKey={bothConfirm.emailKey}
+          smsTemplateKey={bothConfirm.smsKey}
+          preview={bothConfirm.preview}
+          sending={bothSending}
+          onSend={sendBoth}
+          onCancel={() => setBothConfirm(null)}
         />
       )}
 
@@ -348,11 +557,19 @@ export default function CommsClient({
             <span className="text-sm text-amber-200">{selectedIds.size} selected</span>
             <button
               type="button"
-              disabled
-              title="SMS sending coming soon"
-              className="rounded-full border border-violet-300/20 bg-violet-400/10 px-4 py-2 text-sm text-violet-200 opacity-50 cursor-not-allowed"
+              onClick={() =>
+                openChooser(
+                  [...selectedIds],
+                  `${selectedIds.size} selected household${selectedIds.size !== 1 ? 's' : ''}`,
+                  'bulk-selected-sms',
+                  'all',
+                  'sms'
+                )
+              }
+              disabled={previewLoadingId === 'bulk-selected-sms' || sending}
+              className="rounded-full border border-violet-300/20 bg-violet-400/10 px-4 py-2 text-sm text-violet-200 transition hover:bg-violet-400/20 disabled:opacity-50"
             >
-              Send SMS
+              {previewLoadingId === 'bulk-selected-sms' ? 'Checking…' : 'Send SMS'}
             </button>
             <button
               type="button"
@@ -361,21 +578,28 @@ export default function CommsClient({
                   [...selectedIds],
                   `${selectedIds.size} selected household${selectedIds.size !== 1 ? 's' : ''}`,
                   'bulk-selected',
-                  'all'
+                  'all',
+                  'email'
                 )
               }
-              disabled={emailPreviewLoadingId === 'bulk-selected' || emailSending}
+              disabled={previewLoadingId === 'bulk-selected' || sending}
               className="rounded-full border border-sky-300/20 bg-sky-400/10 px-4 py-2 text-sm text-sky-200 transition hover:bg-sky-400/20 disabled:opacity-50"
             >
-              {emailPreviewLoadingId === 'bulk-selected' ? 'Checking…' : 'Send Email'}
+              {previewLoadingId === 'bulk-selected' ? 'Checking…' : 'Send Email'}
             </button>
             <button
               type="button"
-              disabled
-              title="SMS sending coming soon"
-              className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 opacity-50 cursor-not-allowed"
+              onClick={() =>
+                openBothChooser(
+                  [...selectedIds],
+                  `${selectedIds.size} selected household${selectedIds.size !== 1 ? 's' : ''}`,
+                  'bulk-selected-both'
+                )
+              }
+              disabled={previewLoadingId === 'bulk-selected-both' || bothSending}
+              className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-50"
             >
-              Send Both
+              {previewLoadingId === 'bulk-selected-both' ? 'Checking…' : 'Send Both'}
             </button>
             <button
               type="button"
@@ -396,13 +620,14 @@ export default function CommsClient({
                 rows.map((r) => r.id),
                 `all ${rows.length} household${rows.length !== 1 ? 's' : ''}`,
                 'bulk-all',
-                'all'
+                'all',
+                'email'
               )
             }
-            disabled={emailPreviewLoadingId === 'bulk-all' || emailSending || rows.length === 0}
+            disabled={previewLoadingId === 'bulk-all' || sending || rows.length === 0}
             className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10 disabled:opacity-50"
           >
-            {emailPreviewLoadingId === 'bulk-all' ? 'Checking…' : `Email all (${rows.length})`}
+            {previewLoadingId === 'bulk-all' ? 'Checking…' : `Email all (${rows.length})`}
           </button>
           <button
             type="button"
@@ -411,13 +636,14 @@ export default function CommsClient({
                 unsentIds,
                 `${unsentIds.length} unsent household${unsentIds.length !== 1 ? 's' : ''}`,
                 'bulk-unsent',
-                'not_yet_emailed'
+                'not_yet_sent',
+                'email'
               )
             }
-            disabled={emailPreviewLoadingId === 'bulk-unsent' || emailSending || unsentIds.length === 0}
+            disabled={previewLoadingId === 'bulk-unsent' || sending || unsentIds.length === 0}
             className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10 disabled:opacity-50"
           >
-            {emailPreviewLoadingId === 'bulk-unsent' ? 'Checking…' : `Email unsent only (${tabCounts.not_sent})`}
+            {previewLoadingId === 'bulk-unsent' ? 'Checking…' : `Email unsent only (${tabCounts.not_sent})`}
           </button>
         </div>
 
@@ -505,19 +731,27 @@ export default function CommsClient({
                         </button>
                         <button
                           type="button"
-                          disabled
-                          title="SMS sending coming soon"
-                          className="rounded-2xl border border-violet-400/20 bg-violet-400/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-violet-200 opacity-50 cursor-not-allowed"
+                          onClick={() => openChooser([row.id], row.name, `${row.id}-sms`, 'all', 'sms')}
+                          disabled={previewLoadingId === `${row.id}-sms` || sending}
+                          className="rounded-2xl border border-violet-400/20 bg-violet-400/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-violet-200 transition hover:bg-violet-400/20 disabled:opacity-50"
                         >
-                          SMS
+                          {previewLoadingId === `${row.id}-sms` ? '…' : 'SMS'}
                         </button>
                         <button
                           type="button"
-                          onClick={() => openChooser([row.id], row.name, row.id, 'all')}
-                          disabled={emailPreviewLoadingId === row.id || emailSending}
+                          onClick={() => openChooser([row.id], row.name, row.id, 'all', 'email')}
+                          disabled={previewLoadingId === row.id || sending}
                           className="rounded-2xl border border-sky-400/20 bg-sky-400/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-sky-200 transition hover:bg-sky-400/20 disabled:opacity-50"
                         >
-                          {emailPreviewLoadingId === row.id ? '…' : 'Email'}
+                          {previewLoadingId === row.id ? '…' : 'Email'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openBothChooser([row.id], row.name, `${row.id}-both`)}
+                          disabled={previewLoadingId === `${row.id}-both` || bothSending}
+                          className="rounded-2xl bg-amber-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-950 transition hover:bg-amber-200 disabled:opacity-50"
+                        >
+                          {previewLoadingId === `${row.id}-both` ? '…' : 'Both'}
                         </button>
                       </div>
                     </td>

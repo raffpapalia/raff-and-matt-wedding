@@ -46,6 +46,7 @@ export async function loadEmailTemplate(key: string): Promise<EmailTemplateRow |
     .from('email_templates')
     .select('key, phase, subject, body, trigger_type, is_active')
     .eq('key', key)
+    .eq('channel', 'email')
     .eq('is_active', true)
     .single();
 

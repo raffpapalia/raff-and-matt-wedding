@@ -2,7 +2,7 @@ import { requireAdminAuth } from '@/lib/adminAuth';
 import { supabase, supabaseServer, getCurrentPhase, type PhaseName } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import CommsDetailClient from './CommsDetailClient';
-import type { EmailTemplateRow } from '../templates/page';
+import type { EmailTemplateRow, SmsTemplateRow } from '../templates/page';
 import { EMAIL_TEMPLATE_TITLES, PHASE_LABELS, PHASE_TEMPLATE_MAP } from '@/lib/email/templateInfo';
 
 export type DetailGuest = {
@@ -29,7 +29,7 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
   await requireAdminAuth();
   const { id } = await params;
 
-  const [householdRes, guestsRes, commsRes, tagsRes, phaseRes, templatesRes] = await Promise.all([
+  const [householdRes, guestsRes, commsRes, tagsRes, phaseRes, templatesRes, smsTemplatesRes] = await Promise.all([
     supabase.from('households').select('id,name,slug').eq('id', id).single(),
     supabase
       .from('guests')
@@ -46,7 +46,12 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
     getCurrentPhase(),
     supabaseServer
       .from('email_templates')
-      .select('id, key, phase, subject, body, trigger_type, is_active, updated_at'),
+      .select('id, key, phase, subject, body, trigger_type, is_active, updated_at')
+      .eq('channel', 'email'),
+    supabaseServer
+      .from('email_templates')
+      .select('id, key, phase, body, trigger_type, is_active, updated_at')
+      .eq('channel', 'sms'),
   ]);
 
   if (!householdRes.data) notFound();
@@ -56,11 +61,14 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
   const comms: DetailComm[] = (commsRes.data ?? []) as DetailComm[];
   const tags = (tagsRes.data ?? []).map((t: { tag: string }) => t.tag);
   const emailTemplates = (templatesRes.data ?? []) as EmailTemplateRow[];
+  const smsTemplates = (smsTemplatesRes.data ?? []) as SmsTemplateRow[];
 
   const currentPhase: PhaseName = (phaseRes.data?.current_phase as PhaseName) ?? 'save_the_date';
   const primaryKey = PHASE_TEMPLATE_MAP[currentPhase];
   const primaryTemplate = emailTemplates.find((t) => t.key === primaryKey);
   const primaryTemplateActive = !!primaryTemplate?.is_active;
+  const smsPrimaryTemplate = smsTemplates.find((t) => t.key === primaryKey);
+  const smsPrimaryTemplateActive = !!smsPrimaryTemplate?.is_active;
 
   return (
     <div className="space-y-8">
@@ -120,8 +128,10 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
         guests={guests}
         comms={comms}
         templates={emailTemplates}
+        smsTemplates={smsTemplates}
         currentPhase={currentPhase}
         defaultTemplateKey={primaryTemplateActive ? primaryKey : null}
+        defaultSmsTemplateKey={smsPrimaryTemplateActive ? primaryKey : null}
       />
     </div>
   );

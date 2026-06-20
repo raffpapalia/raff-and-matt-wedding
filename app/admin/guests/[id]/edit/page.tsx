@@ -1,4 +1,5 @@
 import { supabaseServer } from '@/lib/supabase';
+import { getShortLink } from '@/lib/shortLink';
 import EditHouseholdForm from './EditHouseholdForm';
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
@@ -7,6 +8,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const { data: tags } = await supabaseServer.from('guest_tags').select('tag').eq('household_id', id);
   const { data: guests } = await supabaseServer.from('guests').select('*').eq('household_id', id).order('display_order', { ascending: true });
   const { data: householdList } = await supabaseServer.from('households').select('id,name').order('name', { ascending: true });
+
+  const shortLink = household?.short_code ? getShortLink(household) : null;
 
   const initial = {
     ...household,
@@ -22,7 +25,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Edit Household</h1>
-      <EditHouseholdForm initial={initial} prevHousehold={prevHousehold} nextHousehold={nextHousehold} />
+      <EditHouseholdForm initial={initial} prevHousehold={prevHousehold} nextHousehold={nextHousehold} shortLink={shortLink} />
     </div>
   );
 }

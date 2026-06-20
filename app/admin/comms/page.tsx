@@ -1,7 +1,7 @@
 import { requireAdminAuth } from '@/lib/adminAuth';
 import { supabase, supabaseServer, getCurrentPhase, type PhaseName } from '@/lib/supabase';
 import CommsClient from './CommsClient';
-import type { EmailTemplateRow } from './templates/page';
+import type { EmailTemplateRow, SmsTemplateRow } from './templates/page';
 import { EMAIL_TEMPLATE_TITLES, PHASE_LABELS, PHASE_TEMPLATE_MAP } from '@/lib/email/templateInfo';
 
 export type CommsStatus = 'not_sent' | 'sent' | 'failed' | 'partial';
@@ -51,7 +51,7 @@ function SummaryCard({ label, value, sub }: { label: string; value: string; sub?
 export default async function CommsPage() {
   await requireAdminAuth();
 
-  const [householdsRes, tagsRes, guestsRes, commsRes, phaseRes, templatesRes] = await Promise.all([
+  const [householdsRes, tagsRes, guestsRes, commsRes, phaseRes, templatesRes, smsTemplatesRes] = await Promise.all([
     supabase.from('households').select('id,name,slug').order('created_at', { ascending: false }),
     supabase.from('guest_tags').select('household_id,tag'),
     supabase
@@ -64,7 +64,12 @@ export default async function CommsPage() {
     getCurrentPhase(),
     supabaseServer
       .from('email_templates')
-      .select('id, key, phase, subject, body, trigger_type, is_active, updated_at'),
+      .select('id, key, phase, subject, body, trigger_type, is_active, updated_at')
+      .eq('channel', 'email'),
+    supabaseServer
+      .from('email_templates')
+      .select('id, key, phase, body, trigger_type, is_active, updated_at')
+      .eq('channel', 'sms'),
   ]);
 
   const households = householdsRes.data ?? [];
@@ -72,11 +77,14 @@ export default async function CommsPage() {
   const guests = guestsRes.data ?? [];
   const comms = commsRes.data ?? [];
   const emailTemplates = (templatesRes.data ?? []) as EmailTemplateRow[];
+  const smsTemplates = (smsTemplatesRes.data ?? []) as SmsTemplateRow[];
 
   const currentPhase: PhaseName = (phaseRes.data?.current_phase as PhaseName) ?? 'save_the_date';
   const primaryKey = PHASE_TEMPLATE_MAP[currentPhase];
   const primaryTemplate = emailTemplates.find((t) => t.key === primaryKey);
   const primaryTemplateActive = !!primaryTemplate?.is_active;
+  const smsPrimaryTemplate = smsTemplates.find((t) => t.key === primaryKey);
+  const smsPrimaryTemplateActive = !!smsPrimaryTemplate?.is_active;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -185,8 +193,10 @@ export default async function CommsPage() {
       <CommsClient
         rows={rows}
         templates={emailTemplates}
+        smsTemplates={smsTemplates}
         currentPhase={currentPhase}
         defaultTemplateKey={primaryTemplateActive ? primaryKey : null}
+        defaultSmsTemplateKey={smsPrimaryTemplateActive ? primaryKey : null}
       />
     </div>
   );

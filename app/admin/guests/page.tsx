@@ -6,7 +6,7 @@ export default async function AdminGuestsPage() {
   await requireAdminAuth();
 
   const [householdsRes, tagsRes, guestsRes] = await Promise.all([
-    supabase.from('households').select('id,name,slug,personal_message,thank_you_message,thank_you_photo_url,link_open_count,link_first_opened_at').order('created_at', { ascending: false }),
+    supabase.from('households').select('id,name,slug,short_code,personal_message,thank_you_message,thank_you_photo_url,link_open_count,link_first_opened_at').order('created_at', { ascending: false }),
     supabase.from('guest_tags').select('household_id,tag'),
     supabase.from('guests').select('household_id,first_name,rsvp_status,comms_email,comms_sms'),
   ]);
@@ -30,6 +30,7 @@ export default async function AdminGuestsPage() {
       id: household.id,
       name: household.name,
       slug: household.slug,
+      shortCode: (household as any).short_code ?? '',
       tags: [...new Set(householdTags)],
       guestNames,
       invited,
