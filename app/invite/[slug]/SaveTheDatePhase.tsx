@@ -5,21 +5,20 @@ import AddToCalendar from '@/app/components/AddToCalendar';
 import type { Settings } from '@/lib/supabase';
 import {
   Parallelogram,
-  EmeraldJewel,
   WaterRipple,
   LightBeam,
   Noise,
-  FloatingPetal,
 } from './v3/primitives';
 import { palette } from './v3/tokens';
 
 interface SaveTheDatePhaseProps {
   guestName: string;
-  coupleNames?: string;
+  coupleNames: string;
   tagline?: string;
   invitationFooter?: string;
   weddingDate?: string;
   weddingLocation?: string;
+  couplePhotoUrl?: string;
   settings?: Settings;
 }
 
@@ -49,12 +48,20 @@ type AnimationStage =
 
 export default function SaveTheDatePhase({
   guestName,
+  coupleNames,
   tagline = "Cancel your plans. We've made better ones.",
   invitationFooter = 'Full invitation coming soon',
-  weddingDate = '2027-07-12',
+  weddingDate,
   weddingLocation = 'Melbourne, Victoria',
+  couplePhotoUrl,
   settings,
 }: SaveTheDatePhaseProps) {
+  const [name1, name2] = coupleNames.includes(' & ')
+    ? coupleNames.split(' & ')
+    : [coupleNames, ''];
+
+  const hasPhoto = Boolean(couplePhotoUrl);
+
   const [mounted, setMounted] = useState(false);
   const [visibleStages, setVisibleStages] = useState<Set<AnimationStage>>(
     new Set(['init'])
@@ -86,6 +93,7 @@ export default function SaveTheDatePhase({
 
   const isGreenVisible = visibleStages.has('fadeToGreen');
   const isGuestNameVisible = visibleStages.has('guestName');
+  const isDividerVisible = visibleStages.has('divider');
   const isSaveTheDateLabelVisible = visibleStages.has('saveTheDateLabel');
   const isCoupleNamesVisible = visibleStages.has('coupleNames');
   const isDateVisible = visibleStages.has('date');
@@ -109,17 +117,12 @@ export default function SaveTheDatePhase({
       <LightBeam delay={0} opacity={0.07} />
       <Noise opacity={0.03} />
 
-      {/* Floating petal — stage 3 (guestName) */}
-      {isGuestNameVisible && (
-        <FloatingPetal delay={0} top="22%" duration={20} color={palette.goldChampagne} />
-      )}
-
-      {/* Content — left-aligned, max 640px */}
+      {/* Content column — full width, or 62% on desktop when a couple photo is present */}
       <div
+        className={hasPhoto ? 'std-content has-photo' : 'std-content'}
         style={{
           position: 'relative',
           zIndex: 10,
-          width: '100%',
           maxWidth: '640px',
           padding: '5rem max(1.5rem, 4vw) 5rem max(1.5rem, 4vw)',
         }}
@@ -135,12 +138,12 @@ export default function SaveTheDatePhase({
             transition: 'opacity 1s ease',
           }}
         >
-          <Parallelogram width={18} height={9} color={palette.goldBase} />
+          <Parallelogram width={24} height={12} color={palette.goldBase} />
           <p
             style={{
               fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.6rem',
-              letterSpacing: '0.4em',
+              fontSize: '13px',
+              letterSpacing: '4px',
               textTransform: 'uppercase',
               color: palette.goldBase,
               margin: 0,
@@ -150,7 +153,7 @@ export default function SaveTheDatePhase({
           </p>
         </div>
 
-        {/* "For" + guest name */}
+        {/* Guest name */}
         <div
           style={{
             marginBottom: '2.5rem',
@@ -159,24 +162,11 @@ export default function SaveTheDatePhase({
             transition,
           }}
         >
-          <p
-            style={{
-              fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.65rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.25em',
-              color: palette.goldBase,
-              opacity: 0.7,
-              marginBottom: '0.4rem',
-            }}
-          >
-            For
-          </p>
           <h1
             style={{
               fontFamily: 'var(--font-cinzel)',
               fontStyle: 'italic',
-              fontSize: 'clamp(1.75rem, 5.5vw, 3rem)',
+              fontSize: 'clamp(20px, 2.5vw, 26px)',
               color: palette.cream,
               lineHeight: 1.15,
               margin: 0,
@@ -186,7 +176,30 @@ export default function SaveTheDatePhase({
           </h1>
         </div>
 
-        {/* Couple names — monumental, left-aligned */}
+        {/* "You're invited to the wedding of" */}
+        <div
+          style={{
+            marginBottom: '1rem',
+            opacity: isDividerVisible ? 1 : 0,
+            transition: 'opacity 1s ease',
+          }}
+        >
+          <p
+            style={{
+              fontFamily: 'var(--font-dm-sans)',
+              fontSize: '13px',
+              textTransform: 'uppercase',
+              letterSpacing: '3px',
+              color: palette.cream,
+              opacity: 0.7,
+              margin: 0,
+            }}
+          >
+            You&apos;re invited to the wedding of
+          </p>
+        </div>
+
+        {/* Couple names — staggered, left-aligned */}
         <div
           style={{
             marginBottom: '2.5rem',
@@ -195,55 +208,25 @@ export default function SaveTheDatePhase({
             transition,
           }}
         >
-          <h2 aria-label="Matt & Raff" style={{ margin: 0 }}>
-            <span
-              aria-hidden="true"
-              style={{
-                display: 'block',
-                fontFamily: 'var(--font-cinzel)',
-                fontStyle: 'italic',
-                fontWeight: 400,
-                fontSize: 'clamp(2.5rem, 12vw, 6.5rem)',
-                color: palette.cream,
-                lineHeight: 1,
-              }}
-            >
-              Matt
+          <h2
+            aria-label={coupleNames}
+            style={{
+              margin: 0,
+              fontFamily: 'var(--font-cinzel)',
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: 'clamp(48px, 7vw, 68px)',
+              lineHeight: 0.95,
+              color: palette.cream,
+              textAlign: 'left',
+            }}
+          >
+            <span aria-hidden="true" style={{ display: 'block' }}>
+              {name1}
             </span>
-            <span
-              aria-hidden="true"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                margin: '0.5rem 0',
-              }}
-            >
-              <Parallelogram width={64} height={24} color={palette.forestAccent} />
-              <EmeraldJewel />
-              <span
-                style={{
-                  flex: 1,
-                  height: '1px',
-                  backgroundColor: palette.cream,
-                  opacity: 0.18,
-                }}
-              />
-            </span>
-            <span
-              aria-hidden="true"
-              style={{
-                display: 'block',
-                textAlign: 'right',
-                fontFamily: 'var(--font-cinzel)',
-                fontStyle: 'italic',
-                fontWeight: 400,
-                fontSize: 'clamp(2.5rem, 12vw, 6.5rem)',
-                color: palette.cream,
-                lineHeight: 1,
-              }}
-            >
-              Raff
+            <span aria-hidden="true" style={{ display: 'block', marginLeft: '2rem' }}>
+              <span style={{ color: '#009473' }}>&amp; </span>
+              {name2}
             </span>
           </h2>
         </div>
@@ -256,6 +239,7 @@ export default function SaveTheDatePhase({
             transition: 'opacity 1s ease',
           }}
         >
+          <div style={{ height: '1px', backgroundColor: palette.goldBase, opacity: 0.3 }} />
           <div style={{ height: '1px', backgroundColor: palette.cream, opacity: 0.18 }} />
           <div
             className="std-date-grid"
@@ -266,7 +250,7 @@ export default function SaveTheDatePhase({
             }}
           >
             {[
-              { label: 'Date', value: formatWeddingDate(weddingDate) },
+              { label: 'Date', value: weddingDate ? formatWeddingDate(weddingDate) : '' },
               { label: 'Where', value: weddingLocation },
               { label: 'From', value: (settings?.wedding_time || '3:00 PM').replace(/\b(am|pm)\b/gi, (m) => m.toUpperCase()) },
             ].map(({ label, value }) => (
@@ -301,6 +285,26 @@ export default function SaveTheDatePhase({
           <div style={{ height: '1px', backgroundColor: palette.cream, opacity: 0.18 }} />
         </div>
 
+        {/* Couple photo — mobile only, below date block */}
+        {hasPhoto && (
+          <img
+            className="std-photo-mobile"
+            src={couplePhotoUrl}
+            alt=""
+            style={{
+              width: '100%',
+              height: '320px',
+              objectFit: 'cover',
+              objectPosition: 'center top',
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
+              opacity: isDateVisible ? 1 : 0,
+              transition: 'opacity 1s ease',
+              marginBottom: '2rem',
+            }}
+          />
+        )}
+
         {/* Tagline */}
         <div
           style={{
@@ -327,6 +331,7 @@ export default function SaveTheDatePhase({
 
         {/* Footer */}
         <div
+          className="std-footer"
           style={{
             opacity: isFooterVisible ? 1 : 0,
             transform: isFooterVisible ? 'translateY(0)' : 'translateY(8px)',
@@ -363,6 +368,30 @@ export default function SaveTheDatePhase({
         </div>
       </div>
 
+      {/* Couple photo — desktop only, right-hand column */}
+      {hasPhoto && (
+        <img
+          className="std-photo-desktop"
+          src={couplePhotoUrl}
+          alt=""
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: '38%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center top',
+            maskImage: 'linear-gradient(to right, transparent 0%, black 35%)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 35%)',
+            zIndex: 5,
+            opacity: isDateVisible ? 1 : 0,
+            transition: 'opacity 1s ease',
+          }}
+        />
+      )}
+
       <style>{`
         .std-date-grid { grid-template-columns: 1fr; }
         @media (min-width: 640px) {
@@ -372,6 +401,18 @@ export default function SaveTheDatePhase({
             padding-left: 1.5rem;
           }
         }
+        .std-content { width: 100%; }
+        .std-photo-desktop { display: none; }
+        .std-photo-mobile { display: block; }
+        @media (min-width: 768px) {
+          .std-content.has-photo { width: 62%; }
+          .std-photo-desktop { display: block; }
+          .std-photo-mobile { display: none; }
+        }
+        /* AddToCalendar centers its own content — left-align it here so it
+           shares the same left edge as the rest of this column. */
+        .std-footer .text-center { text-align: left; }
+        .std-footer .justify-center { justify-content: flex-start; }
       `}</style>
     </div>
   );

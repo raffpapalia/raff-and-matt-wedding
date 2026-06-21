@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Settings, ScheduleItem, SectionOrderItem, PracticalitiesSection } from '@/lib/supabase';
 import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
 import PhotoUpload from '../components/PhotoUpload';
+import CouplePhotoUpload from '../components/CouplePhotoUpload';
 
 const PHASE_OPTIONS: { value: string; label: string }[] = [
   { value: 'invitation', label: 'Invitation' },
@@ -448,6 +449,16 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
             />
           </Field>
 
+          <Field
+            label="Couple Photo"
+            helper="Used on the save the date and invitation pages. Crop ratio is fixed at 3:4. Uploads and saves immediately."
+          >
+            <CouplePhotoUpload
+              currentUrl={settings.couple_photo_url}
+              onSaved={url => update('couple_photo_url', url)}
+            />
+          </Field>
+
           <SaveFeedback error={tabError.save_the_date} success={tabSuccess.save_the_date} />
           <div>
             <button
@@ -588,49 +599,65 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
             </p>
             <div className="space-y-2">
               {schedule.map((item, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={item.time}
-                    onChange={e => updateScheduleItem(i, 'time', e.target.value)}
-                    placeholder="3:00 PM"
-                    className="w-28 rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
-                  />
-                  <input
-                    type="text"
-                    value={item.label}
-                    onChange={e => updateScheduleItem(i, 'label', e.target.value)}
-                    placeholder="Ceremony"
-                    className="flex-1 rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
-                  />
-                  <div className="flex flex-col">
+                <div key={i} className="space-y-2 rounded-2xl border border-white/10 bg-slate-950/50 p-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={item.time}
+                      onChange={e => updateScheduleItem(i, 'time', e.target.value)}
+                      placeholder="3:00 PM"
+                      className="w-28 rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                    />
+                    <input
+                      type="text"
+                      value={item.label}
+                      onChange={e => updateScheduleItem(i, 'label', e.target.value)}
+                      placeholder="Ceremony"
+                      className="flex-1 rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                    />
+                    <div className="flex flex-col">
+                      <button
+                        type="button"
+                        onClick={() => moveScheduleItem(i, -1)}
+                        disabled={i === 0}
+                        className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
+                        aria-label="Move up"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveScheduleItem(i, 1)}
+                        disabled={i === schedule.length - 1}
+                        className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
+                        aria-label="Move down"
+                      >
+                        ▼
+                      </button>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => moveScheduleItem(i, -1)}
-                      disabled={i === 0}
-                      className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
-                      aria-label="Move up"
+                      onClick={() => removeScheduleItem(i)}
+                      className="px-2 text-lg leading-none text-slate-500 transition hover:text-rose-400"
+                      aria-label="Remove item"
                     >
-                      ▲
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => moveScheduleItem(i, 1)}
-                      disabled={i === schedule.length - 1}
-                      className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
-                      aria-label="Move down"
-                    >
-                      ▼
+                      ×
                     </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeScheduleItem(i)}
-                    className="px-2 text-lg leading-none text-slate-500 transition hover:text-rose-400"
-                    aria-label="Remove item"
-                  >
-                    ×
-                  </button>
+                  <input
+                    type="text"
+                    value={item.location ?? ''}
+                    onChange={e => updateScheduleItem(i, 'location', e.target.value)}
+                    placeholder="e.g. QT Melbourne"
+                    className="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                  />
+                  <textarea
+                    rows={2}
+                    value={item.description ?? ''}
+                    onChange={e => updateScheduleItem(i, 'description', e.target.value)}
+                    placeholder="Optional note for guests"
+                    className="w-full resize-none rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                  />
                 </div>
               ))}
             </div>
@@ -756,7 +783,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
             value={settings.wedding_photo_url || null}
             onChange={url => update('wedding_photo_url', url ?? '')}
             aspectRatio={16 / 9}
-            label="Wedding day photo"
+            label="Post-wedding photo (Thank You page)"
             uploadPathPrefix="settings/wedding-photo"
           />
 

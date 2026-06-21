@@ -157,6 +157,7 @@ export default async function InvitePage({
         invitationFooter={settings.save_the_date_footer}
         weddingDate={settings.wedding_date}
         weddingLocation={settings.location}
+        couplePhotoUrl={settings.couple_photo_url || ''}
         settings={settings}
       />
     );
@@ -171,6 +172,8 @@ export default async function InvitePage({
         questions={questions}
         existingAnswers={existingAnswers}
         guestName={guestName}
+        coupleNames={settings.couple_names}
+        couplePhotoUrl={settings.couple_photo_url || ''}
         faqs={faqs}
         weddingSchedule={settings.wedding_schedule}
         sectionOrder={settings.section_order}

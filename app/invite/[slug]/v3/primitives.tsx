@@ -271,7 +271,7 @@ export function SectionNumber({
   color?: string;
 }) {
   return (
-    <div style={{ marginBottom: '2.5rem' }}>
+    <div style={{ marginBottom: '1.5rem' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.25rem', marginBottom: '0.5rem' }}>
         <span
           style={{

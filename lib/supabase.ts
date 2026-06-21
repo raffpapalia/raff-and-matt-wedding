@@ -158,6 +158,8 @@ export async function getHouseholdTags(householdId: string) {
 export type ScheduleItem = {
   time: string;
   label: string;
+  location?: string;
+  description?: string;
 };
 
 export type SectionOrderItem = {
@@ -202,6 +204,7 @@ export type Settings = {
   registry_url: string;
   hashtag: string;
   wedding_photo_url: string;
+  couple_photo_url: string;
   google_photos_url: string;
   wedding_schedule: ScheduleItem[];
   section_order: SectionOrderItem[];
@@ -229,12 +232,13 @@ export const DEFAULT_SETTINGS: Settings = {
   registry_url: '',
   hashtag: '#mattraff2027',
   wedding_photo_url: '',
+  couple_photo_url: '',
   google_photos_url: '',
   wedding_schedule: [
-    { time: '3:00 PM', label: 'Arrive' },
-    { time: '3:30 PM', label: 'Ceremony' },
-    { time: '4:00 PM', label: 'Cocktails & Canapés' },
-    { time: '5:00 PM', label: 'Reception' },
+    { time: '3:00 PM', label: 'Arrive', location: 'QT Melbourne', description: 'Doors open — come say hello.' },
+    { time: '3:30 PM', label: 'Ceremony', location: 'QT Melbourne', description: '' },
+    { time: '4:00 PM', label: 'Cocktails & Canapés', location: 'QT Melbourne', description: '' },
+    { time: '5:00 PM', label: 'Reception', location: 'QT Melbourne', description: '' },
   ],
   section_order: DEFAULT_SECTION_ORDER,
   practicalities_sections: [

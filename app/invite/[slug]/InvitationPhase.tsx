@@ -9,10 +9,8 @@ import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
 import { palette, alpha } from './v3/tokens';
 import {
   Parallelogram,
-  EmeraldJewel,
   WaterRipple,
   LightBeam,
-  SectionNumber,
 } from './v3/primitives';
 
 interface InvitationPhaseProps {
@@ -22,6 +20,8 @@ interface InvitationPhaseProps {
   questions: CustomQuestion[];
   existingAnswers: CustomAnswer[];
   guestName: string;
+  coupleNames: string;
+  couplePhotoUrl?: string;
   faqs: Faq[];
   weddingSchedule: ScheduleItem[];
   sectionOrder: SectionOrderItem[];
@@ -64,7 +64,7 @@ const KONAMI_TAP_COUNT = 7;
 const KONAMI_TAP_WINDOW = 1800; // ms allowed between consecutive taps
 const KONAMI_COLORS = [palette.goldBase, palette.cream, palette.goldDeep];
 
-function KonamiCelebration() {
+function KonamiCelebration({ hashtag }: { hashtag: string }) {
   const pieces = Array.from({ length: 32 }, (_, i) => ({
     left: (i * 29 + 7) % 100,
     size: 6 + ((i * 7) % 10),
@@ -112,7 +112,7 @@ function KonamiCelebration() {
           animation: 'konamiMessage 3s ease-in-out forwards',
         }}
       >
-        You found it! 🎉 #mattraff2027
+        You found it! 🎉 {hashtag}
       </div>
     </div>
   );
@@ -310,6 +310,56 @@ function PracticalCard({
   );
 }
 
+function SectionShell({
+  n,
+  label,
+  children,
+  contentMaxWidth = '620px',
+}: {
+  n: string;
+  label: string;
+  children: React.ReactNode;
+  contentMaxWidth?: string;
+}) {
+  return (
+    <div className="inv-section-shell" style={{ maxWidth: '1000px', margin: '0 auto' }}>
+      <div className="inv-section-rail">
+        <p
+          className="inv-section-num"
+          style={{
+            fontFamily: 'var(--font-cinzel)',
+            fontStyle: 'italic',
+            fontSize: 'clamp(2.5rem, 5vw, 3.5rem)',
+            color: palette.goldChampagne,
+            opacity: 0.3,
+            lineHeight: 1,
+            margin: 0,
+          }}
+        >
+          {n}
+        </p>
+        <p
+          className="inv-section-label"
+          style={{
+            fontFamily: 'var(--font-dm-sans)',
+            textTransform: 'uppercase',
+            fontSize: '0.6rem',
+            letterSpacing: '0.4em',
+            color: palette.goldChampagne,
+            opacity: 0.75,
+            margin: '0.5rem 0 0',
+          }}
+        >
+          {label}
+        </p>
+      </div>
+      <div className="inv-section-body" style={{ maxWidth: contentMaxWidth }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function InvitationPhase({
   household,
   guests,
@@ -317,11 +367,19 @@ export default function InvitationPhase({
   questions,
   existingAnswers,
   guestName,
+  coupleNames,
+  couplePhotoUrl,
   faqs,
   weddingSchedule,
   sectionOrder,
   currentPhase,
 }: InvitationPhaseProps) {
+  const [name1, name2] = coupleNames.includes(' & ')
+    ? coupleNames.split(' & ')
+    : [coupleNames, ''];
+  const initials = name2 ? `${name1[0]} & ${name2[0]}` : name1[0];
+  const hasCouplePhoto = Boolean(couplePhotoUrl);
+
   const photoSrc = getImgSrc(household.personal_photo_url);
   const [showKonami, setShowKonami] = useState(false);
 
@@ -390,11 +448,9 @@ export default function InvitationPhase({
       <section
         key="on_the_day"
         id="section-on_the_day"
-        style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem', position: 'relative', overflow: 'hidden' }}
+        style={{ backgroundColor: palette.bgPrimary, padding: '3rem 2rem', position: 'relative', overflow: 'hidden' }}
       >
-        <div style={{ maxWidth: '700px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <SectionNumber n={num} label="On the Day" />
-
+        <SectionShell n={num} label="On the Day">
           {weddingSchedule.length > 0 && (
             <div style={{ marginBottom: '2rem' }}>
               {weddingSchedule.map((item, i) => {
@@ -407,7 +463,7 @@ export default function InvitationPhase({
                       gridTemplateColumns: '28px 80px 1fr',
                       gap: '1.25rem',
                       alignItems: 'start',
-                      padding: '1.1rem 0',
+                      padding: '1.4rem 0',
                       borderBottom: i < weddingSchedule.length - 1 ? `1px solid ${alpha(palette.goldChampagne, 0.08)}` : 'none',
                     }}
                   >
@@ -446,7 +502,7 @@ export default function InvitationPhase({
                         style={{
                           fontFamily: 'var(--font-cinzel)',
                           fontStyle: 'italic',
-                          fontSize: '0.95rem',
+                          fontSize: '1.1rem',
                           color: palette.cream,
                           margin: 0,
                           lineHeight: 1.2,
@@ -454,6 +510,34 @@ export default function InvitationPhase({
                       >
                         {item.label}
                       </p>
+                      {item.location && (
+                        <p
+                          style={{
+                            fontFamily: 'var(--font-dm-sans)',
+                            fontSize: '0.8rem',
+                            color: palette.cream,
+                            opacity: 0.6,
+                            margin: '0.3rem 0 0',
+                          }}
+                        >
+                          {item.location}
+                        </p>
+                      )}
+                      {item.description && (
+                        <p
+                          style={{
+                            fontFamily: 'var(--font-dm-sans)',
+                            fontStyle: 'italic',
+                            fontSize: '0.85rem',
+                            color: palette.cream,
+                            opacity: 0.7,
+                            lineHeight: 1.6,
+                            margin: '0.4rem 0 0',
+                          }}
+                        >
+                          {item.description}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );
@@ -465,7 +549,7 @@ export default function InvitationPhase({
           <div>
             <AddToCalendar mode="invitation" settings={settings} />
           </div>
-        </div>
+        </SectionShell>
       </section>
     ),
 
@@ -482,22 +566,12 @@ export default function InvitationPhase({
         id="section-dress_code"
         style={{
           backgroundColor: palette.bgDeep,
-          padding: '6rem 2rem',
+          padding: '3rem 2rem',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        <div
-          className="dress-code-content"
-          style={{
-            maxWidth: '700px',
-            margin: '0 auto',
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          <SectionNumber n={num} label="Dress Code" />
-
+        <SectionShell n={num} label="Dress Code">
           {headingFirst && (
             <p
               style={{
@@ -541,7 +615,7 @@ export default function InvitationPhase({
           >
             {settings.dress_code_description}
           </p>
-        </div>
+        </SectionShell>
       </section>
       );
     },
@@ -549,11 +623,9 @@ export default function InvitationPhase({
     practicalities: (num) => {
       const cards = (settings.practicalities_sections || []).filter((section) => section.enabled);
       return (
-        <section key="practicalities" id="section-practicalities" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
-          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-            <SectionNumber n={num} label="The Practicalities" />
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+        <section key="practicalities" id="section-practicalities" style={{ backgroundColor: palette.bgPrimary, padding: '3rem 2rem' }}>
+          <SectionShell n={num} label="The Practicalities" contentMaxWidth="100%">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {cards.map((card, i) => {
                 const linkKey = PRACTICALITIES_LINK_KEY_BY_ID[card.id];
                 const ctaUrl = linkKey ? ((settings[linkKey] as string) || undefined) : undefined;
@@ -571,7 +643,7 @@ export default function InvitationPhase({
                 );
               })}
             </div>
-          </div>
+          </SectionShell>
         </section>
       );
     },
@@ -582,14 +654,12 @@ export default function InvitationPhase({
         id="section-faqs"
         style={{
           backgroundColor: palette.bgDeep,
-          padding: '6rem 2rem',
+          padding: '3rem 2rem',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        <div style={{ maxWidth: '700px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <SectionNumber n={num} label="Questions" />
-
+        <SectionShell n={num} label="Questions">
           {faqs.length > 0 ? (
             <FaqAccordion faqs={faqs} />
           ) : (
@@ -604,14 +674,14 @@ export default function InvitationPhase({
               Frequently asked questions coming soon.
             </p>
           )}
-        </div>
+        </SectionShell>
       </section>
     ),
   };
 
   return (
     <div style={{ backgroundColor: palette.bgPrimary, color: palette.cream }}>
-      {showKonami && <KonamiCelebration />}
+      {showKonami && <KonamiCelebration hashtag={settings.hashtag} />}
 
       {/* ── HERO — full viewport height ── */}
       <section
@@ -654,34 +724,36 @@ export default function InvitationPhase({
               opacity: 0.75,
             }}
           >
-            M &amp; R · 2027
+            {settings.wedding_date ? `${initials} · ${new Date(settings.wedding_date).getFullYear()}` : initials}
           </span>
         </div>
-        <div
-          style={{
-            position: 'absolute',
-            top: '1.75rem',
-            right: '1.75rem',
-            pointerEvents: 'none',
-          }}
-        >
-          <span
+        {settings.location && (
+          <div
             style={{
-              fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.55rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.35em',
-              color: palette.goldChampagne,
-              opacity: 0.55,
+              position: 'absolute',
+              top: '1.75rem',
+              right: '1.75rem',
+              pointerEvents: 'none',
             }}
           >
-            Melbourne · Winter
-          </span>
-        </div>
+            <span
+              style={{
+                fontFamily: 'var(--font-dm-sans)',
+                fontSize: '0.55rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.35em',
+                color: palette.goldChampagne,
+                opacity: 0.55,
+              }}
+            >
+              {settings.location}
+            </span>
+          </div>
+        )}
 
-        {/* Hero grid */}
+        {/* Hero content column */}
         <div
-          className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-12 md:gap-16 items-center"
+          className={hasCouplePhoto ? 'inv-hero-content has-photo' : 'inv-hero-content'}
           style={{
             position: 'relative',
             zIndex: 10,
@@ -690,228 +762,155 @@ export default function InvitationPhase({
             padding: '7rem 2rem 5rem',
           }}
         >
-          {/* Left: text content */}
-          <div className="order-1">
-            {/* "THE INVITATION" label */}
-            <div
+          {/* "THE INVITATION" label */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginBottom: '2rem',
+            }}
+          >
+            <Parallelogram width={24} height={12} color={palette.forestAccent} skew={6} fillOpacity={0.55} />
+            <p
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '2rem',
+                fontFamily: 'var(--font-dm-sans)',
+                fontSize: '13px',
+                textTransform: 'uppercase',
+                letterSpacing: '4px',
+                color: palette.goldChampagne,
+                margin: 0,
               }}
             >
-              <Parallelogram width={24} height={12} color={palette.forestAccent} skew={6} fillOpacity={0.55} />
-              <p
-                style={{
-                  fontFamily: 'var(--font-dm-sans)',
-                  fontSize: '0.6rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.4em',
-                  color: palette.goldChampagne,
-                  margin: 0,
-                }}
-              >
-                The Invitation
-              </p>
-            </div>
-
-            {/* Couple names — contained large Cinzel, with the page's single bright EmeraldJewel as the ampersand */}
-            <div style={{ marginBottom: '1.75rem' }}>
-              <h2 aria-label="Matt & Raff" style={{ margin: 0 }}>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-cinzel)',
-                    fontStyle: 'italic',
-                    fontSize: 'clamp(2.25rem, 9vw, 4.25rem)',
-                    color: palette.cream,
-                    lineHeight: 1,
-                  }}
-                >
-                  Matt
-                </span>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.9rem',
-                    margin: '0.25rem 0',
-                  }}
-                >
-                  <EmeraldJewel width={30} height={18} />
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-cinzel)',
-                      fontStyle: 'italic',
-                      fontSize: '1.35rem',
-                      color: palette.cream,
-                      opacity: 0.7,
-                    }}
-                  >
-                    &amp;
-                  </span>
-                  <span style={{ flex: 1, height: '1px', backgroundColor: alpha(palette.cream, 0.18) }} />
-                </span>
-                <span
-                  aria-hidden="true"
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-cinzel)',
-                    fontStyle: 'italic',
-                    fontSize: 'clamp(2.25rem, 9vw, 4.25rem)',
-                    color: palette.cream,
-                    lineHeight: 1,
-                  }}
-                >
-                  Raff
-                </span>
-              </h2>
-            </div>
-
-            {/* "For" + guest name */}
-            <div style={{ marginBottom: '1.75rem' }}>
-              <p
-                style={{
-                  fontFamily: 'var(--font-dm-sans)',
-                  fontSize: '0.65rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.25em',
-                  color: palette.goldChampagne,
-                  opacity: 0.7,
-                  marginBottom: '0.4rem',
-                }}
-              >
-                For
-              </p>
-              <h1
-                style={{
-                  fontFamily: 'var(--font-cinzel)',
-                  fontStyle: 'italic',
-                  fontSize: 'clamp(1.25rem, 4vw, 1.9rem)',
-                  color: palette.cream,
-                  lineHeight: 1.2,
-                  margin: 0,
-                }}
-              >
-                {guestName}
-              </h1>
-            </div>
-
-            {/* Personal message card */}
-            {household.personal_message && (
-              <div
-                style={{
-                  borderLeft: `3px solid ${palette.forestAccent}`,
-                  padding: '1.1rem 1.25rem',
-                  background: alpha(palette.forestAccent, 0.15),
-                  marginBottom: '2rem',
-                }}
-              >
-                <p
-                  style={{
-                    fontFamily: 'var(--font-dm-sans)',
-                    fontStyle: 'italic',
-                    fontSize: '0.875rem',
-                    color: alpha(palette.cream, 0.75),
-                    lineHeight: 1.75,
-                    margin: 0,
-                  }}
-                >
-                  {household.personal_message}
-                </p>
-              </div>
-            )}
-
-            {/* CTAs */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              <a
-                href="#section-rsvp"
-                style={{
-                  display: 'inline-block',
-                  padding: '0.875rem 2.25rem',
-                  backgroundColor: palette.goldChampagne,
-                  color: palette.bgDeepest,
-                  fontFamily: 'var(--font-dm-sans)',
-                  fontSize: '0.7rem',
-                  fontWeight: 500,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.25em',
-                  clipPath: 'polygon(8% 0, 100% 0, 92% 100%, 0 100%)',
-                  textDecoration: 'none',
-                  minHeight: '44px',
-                  lineHeight: '44px',
-                  paddingTop: 0,
-                  paddingBottom: 0,
-                }}
-              >
-                RSVP
-              </a>
-              <a
-                href="#section-the_day"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '0 1.75rem',
-                  minHeight: '44px',
-                  border: `1px solid ${alpha(palette.goldChampagne, 0.45)}`,
-                  color: palette.goldChampagne,
-                  fontFamily: 'var(--font-dm-sans)',
-                  fontSize: '0.7rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.2em',
-                  textDecoration: 'none',
-                  background: 'transparent',
-                }}
-              >
-                The Details ↓
-              </a>
-            </div>
+              The Invitation
+            </p>
           </div>
 
-          {/* Right: personal photo */}
-          {photoSrc && (
-            <div className="order-2" style={{ position: 'relative' }}>
-              {/* Forest shadow behind */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '14px',
-                  left: '-14px',
-                  right: '14px',
-                  bottom: '-14px',
-                  backgroundColor: palette.forestAccent,
-                  clipPath: 'polygon(8% 0, 100% 0, 92% 100%, 0 100%)',
-                  pointerEvents: 'none',
-                }}
-                aria-hidden="true"
-              />
-              {/* Photo */}
-              <div
-                style={{
-                  position: 'relative',
-                  clipPath: 'polygon(8% 0, 100% 0, 92% 100%, 0 100%)',
-                  overflow: 'hidden',
-                }}
-              >
-                <img
-                  src={photoSrc}
-                  alt="Personal photo"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  style={{
-                    width: '100%',
-                    display: 'block',
-                    aspectRatio: '3/4',
-                    objectFit: 'cover',
-                    filter: 'grayscale(0.35) sepia(0.1) brightness(0.88) contrast(1.05) saturate(0.9)',
-                  }}
-                />
-              </div>
-            </div>
-          )}
+          {/* Guest name */}
+          <div style={{ marginBottom: '1.75rem' }}>
+            <h1
+              style={{
+                fontFamily: 'var(--font-cinzel)',
+                fontStyle: 'italic',
+                fontSize: 'clamp(20px, 2.5vw, 26px)',
+                color: palette.cream,
+                lineHeight: 1.2,
+                margin: 0,
+              }}
+            >
+              {guestName}
+            </h1>
+          </div>
+
+          {/* "You're invited to the wedding of" */}
+          <div style={{ marginBottom: '1rem' }}>
+            <p
+              style={{
+                fontFamily: 'var(--font-dm-sans)',
+                fontSize: '13px',
+                textTransform: 'uppercase',
+                letterSpacing: '3px',
+                color: palette.cream,
+                opacity: 0.85,
+                margin: 0,
+              }}
+            >
+              You&apos;re invited to the wedding of
+            </p>
+          </div>
+
+          {/* Couple names — staggered, matching Save the Date */}
+          <div style={{ marginBottom: '1.75rem' }}>
+            <h2
+              aria-label={coupleNames}
+              style={{
+                margin: 0,
+                fontFamily: 'var(--font-cinzel)',
+                fontStyle: 'italic',
+                fontWeight: 400,
+                fontSize: 'clamp(48px, 7vw, 68px)',
+                lineHeight: 0.95,
+                color: palette.cream,
+                textAlign: 'left',
+              }}
+            >
+              <span aria-hidden="true" style={{ display: 'block' }}>
+                {name1}
+              </span>
+              <span aria-hidden="true" style={{ display: 'block', marginLeft: '2rem' }}>
+                <span style={{ color: '#009473' }}>&amp; </span>
+                {name2}
+              </span>
+            </h2>
+          </div>
+
+          {/* CTAs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <a
+              href="#section-rsvp"
+              style={{
+                display: 'inline-block',
+                padding: '0.875rem 2.25rem',
+                backgroundColor: palette.goldChampagne,
+                color: palette.bgDeepest,
+                fontFamily: 'var(--font-dm-sans)',
+                fontSize: '0.7rem',
+                fontWeight: 500,
+                textTransform: 'uppercase',
+                letterSpacing: '0.25em',
+                clipPath: 'polygon(8% 0, 100% 0, 92% 100%, 0 100%)',
+                textDecoration: 'none',
+                minHeight: '44px',
+                lineHeight: '44px',
+                paddingTop: 0,
+                paddingBottom: 0,
+              }}
+            >
+              RSVP
+            </a>
+            <a
+              href="#section-the_day"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '0 1.75rem',
+                minHeight: '44px',
+                border: `1px solid ${alpha(palette.goldChampagne, 0.45)}`,
+                color: palette.goldChampagne,
+                fontFamily: 'var(--font-dm-sans)',
+                fontSize: '0.7rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.2em',
+                textDecoration: 'none',
+                background: 'transparent',
+              }}
+            >
+              The Details ↓
+            </a>
+          </div>
         </div>
+
+        {/* Couple photo — desktop only, right-hand column */}
+        {hasCouplePhoto && (
+          <img
+            className="inv-hero-photo-desktop"
+            src={couplePhotoUrl}
+            alt=""
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: '38%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center top',
+              maskImage: 'linear-gradient(to right, transparent 0%, black 35%)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 35%)',
+              zIndex: 5,
+            }}
+          />
+        )}
 
         {/* Scroll indicator bottom-left */}
         <div
@@ -950,11 +949,127 @@ export default function InvitationPhase({
         </div>
       </section>
 
-      {/* ── THE DAY — date, time, venue (always shown) ── */}
-      <section id="section-the_day" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
-        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-          <SectionNumber n="01" label="The Day" />
+      {/* Couple photo — mobile only, below the date/details block */}
+      {hasCouplePhoto && (
+        <img
+          className="inv-hero-photo-mobile"
+          src={couplePhotoUrl}
+          alt=""
+          style={{
+            width: '100%',
+            height: '280px',
+            objectFit: 'cover',
+            objectPosition: 'center top',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
+          }}
+        />
+      )}
 
+      {/* ── PERSONAL NOTE STRIP — household message and/or photo ── */}
+      {(household.personal_message || photoSrc) && (
+        <div style={{ backgroundColor: palette.bgPrimary }}>
+          <div style={{ height: '0.5px', backgroundColor: palette.goldBase, opacity: 0.2 }} />
+          <div style={{ padding: '2rem 2rem' }}>
+            {household.personal_message && photoSrc && (
+              <div className="inv-note-row" style={{ maxWidth: '900px', margin: '0 auto' }}>
+                <div style={{ flex: 1, width: '100%' }}>
+                  <p
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontSize: '11px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.25em',
+                      color: palette.goldChampagne,
+                      margin: '0 0 0.5rem',
+                    }}
+                  >
+                    A Note For You
+                  </p>
+                  <p
+                    className="inv-note-message"
+                    style={{
+                      fontFamily: 'var(--font-dm-sans)',
+                      fontStyle: 'italic',
+                      color: palette.cream,
+                      opacity: 0.9,
+                      lineHeight: 1.8,
+                      margin: 0,
+                    }}
+                  >
+                    {household.personal_message}
+                  </p>
+                </div>
+                <img
+                  src={photoSrc}
+                  alt=""
+                  className="inv-note-photo"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  style={{ objectFit: 'cover', borderRadius: '8px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', flexShrink: 0 }}
+                />
+              </div>
+            )}
+
+            {household.personal_message && !photoSrc && (
+              <div style={{ width: '100%', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+                <p
+                  style={{
+                    fontFamily: 'var(--font-dm-sans)',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.25em',
+                    color: palette.goldChampagne,
+                    margin: '0 0 0.5rem',
+                  }}
+                >
+                  A Note For You
+                </p>
+                <p
+                  className="inv-note-message"
+                  style={{
+                    fontFamily: 'var(--font-dm-sans)',
+                    fontStyle: 'italic',
+                    color: palette.cream,
+                    opacity: 0.9,
+                    lineHeight: 1.8,
+                    margin: 0,
+                  }}
+                >
+                  {household.personal_message}
+                </p>
+              </div>
+            )}
+
+            {!household.personal_message && photoSrc && (
+              <div style={{ textAlign: 'center' }}>
+                <p
+                  style={{
+                    fontFamily: 'var(--font-dm-sans)',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.25em',
+                    color: palette.goldChampagne,
+                    margin: '0 0 0.5rem',
+                  }}
+                >
+                  A Photo For You
+                </p>
+                <img
+                  src={photoSrc}
+                  alt=""
+                  className="inv-note-photo"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  style={{ objectFit: 'cover', borderRadius: '8px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', margin: '0 auto' }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── THE DAY — date, time, venue (always shown) ── */}
+      <section id="section-the_day" style={{ backgroundColor: palette.bgPrimary, padding: '3rem 2rem' }}>
+        <SectionShell n="01" label="The Day" contentMaxWidth="620px">
           {/* Date block — three columns */}
           <div
             className="grid grid-cols-1 sm:grid-cols-3 gap-6"
@@ -962,8 +1077,8 @@ export default function InvitationPhase({
           >
             {[
               { label: 'Date', value: formatWeddingDate(settings.wedding_date) },
-              { label: 'From', value: settings.wedding_time.replace(/\b(am|pm)\b/gi, (m) => m.toUpperCase()) },
               { label: 'Venue', value: settings.venue_name },
+              { label: 'Address', value: settings.location },
             ].map(({ label, value }) => (
               <div key={label}>
                 <p
@@ -993,31 +1108,15 @@ export default function InvitationPhase({
               </div>
             ))}
           </div>
-
-          {/* Tagline */}
-          <p
-            style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: 'clamp(0.85rem, 2.5vw, 1.05rem)',
-              color: alpha(palette.cream, 0.6),
-              lineHeight: 1.7,
-              margin: 0,
-            }}
-          >
-            {settings.tagline}
-          </p>
-        </div>
+        </SectionShell>
       </section>
 
       {/* ── CONFIGURABLE SECTIONS — driven by section_order setting ── */}
       {configurableSections.map((section, i) => sectionRenderers[section.id]?.(pad2(i + 2)))}
 
       {/* ── THE REPLY — RSVP, always last ── */}
-      <section id="section-rsvp" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
-        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-          <SectionNumber n={rsvpSectionNumber} label="The Reply" />
-
+      <section id="section-rsvp" style={{ backgroundColor: palette.bgPrimary, padding: '3rem 2rem' }}>
+        <SectionShell n={rsvpSectionNumber} label="The Reply">
           <h2
             style={{
               fontFamily: 'var(--font-cinzel)',
@@ -1079,7 +1178,7 @@ export default function InvitationPhase({
               embedded
             />
           </div>
-        </div>
+        </SectionShell>
       </section>
 
       {/* ── FOOTER ── */}
@@ -1103,7 +1202,7 @@ export default function InvitationPhase({
               margin: 0,
             }}
           >
-            Matt &amp; Raff
+            {coupleNames}
           </p>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <Parallelogram width={20} height={10} color={palette.forestAccent} skew={5} />
@@ -1114,15 +1213,45 @@ export default function InvitationPhase({
       </footer>
 
       <style>{`
-        .dress-code-content { padding-left: 0; }
-        @media (min-width: 768px) {
-          .dress-code-content { padding-left: min(20%, 200px); }
-        }
         .rsvp-card { padding: 1.5rem 1.25rem; }
         @media (min-width: 768px) {
           .rsvp-card { padding: 2rem 1.75rem; }
         }
         #section-faqs button { min-height: 44px; }
+        .inv-hero-content { width: 100%; }
+        .inv-hero-photo-desktop { display: none; }
+        .inv-hero-photo-mobile { display: block; }
+        .inv-note-photo { width: 200px; height: 260px; }
+        .inv-note-row { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+        .inv-note-message { font-size: clamp(1rem, 4vw, 1.2rem); }
+        .inv-section-shell { display: block; }
+        .inv-section-rail { margin-bottom: 1.25rem; }
+        .inv-section-body { width: 100%; }
+        .inv-section-rail {
+          border-bottom: 1px solid ${alpha(palette.goldBase, 0.18)};
+          padding-bottom: 1rem;
+        }
+        @media (min-width: 768px) {
+          .inv-hero-content.has-photo { width: 62%; }
+          .inv-hero-photo-desktop { display: block; }
+          .inv-hero-photo-mobile { display: none; }
+          .inv-note-row { flex-direction: row; align-items: center; gap: 2rem; }
+          .inv-note-message { font-size: clamp(1.1rem, 2.5vw, 1.4rem); }
+          .inv-section-shell {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 2.5rem;
+            align-items: start;
+          }
+          .inv-section-rail {
+            border-right: 1px solid ${alpha(palette.goldBase, 0.18)};
+            padding-right: 1.5rem;
+            margin-bottom: 0;
+            position: sticky;
+            top: 2rem;
+          }
+          .inv-section-rail { border-bottom: none; padding-bottom: 0; }
+        }
       `}</style>
     </div>
   );
