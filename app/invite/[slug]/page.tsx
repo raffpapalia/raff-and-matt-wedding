@@ -9,71 +9,90 @@ export const revalidate = 0; // ISR with on-demand revalidation
 
 async function getInviteData(slug: string) {
   try {
-    // Fetch household by slug
-    const { data: household, error: householdError } = await supabase
-      .from('households')
-      .select('*')
-      .eq('slug', slug)
-      .single();
+    // TIER 1 — no dependencies, fire immediately
+    // supabaseServer bypasses RLS for faqs — needed because that table has no anon-read policy
+    const [settings, faqsRes, phaseRes, questionsRes, householdRes] = await Promise.all([
+      getSettings(),
+      supabaseServer
+        .from('faqs')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true }),
+      supabase
+        .from('phases')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single(),
+      supabase
+        .from('custom_questions')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true }),
+      supabase
+        .from('households')
+        .select('*')
+        .eq('slug', slug)
+        .single(),
+    ]);
 
+    const { data: household, error: householdError } = householdRes;
     if (householdError || !household) {
       return null;
     }
 
-    // Track invite link open
-    await supabaseServer
-      .from('households')
-      .update({
-        link_open_count: (household.link_open_count || 0) + 1,
-        link_first_opened_at: household.link_first_opened_at || new Date().toISOString(),
-      })
-      .eq('id', household.id);
-
-    // Fetch guests for this household
-    const { data: guests, error: guestsError } = await supabase
-      .from('guests')
-      .select('*')
-      .eq('household_id', household.id)
-      .order('display_order', { ascending: true });
-
-    if (guestsError) {
-      console.error('Error fetching guests:', guestsError);
-      return null;
-    }
-
-    // Fetch current phase
-    const { data: phase, error: phaseError } = await supabase
-      .from('phases')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
+    const { data: phase, error: phaseError } = phaseRes;
     if (phaseError) {
       console.error('Error fetching phase:', phaseError);
       return null;
     }
 
-    // Fetch household tags for question filtering
-    const { data: tagRows } = await supabase
-      .from('guest_tags')
-      .select('tag')
-      .eq('household_id', household.id);
+    const faqs = (faqsRes.data ?? []) as Faq[];
+    const allQuestions = questionsRes.data;
+
+    // TIER 2 — depends only on household.id
+    const [guestsRes, tagsRes] = await Promise.all([
+      supabase
+        .from('guests')
+        .select('*')
+        .eq('household_id', household.id)
+        .order('display_order', { ascending: true }),
+      supabase
+        .from('guest_tags')
+        .select('tag')
+        .eq('household_id', household.id),
+    ]);
+
+    // Track invite link open — fire and forget, result is never used downstream.
+    // Supabase query builders are lazy thenables: the request only fires once `.then()`
+    // is called, so this still needs a `.then()` even though we don't await it.
+    supabaseServer
+      .from('households')
+      .update({
+        link_open_count: (household.link_open_count || 0) + 1,
+        link_first_opened_at: household.link_first_opened_at || new Date().toISOString(),
+      })
+      .eq('id', household.id)
+      .then(({ error }) => {
+        if (error) console.error('Error updating link_open_count:', error);
+      });
+
+    const { data: guests, error: guestsError } = guestsRes;
+    if (guestsError) {
+      console.error('Error fetching guests:', guestsError);
+      return null;
+    }
+
+    const tagRows = tagsRes.data;
     const householdTags = (tagRows ?? []).map((r: { tag: string }) => r.tag);
 
-    // Fetch active custom questions and filter to those targeting this household
-    const { data: allQuestions } = await supabase
-      .from('custom_questions')
-      .select('*')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true });
-
+    // Filter custom questions to those targeting this household
     const questions = ((allQuestions ?? []) as CustomQuestion[]).filter(q =>
       !q.target_tags || q.target_tags.length === 0 ||
       q.target_tags.some(tag => householdTags.includes(tag))
     );
 
-    // Fetch existing answers for all guests in this household (for returning visitors)
+    // TIER 3 — depends on guests result
     const guestIds = (guests ?? []).map(g => g.id);
     let existingAnswers: CustomAnswer[] = [];
     if (guestIds.length > 0) {
@@ -83,19 +102,6 @@ async function getInviteData(slug: string) {
         .in('guest_id', guestIds);
       existingAnswers = (answersData ?? []) as CustomAnswer[];
     }
-
-    // Fetch settings and active FAQs in parallel
-    // supabaseServer bypasses RLS — needed because the faqs table has no anon-read policy
-    const [settings, faqsRes] = await Promise.all([
-      getSettings(),
-      supabaseServer
-        .from('faqs')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order', { ascending: true }),
-    ]);
-
-    const faqs = (faqsRes.data ?? []) as Faq[];
 
     return {
       household: household as Household,
