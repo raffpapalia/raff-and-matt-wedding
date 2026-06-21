@@ -191,7 +191,7 @@ export type Settings = {
   location: string;
   couple_names: string;
   tagline: string;
-  invitation_footer: string;
+  save_the_date_footer: string;
   dress_code_description: string;
   rsvp_cutoff_date: string;
   dietary_options: string[];
@@ -205,6 +205,8 @@ export type Settings = {
   wedding_schedule: ScheduleItem[];
   section_order: SectionOrderItem[];
   practicalities_sections: PracticalitiesSection[];
+  thank_you_attended_message: string;
+  thank_you_not_attended_message: string;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -214,7 +216,7 @@ export const DEFAULT_SETTINGS: Settings = {
   location: '133 Russell St, Melbourne, Victoria, 3000',
   couple_names: 'Matt & Raff',
   tagline: "Cancel your plans. We've made better ones.",
-  invitation_footer: 'Full invitation coming soon',
+  save_the_date_footer: 'Full invitation coming soon',
   dress_code_description:
     "We'll be dressed up and we'd love you to be too. Think glamorous cocktail — dresses and suits. Black tie welcome if that's your vibe.",
   rsvp_cutoff_date: '2027-06-01',
@@ -259,6 +261,10 @@ export const DEFAULT_SETTINGS: Settings = {
       enabled: true,
     },
   ],
+  thank_you_attended_message:
+    'Thank you so much for celebrating with us. Your presence made our day truly special.',
+  thank_you_not_attended_message:
+    'We missed you on our special day. Thank you for your kind wishes — it meant the world to us.',
 };
 
 export async function getSettings(): Promise<Settings> {

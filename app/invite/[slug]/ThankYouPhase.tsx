@@ -17,8 +17,8 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
   const anyStatuses = guests.some(g => g.rsvp_status !== 'pending');
   const attended = !anyStatuses || guests.some(g => g.rsvp_status === 'attending');
 
-  const photoUrl = (settings as any).wedding_photo_url as string | undefined;
-  const photosUrl = (settings as any).google_photos_url as string | undefined;
+  const photoUrl = settings.wedding_photo_url;
+  const photosUrl = settings.google_photos_url;
 
   const showPhoto = !!photoUrl && !photoError;
 
@@ -195,9 +195,8 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
             }}
           >
             {attended
-              ? (household.thank_you_message?.trim() ||
-                  'Thank you so much for celebrating with us. Your presence made our day truly special.')
-              : 'We missed you on our special day. Thank you for your kind wishes — it meant the world to us.'}
+              ? (household.thank_you_message?.trim() || settings.thank_you_attended_message)
+              : settings.thank_you_not_attended_message}
           </p>
         </div>
 
@@ -252,7 +251,7 @@ export default function ThankYouPhase({ household, guests, settings }: ThankYouP
               margin: 0,
             }}
           >
-            Matt &amp; Raff
+            {settings.couple_names}
           </p>
         </div>
       </div>

@@ -15,14 +15,24 @@ const INPUT_CLASS =
 
 const TEXTAREA_CLASS = `${INPUT_CLASS} resize-none`;
 
-type TabKey = 'wedding' | 'invitation' | 'links' | 'rsvp';
+type TabKey = 'wedding' | 'save_the_date' | 'invitation' | 'thank_you' | 'links' | 'rsvp';
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'wedding', label: 'The Wedding' },
+  { key: 'save_the_date', label: 'Save the Date' },
   { key: 'invitation', label: 'The Invitation' },
+  { key: 'thank_you', label: 'Thank You' },
   { key: 'links', label: 'Links' },
   { key: 'rsvp', label: 'RSVP' },
 ];
+
+// Each practicality card's link button points at one of these existing flat settings keys,
+// matched by card id. Mirrors PRACTICALITIES_LINK_KEY_BY_ID in InvitationPhase.tsx.
+const PRACTICALITIES_LINK_FIELD_BY_ID: Record<string, 'accommodation_url' | 'photos_upload_url' | 'registry_url'> = {
+  accommodation: 'accommodation_url',
+  culture: 'photos_upload_url',
+  registry: 'registry_url',
+};
 
 function Section({ label, title, children }: { label: string; title: string; children: React.ReactNode }) {
   return (
@@ -34,10 +44,11 @@ function Section({ label, title, children }: { label: string; title: string; chi
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, helper, children }: { label: string; helper?: string; children: React.ReactNode }) {
   return (
     <div>
       <p className="mb-2 text-xs uppercase tracking-[0.25em] text-slate-400">{label}</p>
+      {helper && <p className="mb-2 text-xs text-slate-500">{helper}</p>}
       {children}
     </div>
   );
@@ -72,13 +83,17 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
   const [savingTab, setSavingTab] = useState<TabKey | null>(null);
   const [tabError, setTabError] = useState<Record<TabKey, string | null>>({
     wedding: null,
+    save_the_date: null,
     invitation: null,
+    thank_you: null,
     links: null,
     rsvp: null,
   });
   const [tabSuccess, setTabSuccess] = useState<Record<TabKey, boolean>>({
     wedding: false,
+    save_the_date: false,
     invitation: false,
+    thank_you: false,
     links: false,
     rsvp: false,
   });
@@ -112,25 +127,40 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       venue_name: settings.venue_name,
       location: settings.location,
       tagline: settings.tagline,
+      hashtag: settings.hashtag,
+    });
+  }
+
+  function handleSaveSaveTheDate() {
+    saveTab('save_the_date', {
+      save_the_date_footer: settings.save_the_date_footer,
     });
   }
 
   function handleSaveInvitation() {
     saveTab('invitation', {
-      invitation_footer: settings.invitation_footer,
       dress_code_description: settings.dress_code_description,
       practicalities_sections: settings.practicalities_sections,
+      accommodation_url: settings.accommodation_url,
+      registry_url: settings.registry_url,
+      photos_upload_url: settings.photos_upload_url,
+    });
+  }
+
+  function handleSaveThankYou() {
+    saveTab('thank_you', {
+      thank_you_attended_message: settings.thank_you_attended_message,
+      thank_you_not_attended_message: settings.thank_you_not_attended_message,
+      wedding_photo_url: settings.wedding_photo_url,
     });
   }
 
   function handleSaveLinks() {
     saveTab('links', {
+      google_photos_url: settings.google_photos_url,
       accommodation_url: settings.accommodation_url,
       registry_url: settings.registry_url,
       photos_upload_url: settings.photos_upload_url,
-      hashtag: settings.hashtag,
-      wedding_photo_url: settings.wedding_photo_url,
-      google_photos_url: settings.google_photos_url,
     });
   }
 
@@ -381,6 +411,15 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               className={INPUT_CLASS}
             />
           </Field>
+          <Field label="Wedding hashtag">
+            <input
+              type="text"
+              value={settings.hashtag}
+              onChange={e => update('hashtag', e.target.value)}
+              placeholder="#mattraff2027"
+              className={INPUT_CLASS}
+            />
+          </Field>
 
           <SaveFeedback error={tabError.wedding} success={tabSuccess.wedding} />
           <div>
@@ -396,111 +435,345 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
         </Section>
       )}
 
-      {/* Tab 2 — The Invitation */}
-      {activeTab === 'invitation' && (
-        <Section label="Guest-facing copy" title="The Invitation">
-          <Field label="Invitation footer text">
+      {/* Tab 2 — Save the Date */}
+      {activeTab === 'save_the_date' && (
+        <Section label="Guest-facing copy" title="Save the Date">
+          <Field label="Footer text" helper="Shown at the bottom of the save the date page">
             <input
               type="text"
-              value={settings.invitation_footer}
-              onChange={e => update('invitation_footer', e.target.value)}
+              value={settings.save_the_date_footer}
+              onChange={e => update('save_the_date_footer', e.target.value)}
               className={INPUT_CLASS}
             />
           </Field>
-          <Field label="Dress code description">
-            <textarea
-              rows={4}
-              value={settings.dress_code_description}
-              onChange={e => update('dress_code_description', e.target.value)}
-              className={TEXTAREA_CLASS}
-            />
-          </Field>
 
-          <div>
-            <p className="mb-1 text-xs uppercase tracking-[0.25em] text-slate-400">Practicalities cards</p>
-            <p className="mb-4 text-xs text-slate-500">
-              Controls the three cards in the &ldquo;The Practicalities&rdquo; section of the invitation.
-            </p>
-            <div className="space-y-3">
-              {settings.practicalities_sections.map(card => (
-                <details
-                  key={card.id}
-                  className="group rounded-2xl border border-white/10 bg-slate-950/90 px-5 py-4"
-                >
-                  <summary className="flex cursor-pointer items-center justify-between text-sm text-white">
-                    <span>{card.title || card.id}</span>
-                    <span className={`text-xs ${card.enabled ? 'text-emerald-300' : 'text-slate-500'}`}>
-                      {card.enabled ? 'Enabled' : 'Hidden'}
-                    </span>
-                  </summary>
-
-                  <div className="mt-5 space-y-5">
-                    <Field label="Title">
-                      <input
-                        type="text"
-                        value={card.title}
-                        onChange={e => updatePracticalityCard(card.id, 'title', e.target.value)}
-                        className={INPUT_CLASS}
-                      />
-                    </Field>
-                    <Field label="Body">
-                      <textarea
-                        rows={3}
-                        value={card.body}
-                        onChange={e => updatePracticalityCard(card.id, 'body', e.target.value)}
-                        className={TEXTAREA_CLASS}
-                      />
-                    </Field>
-                    <Field label="Button label">
-                      <input
-                        type="text"
-                        value={card.link_label ?? ''}
-                        onChange={e =>
-                          updatePracticalityCard(card.id, 'link_label', e.target.value.trim() ? e.target.value : null)
-                        }
-                        placeholder="Optional — leave blank to hide the button"
-                        className={INPUT_CLASS}
-                      />
-                    </Field>
-                    <PhotoUpload
-                      value={card.image_url || null}
-                      onChange={url => updatePracticalityCard(card.id, 'image_url', url ?? '')}
-                      aspectRatio={16 / 9}
-                      label="Card photo"
-                      uploadPathPrefix={`settings/practicalities-${card.id}`}
-                    />
-                    <label className="flex items-center gap-2 text-sm text-slate-300">
-                      <input
-                        type="checkbox"
-                        checked={card.enabled}
-                        onChange={e => updatePracticalityCard(card.id, 'enabled', e.target.checked)}
-                        className="accent-emerald-400"
-                      />
-                      Enabled
-                    </label>
-                  </div>
-                </details>
-              ))}
-            </div>
-          </div>
-
-          <SaveFeedback error={tabError.invitation} success={tabSuccess.invitation} />
+          <SaveFeedback error={tabError.save_the_date} success={tabSuccess.save_the_date} />
           <div>
             <button
               type="button"
-              onClick={handleSaveInvitation}
-              disabled={savingTab === 'invitation'}
+              onClick={handleSaveSaveTheDate}
+              disabled={savingTab === 'save_the_date'}
               className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
             >
-              {savingTab === 'invitation' ? 'Saving…' : 'Save'}
+              {savingTab === 'save_the_date' ? 'Saving…' : 'Save'}
             </button>
           </div>
         </Section>
       )}
 
-      {/* Tab 3 — Links */}
+      {/* Tab 3 — The Invitation */}
+      {activeTab === 'invitation' && (
+        <>
+          <Section label="Guest-facing copy" title="The Invitation">
+            <Field label="Dress code description">
+              <textarea
+                rows={4}
+                value={settings.dress_code_description}
+                onChange={e => update('dress_code_description', e.target.value)}
+                className={TEXTAREA_CLASS}
+              />
+            </Field>
+
+            <div>
+              <p className="mb-1 text-xs uppercase tracking-[0.25em] text-slate-400">Practicalities cards</p>
+              <p className="mb-4 text-xs text-slate-500">
+                Controls the three cards in the &ldquo;The Practicalities&rdquo; section of the invitation.
+              </p>
+              <div className="space-y-3">
+                {settings.practicalities_sections.map(card => {
+                  const linkField = PRACTICALITIES_LINK_FIELD_BY_ID[card.id];
+                  return (
+                    <details
+                      key={card.id}
+                      className="group rounded-2xl border border-white/10 bg-slate-950/90 px-5 py-4"
+                    >
+                      <summary className="flex cursor-pointer items-center justify-between text-sm text-white">
+                        <span>{card.title || card.id}</span>
+                        <span className={`text-xs ${card.enabled ? 'text-emerald-300' : 'text-slate-500'}`}>
+                          {card.enabled ? 'Enabled' : 'Hidden'}
+                        </span>
+                      </summary>
+
+                      <div className="mt-5 space-y-5">
+                        <Field label="Title">
+                          <input
+                            type="text"
+                            value={card.title}
+                            onChange={e => updatePracticalityCard(card.id, 'title', e.target.value)}
+                            className={INPUT_CLASS}
+                          />
+                        </Field>
+                        <Field label="Body">
+                          <textarea
+                            rows={3}
+                            value={card.body}
+                            onChange={e => updatePracticalityCard(card.id, 'body', e.target.value)}
+                            className={TEXTAREA_CLASS}
+                          />
+                        </Field>
+                        <Field label="Button label">
+                          <input
+                            type="text"
+                            value={card.link_label ?? ''}
+                            onChange={e =>
+                              updatePracticalityCard(card.id, 'link_label', e.target.value.trim() ? e.target.value : null)
+                            }
+                            placeholder="Optional — leave blank to hide the button"
+                            className={INPUT_CLASS}
+                          />
+                        </Field>
+                        {linkField && (
+                          <Field label="Button link URL">
+                            <input
+                              type="text"
+                              value={settings[linkField]}
+                              onChange={e => update(linkField, e.target.value)}
+                              placeholder="https://..."
+                              className={INPUT_CLASS}
+                            />
+                          </Field>
+                        )}
+                        <PhotoUpload
+                          value={card.image_url || null}
+                          onChange={url => updatePracticalityCard(card.id, 'image_url', url ?? '')}
+                          aspectRatio={16 / 9}
+                          label="Card photo"
+                          uploadPathPrefix={`settings/practicalities-${card.id}`}
+                        />
+                        <label className="flex items-center gap-2 text-sm text-slate-300">
+                          <input
+                            type="checkbox"
+                            checked={card.enabled}
+                            onChange={e => updatePracticalityCard(card.id, 'enabled', e.target.checked)}
+                            className="accent-emerald-400"
+                          />
+                          Enabled
+                        </label>
+                      </div>
+                    </details>
+                  );
+                })}
+              </div>
+            </div>
+
+            <SaveFeedback error={tabError.invitation} success={tabSuccess.invitation} />
+            <div>
+              <button
+                type="button"
+                onClick={handleSaveInvitation}
+                disabled={savingTab === 'invitation'}
+                className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+              >
+                {savingTab === 'invitation' ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </Section>
+
+          {/* On the Day schedule */}
+          <Section label="Invitation Page" title="On the Day Schedule">
+            <p className="-mt-2 text-xs text-slate-500">
+              These times appear in the &ldquo;On the Day&rdquo; section of the invitation. Leave empty to hide that part of the section.
+            </p>
+            <div className="space-y-2">
+              {schedule.map((item, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={item.time}
+                    onChange={e => updateScheduleItem(i, 'time', e.target.value)}
+                    placeholder="3:00 PM"
+                    className="w-28 rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                  />
+                  <input
+                    type="text"
+                    value={item.label}
+                    onChange={e => updateScheduleItem(i, 'label', e.target.value)}
+                    placeholder="Ceremony"
+                    className="flex-1 rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                  />
+                  <div className="flex flex-col">
+                    <button
+                      type="button"
+                      onClick={() => moveScheduleItem(i, -1)}
+                      disabled={i === 0}
+                      className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
+                      aria-label="Move up"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveScheduleItem(i, 1)}
+                      disabled={i === schedule.length - 1}
+                      className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
+                      aria-label="Move down"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeScheduleItem(i)}
+                    className="px-2 text-lg leading-none text-slate-500 transition hover:text-rose-400"
+                    aria-label="Remove item"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                onClick={addScheduleItem}
+                className="text-sm text-emerald-400 transition hover:text-emerald-200"
+              >
+                + Add item
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveSchedule}
+                disabled={scheduleSaving}
+                className="rounded-3xl bg-amber-300 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+              >
+                {scheduleSaving ? 'Saving…' : 'Save schedule'}
+              </button>
+            </div>
+            {scheduleError && (
+              <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{scheduleError}</div>
+            )}
+            {scheduleSuccess && (
+              <div className="rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                Schedule saved successfully.
+              </div>
+            )}
+          </Section>
+
+          {/* Section order */}
+          <Section label="Invitation Page" title="Section Order">
+            <p className="-mt-2 text-xs text-slate-500">
+              Controls the order of sections on the invitation page and which phases each one appears on.
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-slate-950/50 px-4 py-3 text-sm text-slate-400">
+                <span>The Day (always shown)</span>
+              </div>
+              {sectionOrder.map((section, i) => (
+                <div key={section.id} className="rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-white">{section.label}</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => moveSectionOrderItem(i, -1)}
+                        disabled={i === 0}
+                        className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
+                        aria-label="Move up"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveSectionOrderItem(i, 1)}
+                        disabled={i === sectionOrder.length - 1}
+                        className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
+                        aria-label="Move down"
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-4">
+                    {PHASE_OPTIONS.map(opt => (
+                      <label key={opt.value} className="flex items-center gap-2 text-xs text-slate-400">
+                        <input
+                          type="checkbox"
+                          checked={section.visible_phases.includes(opt.value)}
+                          onChange={() => toggleSectionPhase(i, opt.value)}
+                          className="accent-emerald-400"
+                        />
+                        {opt.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div>
+              <button
+                type="button"
+                onClick={handleSaveSectionOrder}
+                disabled={sectionOrderSaving}
+                className="rounded-3xl bg-amber-300 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+              >
+                {sectionOrderSaving ? 'Saving…' : 'Save section order'}
+              </button>
+            </div>
+            {sectionOrderError && (
+              <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{sectionOrderError}</div>
+            )}
+            {sectionOrderSuccess && (
+              <div className="rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                Section order saved successfully.
+              </div>
+            )}
+          </Section>
+        </>
+      )}
+
+      {/* Tab 4 — Thank You */}
+      {activeTab === 'thank_you' && (
+        <Section label="Guest-facing copy" title="Thank You">
+          <Field label="Attended message" helper="Shown to guests who attended">
+            <textarea
+              rows={3}
+              value={settings.thank_you_attended_message}
+              onChange={e => update('thank_you_attended_message', e.target.value)}
+              className={TEXTAREA_CLASS}
+            />
+          </Field>
+          <Field label="Not attended message" helper="Shown to guests who could not attend">
+            <textarea
+              rows={3}
+              value={settings.thank_you_not_attended_message}
+              onChange={e => update('thank_you_not_attended_message', e.target.value)}
+              className={TEXTAREA_CLASS}
+            />
+          </Field>
+          <PhotoUpload
+            value={settings.wedding_photo_url || null}
+            onChange={url => update('wedding_photo_url', url ?? '')}
+            aspectRatio={16 / 9}
+            label="Wedding day photo"
+            uploadPathPrefix="settings/wedding-photo"
+          />
+
+          <SaveFeedback error={tabError.thank_you} success={tabSuccess.thank_you} />
+          <div>
+            <button
+              type="button"
+              onClick={handleSaveThankYou}
+              disabled={savingTab === 'thank_you'}
+              className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+            >
+              {savingTab === 'thank_you' ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </Section>
+      )}
+
+      {/* Tab 5 — Links */}
       {activeTab === 'links' && (
         <Section label="Links & Details" title="Links">
+          <Field label="Google Photos album link">
+            <input
+              type="text"
+              value={settings.google_photos_url}
+              onChange={e => update('google_photos_url', e.target.value)}
+              placeholder="https://photos.google.com/..."
+              className={INPUT_CLASS}
+            />
+          </Field>
           <Field label="QT Hotel booking URL">
             <input
               type="text"
@@ -528,30 +801,6 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               className={INPUT_CLASS}
             />
           </Field>
-          <Field label="Wedding hashtag">
-            <input
-              type="text"
-              value={settings.hashtag}
-              onChange={e => update('hashtag', e.target.value)}
-              placeholder="#mattraff2027"
-              className={INPUT_CLASS}
-            />
-          </Field>
-          <PhotoUpload
-            value={settings.wedding_photo_url || null}
-            onChange={url => update('wedding_photo_url', url ?? '')}
-            aspectRatio={16 / 9}
-            label="Wedding day photo"
-          />
-          <Field label="Google Photos album link">
-            <input
-              type="text"
-              value={settings.google_photos_url}
-              onChange={e => update('google_photos_url', e.target.value)}
-              placeholder="https://photos.google.com/..."
-              className={INPUT_CLASS}
-            />
-          </Field>
 
           <SaveFeedback error={tabError.links} success={tabSuccess.links} />
           <div>
@@ -567,7 +816,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
         </Section>
       )}
 
-      {/* Tab 4 — RSVP */}
+      {/* Tab 6 — RSVP */}
       {activeTab === 'rsvp' && (
         <Section label="Form options" title="RSVP">
           <div className="grid gap-6 sm:grid-cols-2">
@@ -645,156 +894,6 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
           </div>
         </Section>
       )}
-
-      {/* On the Day schedule */}
-      <Section label="Invitation Page" title="On the Day Schedule">
-        <p className="-mt-2 text-xs text-slate-500">
-          These times appear in the &ldquo;On the Day&rdquo; section of the invitation. Leave empty to hide that part of the section.
-        </p>
-        <div className="space-y-2">
-          {schedule.map((item, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <input
-                type="text"
-                value={item.time}
-                onChange={e => updateScheduleItem(i, 'time', e.target.value)}
-                placeholder="3:00 PM"
-                className="w-28 rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
-              />
-              <input
-                type="text"
-                value={item.label}
-                onChange={e => updateScheduleItem(i, 'label', e.target.value)}
-                placeholder="Ceremony"
-                className="flex-1 rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
-              />
-              <div className="flex flex-col">
-                <button
-                  type="button"
-                  onClick={() => moveScheduleItem(i, -1)}
-                  disabled={i === 0}
-                  className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
-                  aria-label="Move up"
-                >
-                  ▲
-                </button>
-                <button
-                  type="button"
-                  onClick={() => moveScheduleItem(i, 1)}
-                  disabled={i === schedule.length - 1}
-                  className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
-                  aria-label="Move down"
-                >
-                  ▼
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={() => removeScheduleItem(i)}
-                className="px-2 text-lg leading-none text-slate-500 transition hover:text-rose-400"
-                aria-label="Remove item"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="flex flex-wrap items-center gap-4">
-          <button
-            type="button"
-            onClick={addScheduleItem}
-            className="text-sm text-emerald-400 transition hover:text-emerald-200"
-          >
-            + Add item
-          </button>
-          <button
-            type="button"
-            onClick={handleSaveSchedule}
-            disabled={scheduleSaving}
-            className="rounded-3xl bg-amber-300 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
-          >
-            {scheduleSaving ? 'Saving…' : 'Save schedule'}
-          </button>
-        </div>
-        {scheduleError && (
-          <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{scheduleError}</div>
-        )}
-        {scheduleSuccess && (
-          <div className="rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-            Schedule saved successfully.
-          </div>
-        )}
-      </Section>
-
-      {/* Section order */}
-      <Section label="Invitation Page" title="Section Order">
-        <p className="-mt-2 text-xs text-slate-500">
-          Controls the order of sections on the invitation page and which phases each one appears on.
-        </p>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-slate-950/50 px-4 py-3 text-sm text-slate-400">
-            <span>The Day (always shown)</span>
-          </div>
-          {sectionOrder.map((section, i) => (
-            <div key={section.id} className="rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-white">{section.label}</span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => moveSectionOrderItem(i, -1)}
-                    disabled={i === 0}
-                    className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
-                    aria-label="Move up"
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveSectionOrderItem(i, 1)}
-                    disabled={i === sectionOrder.length - 1}
-                    className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
-                    aria-label="Move down"
-                  >
-                    ▼
-                  </button>
-                </div>
-              </div>
-              <div className="mt-2 flex flex-wrap items-center gap-4">
-                {PHASE_OPTIONS.map(opt => (
-                  <label key={opt.value} className="flex items-center gap-2 text-xs text-slate-400">
-                    <input
-                      type="checkbox"
-                      checked={section.visible_phases.includes(opt.value)}
-                      onChange={() => toggleSectionPhase(i, opt.value)}
-                      className="accent-emerald-400"
-                    />
-                    {opt.label}
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div>
-          <button
-            type="button"
-            onClick={handleSaveSectionOrder}
-            disabled={sectionOrderSaving}
-            className="rounded-3xl bg-amber-300 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
-          >
-            {sectionOrderSaving ? 'Saving…' : 'Save section order'}
-          </button>
-        </div>
-        {sectionOrderError && (
-          <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{sectionOrderError}</div>
-        )}
-        {sectionOrderSuccess && (
-          <div className="rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-            Section order saved successfully.
-          </div>
-        )}
-      </Section>
     </div>
   );
 }

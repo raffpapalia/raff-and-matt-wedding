@@ -15,8 +15,6 @@ import { palette } from './v3/tokens';
 
 interface SaveTheDatePhaseProps {
   guestName: string;
-  personalMessage?: string | null;
-  personalPhotoUrl?: string | null;
   coupleNames?: string;
   tagline?: string;
   invitationFooter?: string;
@@ -37,15 +35,9 @@ function formatWeddingDate(iso: string): string {
   return `${parseInt(day)} ${MONTHS[parseInt(month) - 1]} ${year}`;
 }
 
-function getImgSrc(url: string): string {
-  if (url.startsWith('data:') || url.startsWith('http') || url.startsWith('/')) return url;
-  return `data:image/jpeg;base64,${url}`;
-}
-
 type AnimationStage =
   | 'init'
   | 'fadeToGreen'
-  | 'photo'
   | 'guestName'
   | 'divider'
   | 'saveTheDateLabel'
@@ -53,13 +45,10 @@ type AnimationStage =
   | 'date'
   | 'location'
   | 'tagline'
-  | 'personalMessage'
   | 'footer';
 
 export default function SaveTheDatePhase({
   guestName,
-  personalMessage,
-  personalPhotoUrl,
   tagline = "Cancel your plans. We've made better ones.",
   invitationFooter = 'Full invitation coming soon',
   weddingDate = '2027-07-12',
@@ -76,7 +65,6 @@ export default function SaveTheDatePhase({
 
     const timeline = [
       { stage: 'fadeToGreen' as const, delay: 0 },
-      { stage: 'photo' as const, delay: 400 },
       { stage: 'guestName' as const, delay: 1000 },
       { stage: 'divider' as const, delay: 1900 },
       { stage: 'saveTheDateLabel' as const, delay: 2900 },
@@ -84,7 +72,6 @@ export default function SaveTheDatePhase({
       { stage: 'date' as const, delay: 4200 },
       { stage: 'location' as const, delay: 4700 },
       { stage: 'tagline' as const, delay: 5200 },
-      { stage: 'personalMessage' as const, delay: 5800 },
       { stage: 'footer' as const, delay: 6400 },
     ];
 
@@ -98,13 +85,11 @@ export default function SaveTheDatePhase({
   if (!mounted) return null;
 
   const isGreenVisible = visibleStages.has('fadeToGreen');
-  const isPhotoVisible = visibleStages.has('photo');
   const isGuestNameVisible = visibleStages.has('guestName');
   const isSaveTheDateLabelVisible = visibleStages.has('saveTheDateLabel');
   const isCoupleNamesVisible = visibleStages.has('coupleNames');
   const isDateVisible = visibleStages.has('date');
   const isTaglineVisible = visibleStages.has('tagline');
-  const isPersonalMessageVisible = visibleStages.has('personalMessage');
   const isFooterVisible = visibleStages.has('footer');
 
   const transition = 'opacity 1s ease, transform 1s ease';
@@ -340,72 +325,6 @@ export default function SaveTheDatePhase({
           </p>
         </div>
 
-        {/* Personal photo */}
-        {personalPhotoUrl && (
-          <div
-            style={{
-              marginBottom: '2.5rem',
-              opacity: isPhotoVisible ? 1 : 0,
-              transform: isPhotoVisible ? 'translateY(0)' : 'translateY(16px)',
-              transition,
-              clipPath: 'polygon(8% 0, 100% 0, 92% 100%, 0 100%)',
-              maxWidth: '320px',
-            }}
-          >
-            <img
-              src={getImgSrc(personalPhotoUrl)}
-              alt="Personal photo"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-              style={{
-                width: '100%',
-                display: 'block',
-                aspectRatio: '4/3',
-                objectFit: 'cover',
-              }}
-            />
-          </div>
-        )}
-
-        {/* Personal message card */}
-        {personalMessage && (
-          <div
-            style={{
-              marginBottom: '2.5rem',
-              opacity: isPersonalMessageVisible ? 1 : 0,
-              transform: isPersonalMessageVisible ? 'translateY(0)' : 'translateY(8px)',
-              transition,
-            }}
-          >
-            <div
-              style={{
-                borderLeft: `3px solid ${palette.forestAccent}`,
-                padding: '1.25rem 1.5rem',
-                background: `${palette.forestAccent}2e`,
-                backdropFilter: 'blur(8px)',
-                position: 'relative',
-              }}
-            >
-              {/* Small gold parallelogram top-right */}
-              <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', pointerEvents: 'none' }}>
-                <Parallelogram width={22} height={11} color={palette.goldBase} fillOpacity={0.45} />
-              </div>
-              <p
-                style={{
-                  fontFamily: 'var(--font-dm-sans)',
-                  fontStyle: 'italic',
-                  fontSize: '0.875rem',
-                  color: palette.cream,
-                  opacity: 0.78,
-                  lineHeight: 1.75,
-                  margin: 0,
-                }}
-              >
-                {personalMessage}
-              </p>
-            </div>
-          </div>
-        )}
-
         {/* Footer */}
         <div
           style={{
@@ -426,11 +345,12 @@ export default function SaveTheDatePhase({
             <p
               style={{
                 fontFamily: 'var(--font-dm-sans)',
-                fontSize: '0.55rem',
+                fontSize: '0.75rem',
                 textTransform: 'uppercase',
                 letterSpacing: '0.4em',
-                color: `${palette.goldBase}8c`,
+                color: palette.goldBase,
                 margin: 0,
+                marginTop: '0.2rem',
               }}
             >
               {invitationFooter}

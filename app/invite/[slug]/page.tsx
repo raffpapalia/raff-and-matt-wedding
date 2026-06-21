@@ -145,11 +145,9 @@ export default async function InvitePage({
     return (
       <SaveTheDatePhase
         guestName={guestName}
-        personalMessage={household.personal_message}
-        personalPhotoUrl={household.personal_photo_url}
         coupleNames={settings.couple_names}
         tagline={settings.tagline}
-        invitationFooter={settings.invitation_footer}
+        invitationFooter={settings.save_the_date_footer}
         weddingDate={settings.wedding_date}
         weddingLocation={settings.location}
         settings={settings}
