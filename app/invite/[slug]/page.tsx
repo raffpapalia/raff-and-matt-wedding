@@ -1,9 +1,10 @@
 import { supabase, supabaseServer, getSettings, type Household, type Guest, type Phase, type CustomQuestion, type CustomAnswer, type Faq } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
-import SaveTheDatePhase from './SaveTheDatePhase';
-import RSVPPhase from './RSVPPhase';
-import InvitationPhase from './InvitationPhase';
-import ThankYouPhase from './ThankYouPhase';
+import dynamic from 'next/dynamic';
+
+const SaveTheDatePhase = dynamic(() => import('./SaveTheDatePhase'));
+const InvitationPhase = dynamic(() => import('./InvitationPhase'));
+const ThankYouPhase = dynamic(() => import('./ThankYouPhase'));
 
 export const revalidate = 0; // ISR with on-demand revalidation
 
