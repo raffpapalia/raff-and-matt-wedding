@@ -99,6 +99,7 @@ function AccordionItem({
               paddingBottom: '1.25rem',
               paddingLeft: '2.25rem',
               margin: 0,
+              whiteSpace: 'pre-wrap',
             }}
           >
             {faq.answer}

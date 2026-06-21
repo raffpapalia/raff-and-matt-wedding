@@ -139,6 +139,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
 
   function handleSaveInvitation() {
     saveTab('invitation', {
+      dress_code_heading: settings.dress_code_heading,
       dress_code_description: settings.dress_code_description,
       practicalities_sections: settings.practicalities_sections,
       accommodation_url: settings.accommodation_url,
@@ -465,12 +466,23 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       {activeTab === 'invitation' && (
         <>
           <Section label="Guest-facing copy" title="The Invitation">
+            <Field label="Dress code heading">
+              <input
+                type="text"
+                value={settings.dress_code_heading}
+                onChange={e => update('dress_code_heading', e.target.value)}
+                placeholder="Elevated Cocktail"
+                className={INPUT_CLASS}
+              />
+            </Field>
+
             <Field label="Dress code description">
               <textarea
                 rows={4}
                 value={settings.dress_code_description}
                 onChange={e => update('dress_code_description', e.target.value)}
                 className={TEXTAREA_CLASS}
+                style={{ resize: 'vertical', minHeight: '120px' }}
               />
             </Field>
 

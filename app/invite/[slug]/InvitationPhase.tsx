@@ -469,7 +469,14 @@ export default function InvitationPhase({
       </section>
     ),
 
-    dress_code: (num) => (
+    dress_code: (num) => {
+      const headingLastSpace = settings.dress_code_heading.lastIndexOf(' ');
+      const headingFirst =
+        headingLastSpace === -1 ? '' : settings.dress_code_heading.slice(0, headingLastSpace);
+      const headingLast =
+        headingLastSpace === -1 ? settings.dress_code_heading : settings.dress_code_heading.slice(headingLastSpace + 1);
+
+      return (
       <section
         key="dress_code"
         id="section-dress_code"
@@ -491,18 +498,20 @@ export default function InvitationPhase({
         >
           <SectionNumber n={num} label="Dress Code" />
 
-          <p
-            style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: 'clamp(2.5rem, 8vw, 4rem)',
-              color: palette.cream,
-              lineHeight: 1,
-              margin: '0 0 0.25rem',
-            }}
-          >
-            Elevated
-          </p>
+          {headingFirst && (
+            <p
+              style={{
+                fontFamily: 'var(--font-cinzel)',
+                fontStyle: 'italic',
+                fontSize: 'clamp(2.5rem, 8vw, 4rem)',
+                color: palette.cream,
+                lineHeight: 1,
+                margin: '0 0 0.25rem',
+              }}
+            >
+              {headingFirst}
+            </p>
+          )}
           <p
             style={{
               fontFamily: 'var(--font-cinzel)',
@@ -516,7 +525,7 @@ export default function InvitationPhase({
               margin: '0 0 2rem',
             }}
           >
-            Cocktail
+            {headingLast}
           </p>
 
           <p
@@ -527,13 +536,15 @@ export default function InvitationPhase({
               lineHeight: 1.8,
               margin: 0,
               maxWidth: '380px',
+              whiteSpace: 'pre-wrap',
             }}
           >
             {settings.dress_code_description}
           </p>
         </div>
       </section>
-    ),
+      );
+    },
 
     practicalities: (num) => {
       const cards = (settings.practicalities_sections || []).filter((section) => section.enabled);

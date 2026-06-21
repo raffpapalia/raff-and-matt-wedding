@@ -192,6 +192,7 @@ export type Settings = {
   couple_names: string;
   tagline: string;
   save_the_date_footer: string;
+  dress_code_heading: string;
   dress_code_description: string;
   rsvp_cutoff_date: string;
   dietary_options: string[];
@@ -217,6 +218,7 @@ export const DEFAULT_SETTINGS: Settings = {
   couple_names: 'Matt & Raff',
   tagline: "Cancel your plans. We've made better ones.",
   save_the_date_footer: 'Full invitation coming soon',
+  dress_code_heading: 'Elevated Cocktail',
   dress_code_description:
     "We'll be dressed up and we'd love you to be too. Think glamorous cocktail — dresses and suits. Black tie welcome if that's your vibe.",
   rsvp_cutoff_date: '2027-06-01',
