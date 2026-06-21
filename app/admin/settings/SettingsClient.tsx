@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Settings, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
+import type { Settings, ScheduleItem, SectionOrderItem, PracticalitiesSection } from '@/lib/supabase';
 import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
 import PhotoUpload from '../components/PhotoUpload';
 
@@ -12,6 +12,17 @@ const PHASE_OPTIONS: { value: string; label: string }[] = [
 
 const INPUT_CLASS =
   'w-full rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white placeholder-slate-600 outline-none transition focus:border-emerald-400';
+
+const TEXTAREA_CLASS = `${INPUT_CLASS} resize-none`;
+
+type TabKey = 'wedding' | 'invitation' | 'links' | 'rsvp';
+
+const TABS: { key: TabKey; label: string }[] = [
+  { key: 'wedding', label: 'The Wedding' },
+  { key: 'invitation', label: 'The Invitation' },
+  { key: 'links', label: 'Links' },
+  { key: 'rsvp', label: 'RSVP' },
+];
 
 function Section({ label, title, children }: { label: string; title: string; children: React.ReactNode }) {
   return (
@@ -32,15 +43,150 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function SaveFeedback({ error, success }: { error: string | null; success: boolean }) {
+  return (
+    <>
+      {error && (
+        <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div>
+      )}
+      {success && (
+        <div className="rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          Saved successfully.
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function SettingsClient({ initial }: { initial: Settings }) {
   const [settings, setSettings] = useState<Settings>(initial);
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabKey>('wedding');
 
   function update<K extends keyof Settings>(key: K, value: Settings[K]) {
     setSettings(prev => ({ ...prev, [key]: value }));
-    setSaveSuccess(false);
+    setTabSuccess(prev => ({ ...prev, [activeTab]: false }));
+  }
+
+  // ── Per-tab save ──────────────────────────────────────────────────────────────
+
+  const [savingTab, setSavingTab] = useState<TabKey | null>(null);
+  const [tabError, setTabError] = useState<Record<TabKey, string | null>>({
+    wedding: null,
+    invitation: null,
+    links: null,
+    rsvp: null,
+  });
+  const [tabSuccess, setTabSuccess] = useState<Record<TabKey, boolean>>({
+    wedding: false,
+    invitation: false,
+    links: false,
+    rsvp: false,
+  });
+
+  async function saveTab(tab: TabKey, body: Record<string, unknown>) {
+    setSavingTab(tab);
+    setTabError(prev => ({ ...prev, [tab]: null }));
+    setTabSuccess(prev => ({ ...prev, [tab]: false }));
+
+    const res = await fetch('/admin/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setTabError(prev => ({ ...prev, [tab]: data.message || 'Failed to save settings.' }));
+    } else {
+      setTabSuccess(prev => ({ ...prev, [tab]: true }));
+    }
+
+    setSavingTab(null);
+  }
+
+  function handleSaveWedding() {
+    saveTab('wedding', {
+      couple_names: settings.couple_names,
+      wedding_date: settings.wedding_date,
+      wedding_time: settings.wedding_time,
+      venue_name: settings.venue_name,
+      location: settings.location,
+      tagline: settings.tagline,
+    });
+  }
+
+  function handleSaveInvitation() {
+    saveTab('invitation', {
+      invitation_footer: settings.invitation_footer,
+      dress_code_description: settings.dress_code_description,
+      practicalities_sections: settings.practicalities_sections,
+    });
+  }
+
+  function handleSaveLinks() {
+    saveTab('links', {
+      accommodation_url: settings.accommodation_url,
+      registry_url: settings.registry_url,
+      photos_upload_url: settings.photos_upload_url,
+      hashtag: settings.hashtag,
+      wedding_photo_url: settings.wedding_photo_url,
+      google_photos_url: settings.google_photos_url,
+    });
+  }
+
+  function handleSaveRsvp() {
+    saveTab('rsvp', {
+      rsvp_cutoff_date: settings.rsvp_cutoff_date,
+      default_plus_one_allowance: Number(settings.default_plus_one_allowance),
+      dietary_options: settings.dietary_options.filter(o => o.trim()),
+    });
+  }
+
+  // ── Practicalities cards ─────────────────────────────────────────────────────
+
+  function updatePracticalityCard<K extends keyof PracticalitiesSection>(
+    id: string,
+    key: K,
+    value: PracticalitiesSection[K]
+  ) {
+    update(
+      'practicalities_sections',
+      settings.practicalities_sections.map(card => (card.id === id ? { ...card, [key]: value } : card))
+    );
+  }
+
+  // ── Dietary options ──────────────────────────────────────────────────────────
+
+  function addDietaryOption() {
+    update('dietary_options', [...settings.dietary_options, '']);
+  }
+
+  function updateDietaryOption(i: number, value: string) {
+    update('dietary_options', settings.dietary_options.map((o, idx) => (idx === i ? value : o)));
+  }
+
+  function removeDietaryOption(i: number) {
+    update('dietary_options', settings.dietary_options.filter((_, idx) => idx !== i));
+  }
+
+  function handleDietaryDragStart(e: React.DragEvent, index: number) {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
+  }
+
+  function handleDietaryDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  function handleDietaryDrop(e: React.DragEvent, toIndex: number) {
+    e.preventDefault();
+    const fromIndex = Number(e.dataTransfer.getData('text/plain'));
+    if (fromIndex === toIndex) return;
+    const reordered = Array.from(settings.dietary_options);
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    update('dietary_options', reordered);
   }
 
   // ── On the Day schedule ──────────────────────────────────────────────────────
@@ -158,299 +304,347 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
     setSectionOrderSaving(false);
   }
 
-  // ── Dietary options ──────────────────────────────────────────────────────────
-
-  function addDietaryOption() {
-    update('dietary_options', [...settings.dietary_options, '']);
-  }
-
-  function updateDietaryOption(i: number, value: string) {
-    update('dietary_options', settings.dietary_options.map((o, idx) => (idx === i ? value : o)));
-  }
-
-  function removeDietaryOption(i: number) {
-    update('dietary_options', settings.dietary_options.filter((_, idx) => idx !== i));
-  }
-
-  function handleDietaryDragStart(e: React.DragEvent, index: number) {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', String(index));
-  }
-
-  function handleDietaryDragOver(e: React.DragEvent) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  }
-
-  function handleDietaryDrop(e: React.DragEvent, toIndex: number) {
-    e.preventDefault();
-    const fromIndex = Number(e.dataTransfer.getData('text/plain'));
-    if (fromIndex === toIndex) return;
-    const reordered = Array.from(settings.dietary_options);
-    const [moved] = reordered.splice(fromIndex, 1);
-    reordered.splice(toIndex, 0, moved);
-    update('dietary_options', reordered);
-  }
-
-  // ── Save ─────────────────────────────────────────────────────────────────────
-
-  async function handleSave() {
-    setSaving(true);
-    setSaveError(null);
-    setSaveSuccess(false);
-
-    const body = {
-      wedding_date: settings.wedding_date,
-      wedding_time: settings.wedding_time,
-      venue_name: settings.venue_name,
-      location: settings.location,
-      couple_names: settings.couple_names,
-      tagline: settings.tagline,
-      invitation_footer: settings.invitation_footer,
-      rsvp_cutoff_date: settings.rsvp_cutoff_date,
-      dietary_options: settings.dietary_options.filter(o => o.trim()),
-      default_plus_one_allowance: Number(settings.default_plus_one_allowance),
-      accommodation_url: settings.accommodation_url,
-      photos_upload_url: settings.photos_upload_url,
-      registry_url: settings.registry_url,
-      hashtag: settings.hashtag,
-      wedding_photo_url: settings.wedding_photo_url,
-      google_photos_url: settings.google_photos_url,
-    };
-
-    const res = await fetch('/admin/api/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setSaveError(data.message || 'Failed to save settings.');
-    } else {
-      setSaveSuccess(true);
-    }
-
-    setSaving(false);
-  }
-
   // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-8">
-      {/* Wedding Details */}
-      <Section label="Event info" title="Wedding Details">
-        <div className="grid gap-6 sm:grid-cols-2">
-          <Field label="Wedding date">
-            <input
-              type="date"
-              value={settings.wedding_date}
-              onChange={e => update('wedding_date', e.target.value)}
-              className={INPUT_CLASS}
-              style={{ colorScheme: 'dark' }}
-            />
-          </Field>
-          <Field label="Wedding time">
+      {/* Tab nav */}
+      <div className="flex flex-wrap gap-2 rounded-3xl border border-white/10 bg-white/5 p-2 backdrop-blur-xl">
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`rounded-2xl px-5 py-2.5 text-sm font-medium transition ${
+              activeTab === tab.key
+                ? 'bg-emerald-400/20 text-emerald-200'
+                : 'text-slate-400 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab 1 — The Wedding */}
+      {activeTab === 'wedding' && (
+        <Section label="Event info" title="The Wedding">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Field label="Couple names">
+              <input
+                type="text"
+                value={settings.couple_names}
+                onChange={e => update('couple_names', e.target.value)}
+                className={INPUT_CLASS}
+              />
+            </Field>
+            <Field label="Tagline">
+              <input
+                type="text"
+                value={settings.tagline}
+                onChange={e => update('tagline', e.target.value)}
+                className={INPUT_CLASS}
+              />
+            </Field>
+            <Field label="Wedding date">
+              <input
+                type="date"
+                value={settings.wedding_date}
+                onChange={e => update('wedding_date', e.target.value)}
+                className={INPUT_CLASS}
+                style={{ colorScheme: 'dark' }}
+              />
+            </Field>
+            <Field label="Wedding time">
+              <input
+                type="text"
+                value={settings.wedding_time}
+                onChange={e => update('wedding_time', e.target.value)}
+                placeholder="6:00 PM"
+                className={INPUT_CLASS}
+              />
+            </Field>
+          </div>
+          <Field label="Venue name">
             <input
               type="text"
-              value={settings.wedding_time}
-              onChange={e => update('wedding_time', e.target.value)}
-              placeholder="6:00 PM"
+              value={settings.venue_name}
+              onChange={e => update('venue_name', e.target.value)}
               className={INPUT_CLASS}
             />
           </Field>
-        </div>
-        <Field label="Venue name">
-          <input
-            type="text"
-            value={settings.venue_name}
-            onChange={e => update('venue_name', e.target.value)}
-            className={INPUT_CLASS}
-          />
-        </Field>
-        <Field label="Location">
-          <input
-            type="text"
-            value={settings.location}
-            onChange={e => update('location', e.target.value)}
-            className={INPUT_CLASS}
-          />
-        </Field>
-        <Field label="Couple names">
-          <input
-            type="text"
-            value={settings.couple_names}
-            onChange={e => update('couple_names', e.target.value)}
-            className={INPUT_CLASS}
-          />
-        </Field>
-      </Section>
-
-      {/* Invite Page Content */}
-      <Section label="Guest-facing copy" title="Invite Page Content">
-        <Field label="Tagline">
-          <input
-            type="text"
-            value={settings.tagline}
-            onChange={e => update('tagline', e.target.value)}
-            className={INPUT_CLASS}
-          />
-        </Field>
-        <Field label="Invitation footer text">
-          <input
-            type="text"
-            value={settings.invitation_footer}
-            onChange={e => update('invitation_footer', e.target.value)}
-            className={INPUT_CLASS}
-          />
-        </Field>
-      </Section>
-
-      {/* RSVP Settings */}
-      <Section label="Form options" title="RSVP Settings">
-        <div className="grid gap-6 sm:grid-cols-2">
-          <Field label="RSVP cutoff date">
+          <Field label="Location">
             <input
-              type="date"
-              value={settings.rsvp_cutoff_date}
-              onChange={e => update('rsvp_cutoff_date', e.target.value)}
+              type="text"
+              value={settings.location}
+              onChange={e => update('location', e.target.value)}
               className={INPUT_CLASS}
-              style={{ colorScheme: 'dark' }}
             />
           </Field>
-          <Field label="Default plus-one allowance">
-            <input
-              type="number"
-              min={0}
-              max={5}
-              value={settings.default_plus_one_allowance}
-              onChange={e => update('default_plus_one_allowance', Number(e.target.value))}
-              className="w-24 rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none transition focus:border-emerald-400"
-            />
-          </Field>
-        </div>
 
-        <div>
-          <p className="mb-1 text-xs uppercase tracking-[0.25em] text-slate-400">Dietary options</p>
-          <p className="mb-4 text-xs text-slate-500">Drag to reorder. &ldquo;Other&rdquo; always shows a free-text field.</p>
-          <div className="space-y-2 mb-3">
-            {settings.dietary_options.map((opt, i) => (
-              <div
-                key={i}
-                draggable
-                onDragStart={e => handleDietaryDragStart(e, i)}
-                onDragOver={handleDietaryDragOver}
-                onDrop={e => handleDietaryDrop(e, i)}
-                className="flex items-center gap-2"
-              >
-                <div className="cursor-move select-none px-1 text-lg leading-none text-slate-500">⠿</div>
-                <input
-                  type="text"
-                  value={opt}
-                  onChange={e => updateDietaryOption(i, e.target.value)}
-                  className="flex-1 rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeDietaryOption(i)}
-                  className="px-2 text-lg leading-none text-slate-500 transition hover:text-rose-400"
-                  aria-label="Remove option"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
+          <SaveFeedback error={tabError.wedding} success={tabSuccess.wedding} />
+          <div>
+            <button
+              type="button"
+              onClick={handleSaveWedding}
+              disabled={savingTab === 'wedding'}
+              className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+            >
+              {savingTab === 'wedding' ? 'Saving…' : 'Save'}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={addDietaryOption}
-            className="text-sm text-emerald-400 transition hover:text-emerald-200"
-          >
-            + Add option
-          </button>
-        </div>
-      </Section>
-
-      {/* Links & Details */}
-      <Section label="Links & Details" title="Links & Details">
-        <Field label="QT Hotel booking URL">
-          <input
-            type="text"
-            value={settings.accommodation_url}
-            onChange={e => update('accommodation_url', e.target.value)}
-            placeholder="https://..."
-            className={INPUT_CLASS}
-          />
-        </Field>
-        <Field label="Guest photo upload link (Google Drive)">
-          <input
-            type="text"
-            value={settings.photos_upload_url}
-            onChange={e => update('photos_upload_url', e.target.value)}
-            placeholder="https://..."
-            className={INPUT_CLASS}
-          />
-        </Field>
-        <Field label="Registry link">
-          <input
-            type="text"
-            value={settings.registry_url}
-            onChange={e => update('registry_url', e.target.value)}
-            placeholder="https://..."
-            className={INPUT_CLASS}
-          />
-        </Field>
-        <Field label="Wedding hashtag">
-          <input
-            type="text"
-            value={settings.hashtag}
-            onChange={e => update('hashtag', e.target.value)}
-            placeholder="#mattraff2027"
-            className={INPUT_CLASS}
-          />
-        </Field>
-      </Section>
-
-      {/* After the wedding */}
-      <Section label="After the wedding" title="After the Wedding">
-        <PhotoUpload
-          value={settings.wedding_photo_url || null}
-          onChange={url => update('wedding_photo_url', url ?? '')}
-          aspectRatio={16 / 9}
-          label="Wedding day photo"
-        />
-        <Field label="Google Photos album link">
-          <input
-            type="text"
-            value={settings.google_photos_url}
-            onChange={e => update('google_photos_url', e.target.value)}
-            placeholder="https://photos.google.com/..."
-            className={INPUT_CLASS}
-          />
-        </Field>
-      </Section>
-
-      {/* Feedback */}
-      {saveError && (
-        <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{saveError}</div>
-      )}
-      {saveSuccess && (
-        <div className="rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-          Settings saved successfully.
-        </div>
+        </Section>
       )}
 
-      {/* Save */}
-      <div>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
-        >
-          {saving ? 'Saving…' : 'Save settings'}
-        </button>
-      </div>
+      {/* Tab 2 — The Invitation */}
+      {activeTab === 'invitation' && (
+        <Section label="Guest-facing copy" title="The Invitation">
+          <Field label="Invitation footer text">
+            <input
+              type="text"
+              value={settings.invitation_footer}
+              onChange={e => update('invitation_footer', e.target.value)}
+              className={INPUT_CLASS}
+            />
+          </Field>
+          <Field label="Dress code description">
+            <textarea
+              rows={4}
+              value={settings.dress_code_description}
+              onChange={e => update('dress_code_description', e.target.value)}
+              className={TEXTAREA_CLASS}
+            />
+          </Field>
+
+          <div>
+            <p className="mb-1 text-xs uppercase tracking-[0.25em] text-slate-400">Practicalities cards</p>
+            <p className="mb-4 text-xs text-slate-500">
+              Controls the three cards in the &ldquo;The Practicalities&rdquo; section of the invitation.
+            </p>
+            <div className="space-y-3">
+              {settings.practicalities_sections.map(card => (
+                <details
+                  key={card.id}
+                  className="group rounded-2xl border border-white/10 bg-slate-950/90 px-5 py-4"
+                >
+                  <summary className="flex cursor-pointer items-center justify-between text-sm text-white">
+                    <span>{card.title || card.id}</span>
+                    <span className={`text-xs ${card.enabled ? 'text-emerald-300' : 'text-slate-500'}`}>
+                      {card.enabled ? 'Enabled' : 'Hidden'}
+                    </span>
+                  </summary>
+
+                  <div className="mt-5 space-y-5">
+                    <Field label="Title">
+                      <input
+                        type="text"
+                        value={card.title}
+                        onChange={e => updatePracticalityCard(card.id, 'title', e.target.value)}
+                        className={INPUT_CLASS}
+                      />
+                    </Field>
+                    <Field label="Body">
+                      <textarea
+                        rows={3}
+                        value={card.body}
+                        onChange={e => updatePracticalityCard(card.id, 'body', e.target.value)}
+                        className={TEXTAREA_CLASS}
+                      />
+                    </Field>
+                    <Field label="Button label">
+                      <input
+                        type="text"
+                        value={card.link_label ?? ''}
+                        onChange={e =>
+                          updatePracticalityCard(card.id, 'link_label', e.target.value.trim() ? e.target.value : null)
+                        }
+                        placeholder="Optional — leave blank to hide the button"
+                        className={INPUT_CLASS}
+                      />
+                    </Field>
+                    <PhotoUpload
+                      value={card.image_url || null}
+                      onChange={url => updatePracticalityCard(card.id, 'image_url', url ?? '')}
+                      aspectRatio={16 / 9}
+                      label="Card photo"
+                      uploadPathPrefix={`settings/practicalities-${card.id}`}
+                    />
+                    <label className="flex items-center gap-2 text-sm text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={card.enabled}
+                        onChange={e => updatePracticalityCard(card.id, 'enabled', e.target.checked)}
+                        className="accent-emerald-400"
+                      />
+                      Enabled
+                    </label>
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+
+          <SaveFeedback error={tabError.invitation} success={tabSuccess.invitation} />
+          <div>
+            <button
+              type="button"
+              onClick={handleSaveInvitation}
+              disabled={savingTab === 'invitation'}
+              className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+            >
+              {savingTab === 'invitation' ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </Section>
+      )}
+
+      {/* Tab 3 — Links */}
+      {activeTab === 'links' && (
+        <Section label="Links & Details" title="Links">
+          <Field label="QT Hotel booking URL">
+            <input
+              type="text"
+              value={settings.accommodation_url}
+              onChange={e => update('accommodation_url', e.target.value)}
+              placeholder="https://..."
+              className={INPUT_CLASS}
+            />
+          </Field>
+          <Field label="Registry link">
+            <input
+              type="text"
+              value={settings.registry_url}
+              onChange={e => update('registry_url', e.target.value)}
+              placeholder="https://..."
+              className={INPUT_CLASS}
+            />
+          </Field>
+          <Field label="Guest photo upload link (Google Drive)">
+            <input
+              type="text"
+              value={settings.photos_upload_url}
+              onChange={e => update('photos_upload_url', e.target.value)}
+              placeholder="https://..."
+              className={INPUT_CLASS}
+            />
+          </Field>
+          <Field label="Wedding hashtag">
+            <input
+              type="text"
+              value={settings.hashtag}
+              onChange={e => update('hashtag', e.target.value)}
+              placeholder="#mattraff2027"
+              className={INPUT_CLASS}
+            />
+          </Field>
+          <PhotoUpload
+            value={settings.wedding_photo_url || null}
+            onChange={url => update('wedding_photo_url', url ?? '')}
+            aspectRatio={16 / 9}
+            label="Wedding day photo"
+          />
+          <Field label="Google Photos album link">
+            <input
+              type="text"
+              value={settings.google_photos_url}
+              onChange={e => update('google_photos_url', e.target.value)}
+              placeholder="https://photos.google.com/..."
+              className={INPUT_CLASS}
+            />
+          </Field>
+
+          <SaveFeedback error={tabError.links} success={tabSuccess.links} />
+          <div>
+            <button
+              type="button"
+              onClick={handleSaveLinks}
+              disabled={savingTab === 'links'}
+              className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+            >
+              {savingTab === 'links' ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </Section>
+      )}
+
+      {/* Tab 4 — RSVP */}
+      {activeTab === 'rsvp' && (
+        <Section label="Form options" title="RSVP">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Field label="RSVP cutoff date">
+              <input
+                type="date"
+                value={settings.rsvp_cutoff_date}
+                onChange={e => update('rsvp_cutoff_date', e.target.value)}
+                className={INPUT_CLASS}
+                style={{ colorScheme: 'dark' }}
+              />
+            </Field>
+            <Field label="Default plus-one allowance">
+              <input
+                type="number"
+                min={0}
+                max={5}
+                value={settings.default_plus_one_allowance}
+                onChange={e => update('default_plus_one_allowance', Number(e.target.value))}
+                className="w-24 rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none transition focus:border-emerald-400"
+              />
+            </Field>
+          </div>
+
+          <div>
+            <p className="mb-1 text-xs uppercase tracking-[0.25em] text-slate-400">Dietary options</p>
+            <p className="mb-4 text-xs text-slate-500">Drag to reorder. &ldquo;Other&rdquo; always shows a free-text field.</p>
+            <div className="space-y-2 mb-3">
+              {settings.dietary_options.map((opt, i) => (
+                <div
+                  key={i}
+                  draggable
+                  onDragStart={e => handleDietaryDragStart(e, i)}
+                  onDragOver={handleDietaryDragOver}
+                  onDrop={e => handleDietaryDrop(e, i)}
+                  className="flex items-center gap-2"
+                >
+                  <div className="cursor-move select-none px-1 text-lg leading-none text-slate-500">⠿</div>
+                  <input
+                    type="text"
+                    value={opt}
+                    onChange={e => updateDietaryOption(i, e.target.value)}
+                    className="flex-1 rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeDietaryOption(i)}
+                    className="px-2 text-lg leading-none text-slate-500 transition hover:text-rose-400"
+                    aria-label="Remove option"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={addDietaryOption}
+              className="text-sm text-emerald-400 transition hover:text-emerald-200"
+            >
+              + Add option
+            </button>
+          </div>
+
+          <SaveFeedback error={tabError.rsvp} success={tabSuccess.rsvp} />
+          <div>
+            <button
+              type="button"
+              onClick={handleSaveRsvp}
+              disabled={savingTab === 'rsvp'}
+              className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+            >
+              {savingTab === 'rsvp' ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </Section>
+      )}
 
       {/* On the Day schedule */}
       <Section label="Invitation Page" title="On the Day Schedule">

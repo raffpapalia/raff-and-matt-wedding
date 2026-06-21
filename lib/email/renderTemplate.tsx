@@ -13,6 +13,7 @@ export type EmailTemplateKey =
   | 'invitation'
   | 'rsvp_reminder'
   | 'rsvp_confirmation'
+  | 'rsvp_updated'
   | 'pre_wedding'
   | 'thank_you'
   | 'link_recovery';
@@ -22,6 +23,7 @@ const EYEBROW_LABELS: Record<EmailTemplateKey, string> = {
   invitation: "You're Invited",
   rsvp_reminder: 'RSVP Reminder',
   rsvp_confirmation: "You're Confirmed",
+  rsvp_updated: 'RSVP Updated',
   pre_wedding: 'Almost Time',
   thank_you: 'Thank You',
   link_recovery: 'Your Invitation Link',

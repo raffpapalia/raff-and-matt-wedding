@@ -22,6 +22,8 @@ export type LogRow = {
   status: string;
   message: string;
   sentAt: string;
+  recipientEmail: string | null;
+  recipientNumber: string | null;
 };
 
 const PAGE_SIZE = 50;
@@ -42,9 +44,10 @@ export default async function CommsLogPage({
 
   let query = supabaseServer
     .from('communications')
-    .select('id, household_id, type, message, sent_at, status, households(name)', {
-      count: 'exact',
-    })
+    .select(
+      'id, household_id, type, message, sent_at, status, recipient_email, recipient_number, households(name)',
+      { count: 'exact' },
+    )
     .order('sent_at', { ascending: false })
     .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 
@@ -63,6 +66,8 @@ export default async function CommsLogPage({
     status: r.status,
     message: r.message,
     sentAt: r.sent_at,
+    recipientEmail: r.recipient_email ?? null,
+    recipientNumber: r.recipient_number ?? null,
   }));
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));

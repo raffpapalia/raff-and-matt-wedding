@@ -1,5 +1,23 @@
-import { supabase, supabaseServer } from '@/lib/supabase';
+import { supabase, supabaseServer, getCurrentPhase, type PhaseName } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
+import { sendHouseholdEmail, type EmailTemplate } from '@/lib/email/sendEmail';
+import { sendHouseholdSms, type SmsTemplate } from '@/lib/sms/sendSms';
+
+// Reuses the exact per-guest preference logic the "Both" send button uses
+// (sendHouseholdEmail / sendHouseholdSms, mode 'all') — each engine independently
+// sends to guests where (contact value exists AND that channel's toggle is on).
+// Failures here must never surface to the RSVP submitter, so this is always
+// called after the save has succeeded and wrapped in try/catch by the caller.
+async function sendRsvpConfirmationToHousehold(householdId: string, isFirstSubmission: boolean) {
+  const templateKey: EmailTemplate & SmsTemplate = isFirstSubmission ? 'rsvp_confirmation' : 'rsvp_updated';
+  const { data: phaseRow } = await getCurrentPhase();
+  const phase = (phaseRow?.current_phase as PhaseName | undefined) ?? 'invitation';
+
+  await Promise.all([
+    sendHouseholdEmail(householdId, templateKey, phase, 'all'),
+    sendHouseholdSms(householdId, templateKey, phase, 'all'),
+  ]);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +38,20 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Snapshot household RSVP state BEFORE this submission's updates land, so we can
+    // tell a first-ever RSVP (every guest still 'pending') from a re-submission (at
+    // least one guest already attending/declined). This is household-level, not
+    // per-submitting-guest, since the RSVP form is a household flow and we can't know
+    // which individual actually submitted it.
+    const { data: priorGuests } = await supabaseServer
+      .from('guests')
+      .select('rsvp_status')
+      .eq('household_id', household_id);
+
+    const isFirstSubmission = !(priorGuests ?? []).some(
+      (g) => g.rsvp_status === 'attending' || g.rsvp_status === 'declined'
+    );
 
     // Update each guest's RSVP status and dietary requirements
     const updates = responses.map((response: any) => {
@@ -159,6 +191,14 @@ export async function POST(request: NextRequest) {
           }
         }
       }
+    }
+
+    // Confirmation send happens after the save has fully succeeded, and must never
+    // fail or block the RSVP response — errors are logged, never surfaced.
+    try {
+      await sendRsvpConfirmationToHousehold(household_id, isFirstSubmission);
+    } catch (err) {
+      console.error('[RSVP API] Confirmation send failed:', err);
     }
 
     return NextResponse.json({ success: true });

@@ -175,6 +175,15 @@ export const DEFAULT_SECTION_ORDER: SectionOrderItem[] = [
   { id: 'faqs', label: 'FAQs', order: 5, visible_phases: ['invitation', 'pre_wedding'] },
 ];
 
+export type PracticalitiesSection = {
+  id: string;
+  title: string;
+  body: string;
+  link_label: string | null;
+  image_url: string;
+  enabled: boolean;
+};
+
 export type Settings = {
   wedding_date: string;
   wedding_time: string;
@@ -183,6 +192,7 @@ export type Settings = {
   couple_names: string;
   tagline: string;
   invitation_footer: string;
+  dress_code_description: string;
   rsvp_cutoff_date: string;
   dietary_options: string[];
   default_plus_one_allowance: number;
@@ -194,6 +204,7 @@ export type Settings = {
   google_photos_url: string;
   wedding_schedule: ScheduleItem[];
   section_order: SectionOrderItem[];
+  practicalities_sections: PracticalitiesSection[];
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -204,6 +215,8 @@ export const DEFAULT_SETTINGS: Settings = {
   couple_names: 'Matt & Raff',
   tagline: "Cancel your plans. We've made better ones.",
   invitation_footer: 'Full invitation coming soon',
+  dress_code_description:
+    "We'll be dressed up and we'd love you to be too. Think glamorous cocktail — dresses and suits. Black tie welcome if that's your vibe.",
   rsvp_cutoff_date: '2027-06-01',
   dietary_options: ['Vegetarian', 'Vegan', 'Gluten free', 'Dairy free', 'Other'],
   default_plus_one_allowance: 0,
@@ -220,6 +233,32 @@ export const DEFAULT_SETTINGS: Settings = {
     { time: '5:00 PM', label: 'Reception' },
   ],
   section_order: DEFAULT_SECTION_ORDER,
+  practicalities_sections: [
+    {
+      id: 'accommodation',
+      title: 'Accommodation',
+      body: "We've arranged a special rate at QT Hotel Melbourne. Plenty of other CBD hotels are nearby if you'd prefer.",
+      link_label: 'Book a room',
+      image_url: '',
+      enabled: true,
+    },
+    {
+      id: 'culture',
+      title: 'Culture',
+      body: 'Tag us on the day. Share your stories and photos.',
+      link_label: null,
+      image_url: '',
+      enabled: true,
+    },
+    {
+      id: 'registry',
+      title: 'Registry',
+      body: "Your presence is the greatest gift. If you'd like to give something more, we've put together a small wish list.",
+      link_label: 'View registry',
+      image_url: '',
+      enabled: true,
+    },
+  ],
 };
 
 export async function getSettings(): Promise<Settings> {

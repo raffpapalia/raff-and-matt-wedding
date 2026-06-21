@@ -13,6 +13,15 @@ const ALLOWED_TYPES: Record<string, string> = {
   'image/webp': 'webp',
 };
 
+// Only plain path segments, no traversal or absolute paths.
+const SAFE_PATH_PREFIX = /^[a-zA-Z0-9/_-]+$/;
+
+function sanitizePathPrefix(prefix: unknown): string | null {
+  if (typeof prefix !== 'string' || !prefix) return null;
+  if (!SAFE_PATH_PREFIX.test(prefix) || prefix.includes('..')) return null;
+  return prefix;
+}
+
 async function requireAuth() {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
   return authCookie === 'true';
@@ -37,6 +46,7 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const file = formData.get('file');
   const oldUrl = formData.get('oldUrl');
+  const pathPrefix = sanitizePathPrefix(formData.get('pathPrefix'));
 
   if (!(file instanceof File) || file.size === 0) {
     return NextResponse.json({ error: 'No file provided.' }, { status: 400 });
@@ -61,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const filename = `${randomUUID()}.${extension}`;
+  const filename = pathPrefix ? `${pathPrefix}-${Date.now()}.${extension}` : `${randomUUID()}.${extension}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const uploadRes = await supabaseServer.storage.from(BUCKET).upload(filename, buffer, {

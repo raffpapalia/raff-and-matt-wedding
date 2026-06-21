@@ -16,6 +16,7 @@ interface PhotoUploadProps {
   onChange: (url: string | null) => void;
   aspectRatio: number;
   label: string;
+  uploadPathPrefix?: string;
 }
 
 function createImage(url: string): Promise<HTMLImageElement> {
@@ -78,7 +79,7 @@ function Spinner() {
   );
 }
 
-export default function PhotoUpload({ value, onChange, aspectRatio, label }: PhotoUploadProps) {
+export default function PhotoUpload({ value, onChange, aspectRatio, label, uploadPathPrefix }: PhotoUploadProps) {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -129,6 +130,7 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label }: Pho
       const body = new FormData();
       body.append('file', blob, 'photo.jpg');
       if (value) body.append('oldUrl', value);
+      if (uploadPathPrefix) body.append('pathPrefix', uploadPathPrefix);
 
       const res = await fetch('/admin/api/upload-photo', { method: 'POST', body });
       const json = await res.json().catch(() => ({}));

@@ -133,11 +133,12 @@ function formatDietaryLabel(key: string): string {
 }
 
 async function getDashboardData() {
-  const [householdsRes, guestsRes, phaseRes, dietaryRes] = await Promise.all([
+  const [householdsRes, guestsRes, phaseRes, dietaryRes, tagsRes] = await Promise.all([
     supabase.from('households').select('id').order('created_at', { ascending: false }),
-    supabase.from('guests').select('rsvp_status'),
+    supabase.from('guests').select('household_id, rsvp_status'),
     supabase.from('phases').select('current_phase').order('created_at', { ascending: false }).limit(1),
     supabase.from('guests').select('dietary_requirement').eq('rsvp_status', 'attending').neq('dietary_requirement', 'none'),
+    supabase.from('guest_tags').select('household_id, tag'),
   ]);
 
   const totalHouseholds = householdsRes.data?.length ?? 0;
@@ -164,7 +165,45 @@ async function getDashboardData() {
     {}
   );
 
-  return { totalHouseholds, ...counts, activePhase, dietaryBreakdown };
+  const guestsByHousehold = new Map<string, { total: number; attending: number; declined: number; pending: number }>();
+  for (const guest of guestRecords) {
+    const householdId = guest.household_id as string;
+    if (!householdId) continue;
+    const entry = guestsByHousehold.get(householdId) ?? { total: 0, attending: 0, declined: 0, pending: 0 };
+    entry.total += 1;
+    const status = guest.rsvp_status as string;
+    if (status === 'attending') entry.attending += 1;
+    else if (status === 'declined') entry.declined += 1;
+    else entry.pending += 1;
+    guestsByHousehold.set(householdId, entry);
+  }
+
+  const tagHouseholds = new Map<string, Set<string>>();
+  for (const row of tagsRes.data ?? []) {
+    const tag = row.tag as string;
+    const householdId = row.household_id as string;
+    if (!tag || !householdId) continue;
+    const set = tagHouseholds.get(tag) ?? new Set<string>();
+    set.add(householdId);
+    tagHouseholds.set(tag, set);
+  }
+
+  const tagBreakdown = Array.from(tagHouseholds.entries())
+    .map(([tag, householdIds]) => {
+      const stats = { tag, households: householdIds.size, guests: 0, attending: 0, declined: 0, pending: 0 };
+      for (const householdId of householdIds) {
+        const entry = guestsByHousehold.get(householdId);
+        if (!entry) continue;
+        stats.guests += entry.total;
+        stats.attending += entry.attending;
+        stats.declined += entry.declined;
+        stats.pending += entry.pending;
+      }
+      return stats;
+    })
+    .sort((a, b) => b.households - a.households);
+
+  return { totalHouseholds, ...counts, activePhase, dietaryBreakdown, tagBreakdown };
 }
 
 function LoginForm({ error }: { error?: string }) {
@@ -230,6 +269,26 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
                     <p className="mt-2 text-3xl font-semibold text-white">{count}</p>
                   </div>
                 ))}
+            </div>
+          </div>
+        )}
+        {dashboard.tagBreakdown.length > 0 && (
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
+            <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Tags</p>
+            <h2 className="mt-1 mb-6 text-xl font-semibold text-white">Guests by tag</h2>
+            <div className="flex flex-wrap gap-3">
+              {dashboard.tagBreakdown.map((t) => (
+                <div key={t.tag} className="min-w-[180px] rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-emerald-200/60">{t.tag}</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{t.households}</p>
+                  <p className="text-xs text-slate-400">
+                    household{t.households === 1 ? '' : 's'} · {t.guests} guest{t.guests === 1 ? '' : 's'}
+                  </p>
+                  <p className="mt-2 text-xs text-slate-300">
+                    {t.attending} attending · {t.declined} declined · {t.pending} pending
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         )}

@@ -195,6 +195,14 @@ export default function LogClient({
                     {isExpanded && (
                       <tr className="border-t border-white/5 bg-slate-900/40">
                         <td colSpan={6} className="px-6 py-4">
+                          <p className="mb-1 text-xs uppercase tracking-[0.25em] text-slate-500">
+                            Sent to
+                          </p>
+                          <p className="mb-3 text-sm text-slate-200">
+                            {(row.channel === 'sms' ? row.recipientNumber : row.recipientEmail) ?? (
+                              <span className="text-slate-500">Unknown</span>
+                            )}
+                          </p>
                           <p className="mb-1 text-xs uppercase tracking-[0.25em] text-slate-500">Full message</p>
                           <p className="whitespace-pre-wrap text-sm text-slate-200">{resolvedPreview}</p>
                           {/\{\{[^}]+\}\}/.test(resolvedPreview) && (

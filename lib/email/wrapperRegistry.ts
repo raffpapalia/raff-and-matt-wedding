@@ -10,6 +10,7 @@ const TEMPLATE_WRAPPERS: Record<string, ComponentType<TemplateWrapperProps>> = {
   invitation: EmailWrapper,
   rsvp_reminder: EmailWrapper,
   rsvp_confirmation: EmailWrapper,
+  rsvp_updated: EmailWrapper,
   pre_wedding: EmailWrapper,
   thank_you: EmailWrapper,
   link_recovery: EmailWrapper,

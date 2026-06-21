@@ -1,6 +1,7 @@
 'use client';
 
 import type { Settings } from '@/lib/supabase';
+import { melbourneTimeToUtc, formatMelbourneWallClock } from '@/lib/ics';
 
 interface AddToCalendarProps {
   mode: 'save_the_date' | 'invitation';
@@ -25,12 +26,14 @@ function buildGoogleUrl(mode: 'save_the_date' | 'invitation', settings: Settings
     return `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
   }
 
-  const dates = `${dc}T150000/${dc}T230000`;
+  const startUtc = melbourneTimeToUtc(settings.wedding_date, settings.wedding_time);
+  const endUtc = new Date(startUtc.getTime() + 8 * 3600 * 1000);
+  const dates = `${formatMelbourneWallClock(startUtc)}/${formatMelbourneWallClock(endUtc)}`;
   const details = encodeURIComponent(
     'Ceremony 3:30pm. Cocktails & canapés 4:00pm. Reception 5:00pm. Dress code: Elevated Cocktail.',
   );
   const location = encodeURIComponent(`${settings.venue_name}, ${settings.location}`);
-  return `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
+  return `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}&ctz=Australia/Melbourne`;
 }
 
 function buildOutlookUrl(mode: 'save_the_date' | 'invitation', settings: Settings): string {
@@ -44,8 +47,10 @@ function buildOutlookUrl(mode: 'save_the_date' | 'invitation', settings: Setting
     return `${base}&subject=${title}&startdt=${settings.wedding_date}&enddt=${settings.wedding_date}&body=${body}&location=${location}&allday=true`;
   }
 
-  const startdt = `${settings.wedding_date}T15:00:00`;
-  const enddt = `${settings.wedding_date}T23:00:00`;
+  const startUtc = melbourneTimeToUtc(settings.wedding_date, settings.wedding_time);
+  const endUtc = new Date(startUtc.getTime() + 8 * 3600 * 1000);
+  const startdt = startUtc.toISOString().replace(/\.\d{3}Z$/, 'Z');
+  const enddt = endUtc.toISOString().replace(/\.\d{3}Z$/, 'Z');
   const body = encodeURIComponent(
     'Ceremony 3:30pm. Cocktails & canapés 4:00pm. Reception 5:00pm. Dress code: Elevated Cocktail.',
   );

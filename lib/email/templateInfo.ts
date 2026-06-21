@@ -8,6 +8,7 @@ export const EMAIL_TEMPLATE_TITLES: Record<EmailTemplateKey, string> = {
   invitation: 'Invitation',
   rsvp_reminder: 'RSVP Reminder',
   rsvp_confirmation: 'RSVP Confirmation',
+  rsvp_updated: 'RSVP Updated',
   pre_wedding: 'Final Details',
   thank_you: 'Thank You',
   link_recovery: 'Lost Invitation Link',
@@ -20,8 +21,8 @@ export const PHASE_LABELS: Record<PhaseName, string> = {
   thank_you: 'Thank You',
 };
 
-// Sub-type templates (rsvp_reminder, rsvp_confirmation, link_recovery) are not
-// phase-primary and are only ever sent by explicit key, never via this map.
+// Sub-type templates (rsvp_reminder, rsvp_confirmation, rsvp_updated, link_recovery) are
+// not phase-primary and are only ever sent by explicit key, never via this map.
 export const PHASE_TEMPLATE_MAP: Record<PhaseName, EmailTemplateKey> = {
   save_the_date: 'save_the_date',
   invitation: 'invitation',

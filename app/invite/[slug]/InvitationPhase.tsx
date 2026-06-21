@@ -53,14 +53,6 @@ function getImgSrc(url: string | null | undefined): string | null {
   return `data:image/jpeg;base64,${url}`;
 }
 
-// Original Unsplash sources (re-download to /public/images/ if assets are missing):
-// BANKSIA:    https://images.unsplash.com/photo-1591289009723-aef022f3f4ee?w=600&q=80
-// EUCALYPTUS: https://images.unsplash.com/photo-1599824192893-cd91e1f02b66?w=600&q=80
-// MAGNOLIA:   https://images.unsplash.com/photo-1582564286939-400a311013a5?w=600&q=80
-const BANKSIA_URL = '/images/banksia.jpg';
-const EUCALYPTUS_URL = '/images/eucalyptus.jpg';
-const MAGNOLIA_URL = '/images/magnolia.jpg';
-
 // Easter egg: Konami code
 const KONAMI_SEQUENCE = [
   'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
@@ -130,6 +122,24 @@ function pad2(n: number): string {
   return String(n).padStart(2, '0');
 }
 
+// Lowercase roman numerals for the practicalities card index ("i.", "ii.", "iii.", ...).
+const ROMAN_NUMERALS = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'];
+
+// Decorative category label shown over each practicality card's image. Not part of the
+// settings schema, so it stays keyed off the known section ids.
+const PRACTICALITIES_CATEGORY_BY_ID: Record<string, string> = {
+  accommodation: 'Stay',
+  culture: 'Capture',
+  registry: 'Gift',
+};
+
+// Each practicality card's CTA link comes from its own existing settings key, matched by id.
+const PRACTICALITIES_LINK_KEY_BY_ID: Record<string, keyof Settings> = {
+  accommodation: 'accommodation_url',
+  culture: 'photos_upload_url',
+  registry: 'registry_url',
+};
+
 // Splits a schedule time like "3:00 PM" into its value and period parts
 // so it can render in the same two-line style as the original hardcoded schedule.
 function splitScheduleTime(time: string): { value: string; period: string } {
@@ -154,73 +164,75 @@ function PracticalCard({
   imageUrl: string;
   title: string;
   body: React.ReactNode;
-  ctaLabel: string;
+  ctaLabel?: string | null;
   ctaUrl?: string;
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       {/* Image header with parallelogram clip */}
-      <div
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          clipPath: 'polygon(8% 0, 100% 0, 92% 100%, 0 100%)',
-          aspectRatio: '4/3',
-          marginBottom: '1.25rem',
-        }}
-      >
-        <img
-          src={imageUrl}
-          alt=""
-          aria-hidden="true"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block',
-            filter: 'brightness(0.32) saturate(0.65)',
-          }}
-        />
-        {/* Roman numeral + category overlay */}
+      {imageUrl && (
         <div
           style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            justifyContent: 'flex-end',
-            padding: '1rem',
-            pointerEvents: 'none',
+            position: 'relative',
+            overflow: 'hidden',
+            clipPath: 'polygon(8% 0, 100% 0, 92% 100%, 0 100%)',
+            aspectRatio: '4/3',
+            marginBottom: '1.25rem',
           }}
         >
-          <p
+          <img
+            src={imageUrl}
+            alt=""
+            aria-hidden="true"
             style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: '0.75rem',
-              color: palette.goldChampagne,
-              opacity: 0.75,
-              marginBottom: '0.2rem',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+              filter: 'brightness(0.32) saturate(0.65)',
+            }}
+          />
+          {/* Roman numeral + category overlay */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              justifyContent: 'flex-end',
+              padding: '1rem',
+              pointerEvents: 'none',
             }}
           >
-            {roman}
-          </p>
-          <p
-            style={{
-              fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.6rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.3em',
-              color: palette.cream,
-              opacity: 0.8,
-              margin: 0,
-            }}
-          >
-            {category}
-          </p>
+            <p
+              style={{
+                fontFamily: 'var(--font-cinzel)',
+                fontStyle: 'italic',
+                fontSize: '0.75rem',
+                color: palette.goldChampagne,
+                opacity: 0.75,
+                marginBottom: '0.2rem',
+              }}
+            >
+              {roman}
+            </p>
+            <p
+              style={{
+                fontFamily: 'var(--font-dm-sans)',
+                fontSize: '0.6rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.3em',
+                color: palette.cream,
+                opacity: 0.8,
+                margin: 0,
+              }}
+            >
+              {category}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Content */}
       <h3
@@ -249,49 +261,51 @@ function PracticalCard({
       </div>
 
       {/* CTA with parallelogram bullet */}
-      {ctaUrl ? (
-        <a
-          href={ctaUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
-        >
-          <Parallelogram width={12} height={6} color={palette.goldChampagne} skew={4} />
-          <span
+      {ctaLabel ? (
+        ctaUrl ? (
+          <a
+            href={ctaUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
+          >
+            <Parallelogram width={12} height={6} color={palette.goldChampagne} skew={4} />
+            <span
+              style={{
+                fontFamily: 'var(--font-dm-sans)',
+                fontSize: '0.7rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.2em',
+                color: palette.goldChampagne,
+              }}
+            >
+              {ctaLabel}
+            </span>
+          </a>
+        ) : (
+          <div
             style={{
-              fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.7rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.2em',
-              color: palette.goldChampagne,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              opacity: 0.4,
             }}
           >
-            {ctaLabel}
-          </span>
-        </a>
-      ) : (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            opacity: 0.4,
-          }}
-        >
-          <Parallelogram width={12} height={6} color={palette.goldChampagne} skew={4} />
-          <span
-            style={{
-              fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.7rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.2em',
-              color: palette.goldChampagne,
-            }}
-          >
-            {ctaLabel}
-          </span>
-        </div>
-      )}
+            <Parallelogram width={12} height={6} color={palette.goldChampagne} skew={4} />
+            <span
+              style={{
+                fontFamily: 'var(--font-dm-sans)',
+                fontSize: '0.7rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.2em',
+                color: palette.goldChampagne,
+              }}
+            >
+              {ctaLabel}
+            </span>
+          </div>
+        )
+      ) : null}
     </div>
   );
 }
@@ -511,77 +525,45 @@ export default function InvitationPhase({
               fontSize: '0.9rem',
               color: alpha(palette.cream, 0.7),
               lineHeight: 1.8,
-              marginBottom: '1rem',
-              maxWidth: '380px',
-            }}
-          >
-            We&apos;ll be dressed up and we&apos;d love you to be too. Think glamorous cocktail —
-            dresses and suits.
-          </p>
-          <p
-            style={{
-              fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.9rem',
-              color: alpha(palette.cream, 0.7),
-              lineHeight: 1.8,
               margin: 0,
               maxWidth: '380px',
             }}
           >
-            Black tie is absolutely welcome if that&apos;s your vibe.
+            {settings.dress_code_description}
           </p>
         </div>
       </section>
     ),
 
-    practicalities: (num) => (
-      <section key="practicalities" id="section-practicalities" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <SectionNumber n={num} label="The Practicalities" />
+    practicalities: (num) => {
+      const cards = (settings.practicalities_sections || []).filter((section) => section.enabled);
+      return (
+        <section key="practicalities" id="section-practicalities" style={{ backgroundColor: palette.bgPrimary, padding: '6rem 2rem' }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+            <SectionNumber n={num} label="The Practicalities" />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            <PracticalCard
-              roman="i."
-              category="Stay"
-              imageUrl={EUCALYPTUS_URL}
-              title="Accommodation"
-              body={
-                <>
-                  We&apos;ve arranged a special rate at <em>{settings.venue_name}</em>. Plenty of other
-                  CBD hotels are nearby if you prefer.
-                </>
-              }
-              ctaLabel="Book a room"
-              ctaUrl={settings.accommodation_url || undefined}
-            />
-            <PracticalCard
-              roman="ii."
-              category="Capture"
-              imageUrl={BANKSIA_URL}
-              title="Photos"
-              body={
-                <>
-                  Snap away and share on the day. Tag us with{' '}
-                  <em style={{ color: palette.goldChampagne, fontStyle: 'italic' }}>{settings.hashtag}</em>{' '}
-                  in your stories and posts.
-                </>
-              }
-              ctaLabel="Upload yours"
-              ctaUrl={settings.photos_upload_url || undefined}
-            />
-            <PracticalCard
-              roman="iii."
-              category="Gift"
-              imageUrl={MAGNOLIA_URL}
-              title="Registry"
-              body="Your presence is the greatest gift. If you'd like to give something more, we've put together a small wish list."
-              ctaLabel="View registry"
-              ctaUrl={settings.registry_url || undefined}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+              {cards.map((card, i) => {
+                const linkKey = PRACTICALITIES_LINK_KEY_BY_ID[card.id];
+                const ctaUrl = linkKey ? ((settings[linkKey] as string) || undefined) : undefined;
+                return (
+                  <PracticalCard
+                    key={card.id}
+                    roman={`${ROMAN_NUMERALS[i] || i + 1}.`}
+                    category={PRACTICALITIES_CATEGORY_BY_ID[card.id] || ''}
+                    imageUrl={card.image_url}
+                    title={card.title}
+                    body={card.body}
+                    ctaLabel={card.link_label}
+                    ctaUrl={ctaUrl}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
-    ),
+        </section>
+      );
+    },
 
     faqs: (num) => (
       <section
