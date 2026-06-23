@@ -426,7 +426,7 @@ function TemplateCard({
               <iframe
                 title={`${info.title} preview`}
                 srcDoc={html ?? ''}
-                className="h-[420px] w-full sm:h-[560px]"
+                className="h-[60vh] min-h-[280px] w-full sm:h-[560px]"
                 sandbox=""
               />
             )}

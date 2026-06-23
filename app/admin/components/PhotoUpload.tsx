@@ -1,11 +1,7 @@
 'use client';
 
-import { ChangeEvent, useCallback, useRef, useState } from 'react';
-import Cropper, { Area, Point } from 'react-easy-crop';
-
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_SIZE_BYTES = 5 * 1024 * 1024;
-const MAX_OUTPUT_DIMENSION = 1600;
+import Cropper from 'react-easy-crop';
+import { Spinner, UploadIcon, usePhotoCropper } from '@/lib/photo/useCropUpload';
 
 const DARK_GREEN = '#0A1F14';
 const GOLD = '#D4A83A';
@@ -19,112 +15,17 @@ interface PhotoUploadProps {
   uploadPathPrefix?: string;
 }
 
-function createImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = (err) => reject(err);
-    image.src = url;
-  });
-}
-
-async function getCroppedBlob(imageSrc: string, cropArea: Area): Promise<Blob | null> {
-  const image = await createImage(imageSrc);
-  const canvas = document.createElement('canvas');
-
-  let outputWidth = cropArea.width;
-  let outputHeight = cropArea.height;
-  if (outputWidth > MAX_OUTPUT_DIMENSION || outputHeight > MAX_OUTPUT_DIMENSION) {
-    const scale = MAX_OUTPUT_DIMENSION / Math.max(outputWidth, outputHeight);
-    outputWidth = Math.round(outputWidth * scale);
-    outputHeight = Math.round(outputHeight * scale);
-  }
-
-  canvas.width = outputWidth;
-  canvas.height = outputHeight;
-
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-
-  ctx.drawImage(
-    image,
-    cropArea.x,
-    cropArea.y,
-    cropArea.width,
-    cropArea.height,
-    0,
-    0,
-    outputWidth,
-    outputHeight
-  );
-
-  return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.85));
-}
-
-function UploadIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 16V4M12 4l-4 4M12 4l4 4" />
-      <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-    </svg>
-  );
-}
-
-function Spinner() {
-  return (
-    <span
-      className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-      aria-hidden="true"
-    />
-  );
-}
-
 export default function PhotoUpload({ value, onChange, aspectRatio, label, uploadPathPrefix }: PhotoUploadProps) {
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const onCropComplete = useCallback((_area: Area, areaPixels: Area) => {
-    setCroppedAreaPixels(areaPixels);
-  }, []);
-
-  const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setError('Invalid file type. Please upload a JPG, PNG or WebP image.');
-      return;
-    }
-    if (file.size > MAX_SIZE_BYTES) {
-      setError('File too large. Maximum size is 5MB.');
-      return;
-    }
-
-    setError(null);
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
-    setCroppedAreaPixels(null);
-    setImageSrc(URL.createObjectURL(file));
-  };
-
-  const closeCropModal = () => {
-    if (imageSrc) URL.revokeObjectURL(imageSrc);
-    setImageSrc(null);
-  };
+  const cropper = usePhotoCropper();
+  const { imageSrc, crop, setCrop, zoom, setZoom, croppedAreaPixels, onCropComplete, uploading, error } = cropper;
 
   const handleConfirmCrop = async () => {
     if (!imageSrc || !croppedAreaPixels) return;
-    setUploading(true);
-    setError(null);
+    cropper.setUploading(true);
+    cropper.setError(null);
 
     try {
-      const blob = await getCroppedBlob(imageSrc, croppedAreaPixels);
+      const blob = await cropper.getCroppedBlob({ quality: 0.85 });
       if (!blob) throw new Error('Failed to process image.');
 
       const body = new FormData();
@@ -137,11 +38,11 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
       if (!res.ok) throw new Error(json?.error || 'Failed to upload photo.');
 
       onChange(json.url);
-      closeCropModal();
+      cropper.closeCropModal();
     } catch (err: any) {
-      setError(err?.message || 'Failed to upload photo.');
+      cropper.setError(err?.message || 'Failed to upload photo.');
     } finally {
-      setUploading(false);
+      cropper.setUploading(false);
     }
   };
 
@@ -154,9 +55,9 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
           <div
             role="button"
             tabIndex={0}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => cropper.fileInputRef.current?.click()}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click();
+              if (e.key === 'Enter' || e.key === ' ') cropper.fileInputRef.current?.click();
             }}
             className="group relative w-full max-w-md cursor-pointer overflow-hidden rounded-2xl border"
             style={{ aspectRatio, borderColor: 'rgba(242,232,208,0.15)', backgroundColor: DARK_GREEN }}
@@ -184,9 +85,9 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
         <div
           role="button"
           tabIndex={0}
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => cropper.fileInputRef.current?.click()}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click();
+            if (e.key === 'Enter' || e.key === ' ') cropper.fileInputRef.current?.click();
           }}
           className="flex w-full max-w-md cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed transition hover:border-[#D4A83A]/60"
           style={{ aspectRatio, borderColor: 'rgba(242,232,208,0.25)', color: 'rgba(242,232,208,0.6)' }}
@@ -201,10 +102,10 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
       ) : null}
 
       <input
-        ref={fileInputRef}
+        ref={cropper.fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
-        onChange={handleFileSelect}
+        onChange={cropper.handleFileSelect}
         className="hidden"
       />
 
@@ -258,7 +159,7 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
               </button>
               <button
                 type="button"
-                onClick={closeCropModal}
+                onClick={cropper.closeCropModal}
                 disabled={uploading}
                 className="rounded-full border px-5 py-3 text-sm transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-70"
                 style={{ borderColor: 'rgba(242,232,208,0.3)', color: CREAM }}
