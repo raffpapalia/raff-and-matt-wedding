@@ -168,9 +168,6 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
   function handleSaveLinks() {
     saveTab('links', {
       google_photos_url: settings.google_photos_url,
-      accommodation_url: settings.accommodation_url,
-      registry_url: settings.registry_url,
-      photos_upload_url: settings.photos_upload_url,
     });
   }
 
@@ -370,7 +367,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       {activeTab === 'wedding' && (
         <Section label="Event info" title="The Wedding">
           <div className="grid gap-6 sm:grid-cols-2">
-            <Field label="Couple names">
+            <Field label="Couple names" helper="Shown as the headline on every page. Always 'Matt & Raff'.">
               <input
                 type="text"
                 value={settings.couple_names}
@@ -378,7 +375,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 className={INPUT_CLASS}
               />
             </Field>
-            <Field label="Tagline">
+            <Field label="Tagline" helper="The italic line under your names on the invitation hero.">
               <input
                 type="text"
                 value={settings.tagline}
@@ -386,7 +383,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 className={INPUT_CLASS}
               />
             </Field>
-            <Field label="Wedding date">
+            <Field label="Wedding date" helper="Drives the countdown and every date shown to guests.">
               <input
                 type="date"
                 value={settings.wedding_date}
@@ -395,7 +392,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 style={{ colorScheme: 'dark' }}
               />
             </Field>
-            <Field label="Wedding time">
+            <Field label="Wedding time" helper="The ceremony start time shown to guests.">
               <input
                 type="text"
                 value={settings.wedding_time}
@@ -405,7 +402,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               />
             </Field>
           </div>
-          <Field label="Venue name">
+          <Field label="Venue name" helper="Shown wherever the venue is named on guest-facing pages.">
             <input
               type="text"
               value={settings.venue_name}
@@ -413,7 +410,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               className={INPUT_CLASS}
             />
           </Field>
-          <Field label="Location">
+          <Field label="Location" helper="The city or area shown under the venue name.">
             <input
               type="text"
               value={settings.location}
@@ -421,7 +418,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               className={INPUT_CLASS}
             />
           </Field>
-          <Field label="Wedding hashtag">
+          <Field label="Wedding hashtag" helper="Shown for guests to use when posting their own photos.">
             <input
               type="text"
               value={settings.hashtag}
@@ -523,7 +520,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       {activeTab === 'invitation' && (
         <>
           <Section label="Guest-facing copy" title="The Invitation">
-            <Field label="Dress code heading">
+            <Field label="Dress code heading" helper="The dress code's title, e.g. 'Elevated Cocktail'.">
               <input
                 type="text"
                 value={settings.dress_code_heading}
@@ -533,7 +530,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               />
             </Field>
 
-            <Field label="Dress code description">
+            <Field label="Dress code description" helper="The paragraph explaining the dress code to guests.">
               <textarea
                 rows={4}
                 value={settings.dress_code_description}
@@ -592,7 +589,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                       </summary>
 
                       <div className="mt-5 space-y-5">
-                        <Field label="Title">
+                        <Field label="Title" helper="This card's heading in the Practicalities section.">
                           <input
                             type="text"
                             value={card.title}
@@ -600,7 +597,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                             className={INPUT_CLASS}
                           />
                         </Field>
-                        <Field label="Body">
+                        <Field label="Body" helper="This card's description text.">
                           <textarea
                             rows={3}
                             value={card.body}
@@ -608,7 +605,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                             className={TEXTAREA_CLASS}
                           />
                         </Field>
-                        <Field label="Button label">
+                        <Field label="Button label" helper="Text on the card's button. Leave blank to hide the button entirely.">
                           <input
                             type="text"
                             value={card.link_label ?? ''}
@@ -620,7 +617,10 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                           />
                         </Field>
                         {linkField && (
-                          <Field label="Button link URL">
+                          <Field
+                            label="Button link URL"
+                            helper="Where the button links to. Edited here only — this is the single source of truth for this card's link."
+                          >
                             <input
                               type="text"
                               value={settings[linkField]}
@@ -630,13 +630,16 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                             />
                           </Field>
                         )}
-                        <PhotoUpload
-                          value={card.image_url || null}
-                          onChange={url => updatePracticalityCard(card.id, 'image_url', url ?? '')}
-                          aspectRatio={16 / 9}
-                          label="Card photo"
-                          uploadPathPrefix={`settings/practicalities-${card.id}`}
-                        />
+                        <div>
+                          <p className="mb-2 text-xs text-slate-500">The photo shown on this card, cropped to 16:9.</p>
+                          <PhotoUpload
+                            value={card.image_url || null}
+                            onChange={url => updatePracticalityCard(card.id, 'image_url', url ?? '')}
+                            aspectRatio={16 / 9}
+                            label="Card photo"
+                            uploadPathPrefix={`settings/practicalities-${card.id}`}
+                          />
+                        </div>
                         <label className="flex items-center gap-2 text-sm text-slate-300">
                           <input
                             type="checkbox"
@@ -644,7 +647,10 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                             onChange={e => updatePracticalityCard(card.id, 'enabled', e.target.checked)}
                             className="accent-emerald-400"
                           />
-                          Enabled
+                          <span>
+                            Enabled
+                            <span className="ml-1 text-xs text-slate-500">— hides the card from guests without deleting its content</span>
+                          </span>
                         </label>
                       </div>
                     </details>
@@ -817,7 +823,8 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
           {/* Section order */}
           <Section label="Invitation Page" title="Section Order">
             <p className="-mt-2 text-xs text-slate-500">
-              Controls the order of sections on the invitation page and which phases each one appears on.
+              The order below controls section order on the invitation page. Tick which pages each section
+              appears on — untick to hide it from that page.
             </p>
             <div className="space-y-2">
               <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-slate-950/50 px-4 py-3 text-sm text-slate-400">
@@ -905,13 +912,16 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               className={TEXTAREA_CLASS}
             />
           </Field>
-          <PhotoUpload
-            value={settings.wedding_photo_url || null}
-            onChange={url => update('wedding_photo_url', url ?? '')}
-            aspectRatio={16 / 9}
-            label="Post-wedding photo (Thank You page)"
-            uploadPathPrefix="settings/wedding-photo"
-          />
+          <div>
+            <p className="mb-2 text-xs text-slate-500">The photo shown on the Thank You page guests see after RSVPing.</p>
+            <PhotoUpload
+              value={settings.wedding_photo_url || null}
+              onChange={url => update('wedding_photo_url', url ?? '')}
+              aspectRatio={16 / 9}
+              label="Post-wedding photo (Thank You page)"
+              uploadPathPrefix="settings/wedding-photo"
+            />
+          </div>
 
           <SaveFeedback error={tabError.thank_you} success={tabSuccess.thank_you} />
           <div>
@@ -929,40 +939,20 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
 
       {/* Tab 5 — Links */}
       {activeTab === 'links' && (
-        <Section label="Links & Details" title="Links">
-          <Field label="Google Photos album link">
+        <Section label="Standalone links" title="Links">
+          <p className="-mt-2 text-xs text-slate-500">
+            Links that aren&rsquo;t tied to a specific page section. The accommodation, registry, and guest
+            photo upload links now live inside their cards on the Invitation tab — edit them there instead.
+          </p>
+          <Field
+            label="Google Photos album link"
+            helper="A shareable photo album link for guests — not shown on a specific card."
+          >
             <input
               type="text"
               value={settings.google_photos_url}
               onChange={e => update('google_photos_url', e.target.value)}
               placeholder="https://photos.google.com/..."
-              className={INPUT_CLASS}
-            />
-          </Field>
-          <Field label="QT Hotel booking URL">
-            <input
-              type="text"
-              value={settings.accommodation_url}
-              onChange={e => update('accommodation_url', e.target.value)}
-              placeholder="https://..."
-              className={INPUT_CLASS}
-            />
-          </Field>
-          <Field label="Registry link">
-            <input
-              type="text"
-              value={settings.registry_url}
-              onChange={e => update('registry_url', e.target.value)}
-              placeholder="https://..."
-              className={INPUT_CLASS}
-            />
-          </Field>
-          <Field label="Guest photo upload link (Google Drive)">
-            <input
-              type="text"
-              value={settings.photos_upload_url}
-              onChange={e => update('photos_upload_url', e.target.value)}
-              placeholder="https://..."
               className={INPUT_CLASS}
             />
           </Field>
@@ -985,7 +975,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       {activeTab === 'rsvp' && (
         <Section label="Form options" title="RSVP">
           <div className="grid gap-6 sm:grid-cols-2">
-            <Field label="RSVP cutoff date">
+            <Field label="RSVP cutoff date" helper="RSVP forms close to guests after this date.">
               <input
                 type="date"
                 value={settings.rsvp_cutoff_date}
@@ -994,7 +984,10 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 style={{ colorScheme: 'dark' }}
               />
             </Field>
-            <Field label="Default plus-one allowance">
+            <Field
+              label="Default plus-one allowance"
+              helper="Default extra-guest allowance for new households (can be overridden per household)."
+            >
               <input
                 type="number"
                 min={0}
