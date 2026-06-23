@@ -5,6 +5,7 @@ import type { Settings, ScheduleItem, SectionOrderItem, PracticalitiesSection } 
 import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
 import PhotoUpload from '../components/PhotoUpload';
 import CouplePhotoUpload from '../components/CouplePhotoUpload';
+import ImmediatePhotoUpload from '../components/ImmediatePhotoUpload';
 
 const PHASE_OPTIONS: { value: string; label: string }[] = [
   { value: 'invitation', label: 'Invitation' },
@@ -146,6 +147,9 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       accommodation_url: settings.accommodation_url,
       registry_url: settings.registry_url,
       photos_upload_url: settings.photos_upload_url,
+      story_heading: settings.story_heading,
+      story_body: settings.story_body,
+      band_quote: settings.band_quote,
     });
   }
 
@@ -459,6 +463,32 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
             />
           </Field>
 
+          <Field
+            label="Story Photo"
+            helper="Used in the 'How we got here' section. Crop ratio 4:5."
+          >
+            <ImmediatePhotoUpload
+              settingsKey="story_photo_url"
+              pathPrefix="settings/story-photo"
+              aspectRatio={4 / 5}
+              currentUrl={settings.story_photo_url}
+              onSaved={url => update('story_photo_url', url)}
+            />
+          </Field>
+
+          <Field
+            label="Band Photo"
+            helper="The full-width photo band. Crop ratio 16:9."
+          >
+            <ImmediatePhotoUpload
+              settingsKey="band_photo_url"
+              pathPrefix="settings/band-photo"
+              aspectRatio={16 / 9}
+              currentUrl={settings.band_photo_url}
+              onSaved={url => update('band_photo_url', url)}
+            />
+          </Field>
+
           <SaveFeedback error={tabError.save_the_date} success={tabSuccess.save_the_date} />
           <div>
             <button
@@ -494,6 +524,34 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 onChange={e => update('dress_code_description', e.target.value)}
                 className={TEXTAREA_CLASS}
                 style={{ resize: 'vertical', minHeight: '120px' }}
+              />
+            </Field>
+
+            <Field label="Story heading" helper="Used in the 'How we got here' section (v4 design)">
+              <input
+                type="text"
+                value={settings.story_heading}
+                onChange={e => update('story_heading', e.target.value)}
+                className={INPUT_CLASS}
+              />
+            </Field>
+
+            <Field label="Story body" helper="Used in the 'How we got here' section (v4 design)">
+              <textarea
+                rows={4}
+                value={settings.story_body}
+                onChange={e => update('story_body', e.target.value)}
+                className={TEXTAREA_CLASS}
+                style={{ resize: 'vertical', minHeight: '120px' }}
+              />
+            </Field>
+
+            <Field label="Band quote" helper="Used in the full-bleed photo band section (v4 design)">
+              <textarea
+                rows={2}
+                value={settings.band_quote}
+                onChange={e => update('band_quote', e.target.value)}
+                className={TEXTAREA_CLASS}
               />
             </Field>
 

@@ -32,6 +32,29 @@
   }
 }
 
+/* v4 guest design language — scoped so it never collides with the live v3 tokens above.
+   Mirrors design/matt-raff-admit-two-final.html exactly. */
+.mr-v4 {
+  --green-deep: #0B2E22;
+  --green: #0F7A52;
+  --green-bright: #12A06B;
+  --bone: #F6EEDD;
+  --bone-2: #EFE3C7;
+  --gold: #E2B23C;
+  --persimmon: #F2603C;
+  --ink: #0B2118;
+  --pine: #1B5E3A;
+  --muted: #9a8a5f;
+  --muted-deep: #6e6347;
+  --on-persimmon: #1a0d07;
+  --on-gold-badge: #6e4f0e;
+
+  --display: var(--font-fraunces), serif;
+  --grotesque: var(--font-bricolage), sans-serif;
+  --mono: var(--font-dm-mono), monospace;
+  --body: var(--font-dm-sans), system-ui, sans-serif;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

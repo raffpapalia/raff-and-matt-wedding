@@ -1,0 +1,821 @@
+/* v4 guest design language — reusable classes that need pseudo-elements, media
+   queries, hover states, or scroll-reveal animation (i.e. things inline styles
+   can't express). Ported from design/matt-raff-admit-two-final.html.
+   Every selector is scoped under .mr-v4 so it can never affect admin or the
+   live v3 invitation, which don't carry that class. */
+
+.mr-v4 .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.mr-v4 .reveal.in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mr-v4 .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Kicker rule — gold line + persimmon diamond dot */
+.mr-v4 .mr-rule {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--gold);
+}
+.mr-v4 .mr-rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.35;
+}
+.mr-v4 .mr-rule .mr-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--persimmon);
+  transform: rotate(45deg);
+  flex: 0 0 auto;
+}
+
+/* Buttons */
+.mr-v4 .mr-btn {
+  display: inline-block;
+  font-family: var(--grotesque);
+  font-weight: 700;
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 15px 30px;
+  border-radius: 999px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 1.5px solid transparent;
+}
+.mr-v4 .mr-btn-solid {
+  background: var(--persimmon);
+  color: var(--on-persimmon);
+}
+.mr-v4 .mr-btn-solid:hover {
+  background: var(--gold);
+}
+.mr-v4 .mr-btn-ghost {
+  border-color: rgba(246, 238, 221, 0.45);
+  color: var(--bone);
+}
+.mr-v4 .mr-btn-ghost:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.mr-v4 .mr-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* Story grid */
+.mr-v4 .mr-story-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(34px, 6vw, 70px);
+  align-items: center;
+  margin-top: clamp(34px, 5vw, 56px);
+}
+@media (min-width: 840px) {
+  .mr-v4 .mr-story-grid {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+}
+/* No story photo — collapse to a single column instead of leaving an empty
+   0.85fr gutter. Two classes outweigh the single-class media query rule above
+   regardless of viewport width. */
+.mr-v4 .mr-story-grid.mr-story-grid--solo {
+  grid-template-columns: 1fr;
+}
+
+/* Personal note — household-driven "note for you" card. Photo first, message
+   second; stacks to a single column on mobile. */
+.mr-v4 .mr-note-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(28px, 5vw, 56px);
+  align-items: center;
+  margin-top: clamp(28px, 4vw, 44px);
+}
+@media (min-width: 720px) {
+  .mr-v4 .mr-note-grid {
+    grid-template-columns: 0.85fr 1.15fr;
+  }
+}
+.mr-v4 .mr-note-message p {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.mr-v4 .mr-note-solo {
+  max-width: 32ch;
+  margin: clamp(28px, 4vw, 44px) auto 0;
+  text-align: center;
+}
+.mr-v4 .mr-note-solo p {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  line-height: 1.45;
+  margin: 0 0 20px;
+}
+.mr-v4 .mr-note-sign {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.mr-v4 .mr-note-photo-solo {
+  max-width: 360px;
+  margin: clamp(28px, 4vw, 44px) auto 0;
+}
+
+/* Running order (lineup of acts) */
+.mr-v4 .mr-act {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: clamp(16px, 4vw, 40px);
+  align-items: center;
+  padding: clamp(20px, 3.4vw, 30px) 0;
+  border-top: 1px solid rgba(246, 238, 221, 0.16);
+}
+
+/* Concierge / "good to know" grid */
+.mr-v4 .mr-conc {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  margin-top: clamp(34px, 5vw, 56px);
+  background: rgba(246, 238, 221, 0.14);
+  border: 1px solid rgba(246, 238, 221, 0.14);
+  border-radius: 6px;
+  overflow: hidden;
+}
+@media (min-width: 780px) {
+  .mr-v4 .mr-conc {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Ticket — perforation notches between the main stub and the reply stub */
+.mr-v4 .mr-ticket {
+  max-width: 560px;
+  margin: 0 auto;
+  background: var(--bone);
+  color: var(--ink);
+  border-radius: 16px;
+  position: relative;
+  box-shadow: 0 30px 60px -20px rgba(11, 33, 24, 0.5);
+  overflow: hidden;
+}
+.mr-v4 .mr-ticket .mr-perf {
+  position: relative;
+  height: 0;
+  border-top: 2px dashed rgba(11, 33, 24, 0.25);
+  margin: 0 clamp(28px, 5vw, 44px);
+}
+.mr-v4 .mr-ticket .mr-perf::before,
+.mr-v4 .mr-ticket .mr-perf::after {
+  content: '';
+  position: absolute;
+  top: -14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--green-bright);
+}
+.mr-v4 .mr-ticket .mr-perf::before {
+  left: calc(-1 * clamp(28px, 5vw, 44px) - 14px);
+}
+.mr-v4 .mr-ticket .mr-perf::after {
+  right: calc(-1 * clamp(28px, 5vw, 44px) - 14px);
+}
+
+/* Shared duotone treatment — #mr-duotone filter + warm persimmon glow overlay.
+   Used by TreatedPhoto (inline content photos), Section's backgroundImage (hero
+   photos) and BandQuote (the full-bleed quote photo), so every photo surface gets
+   the same finish. .mr-duotone-img is the filtered <img> itself; .mr-duotone-glow
+   is a sibling overlay element painting the glow. Callers position both inside a
+   position:relative/overflow:hidden ancestor. */
+.mr-v4 .mr-duotone-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: url(#mr-duotone);
+}
+.mr-v4 .mr-duotone-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 40%, var(--persimmon) 0%, transparent 65%);
+  opacity: 0.18;
+  mix-blend-mode: screen;
+}
+
+.mr-v4 .mr-treated-photo {
+  position: relative;
+  overflow: hidden;
+}
+.mr-v4 .mr-treated-photo.mr-shape-arch .mr-duotone-img,
+.mr-v4 .mr-treated-photo.mr-shape-arch .mr-duotone-glow {
+  border-radius: 300px 300px 12px 12px;
+}
+.mr-v4 .mr-treated-photo.mr-shape-rect .mr-duotone-img,
+.mr-v4 .mr-treated-photo.mr-shape-rect .mr-duotone-glow {
+  border-radius: 12px;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   RSVP form ("the Pass") — bone card under the ticket on the bright section.
+   Mirrors .ticket's card treatment (bone bg, ink text, radius 16px, soft
+   shadow) so the form reads as part of the same ticket object.
+   ─────────────────────────────────────────────────────────────────────────── */
+.mr-v4 .mr-rsvp-v4 {
+  background: var(--bone);
+  color: var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 30px 60px -20px rgba(11, 33, 24, 0.5);
+  max-width: 640px;
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 44px);
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-section {
+  padding-bottom: clamp(24px, 4vw, 32px);
+  margin-bottom: clamp(24px, 4vw, 32px);
+  border-bottom: 1px solid rgba(11, 33, 24, 0.12);
+}
+.mr-v4 .mr-rsvp-v4 .rv-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.mr-v4 .mr-rsvp-v4 .rv-divider {
+  padding-top: clamp(24px, 4vw, 32px);
+  border-top: 1px solid rgba(11, 33, 24, 0.12);
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-deep);
+  margin-bottom: 10px;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-guest-name {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.3rem;
+  margin: 0 0 18px;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-pill-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-pill {
+  font-family: var(--grotesque);
+  font-weight: 700;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 12px 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(11, 33, 24, 0.2);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: 0.2s;
+  touch-action: manipulation;
+}
+.mr-v4 .mr-rsvp-v4 .rv-pill:hover:not(.is-active) {
+  border-color: var(--gold);
+}
+.mr-v4 .mr-rsvp-v4 .rv-pill:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.mr-v4 .mr-rsvp-v4 .rv-pill.is-active {
+  background: var(--persimmon);
+  border-color: var(--persimmon);
+  color: var(--ink);
+}
+.mr-v4 .mr-rsvp-v4 .rv-pill-sm {
+  padding: 8px 18px;
+  font-size: 0.66rem;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-field {
+  width: 100%;
+  display: block;
+  font-family: var(--body);
+  font-weight: 300;
+  font-size: 0.92rem;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(11, 33, 24, 0.2);
+  background: var(--bone-2);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.mr-v4 .mr-rsvp-v4 .rv-field::placeholder {
+  color: rgba(11, 33, 24, 0.4);
+}
+.mr-v4 .mr-rsvp-v4 .rv-field:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(226, 178, 60, 0.25);
+}
+.mr-v4 .mr-rsvp-v4 .rv-field-sm {
+  padding: 9px 12px;
+  font-size: 0.82rem;
+  border-radius: 8px;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-song-prompt {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 0.85rem;
+  color: rgba(11, 33, 24, 0.6);
+  margin: 0 0 12px;
+  transition: opacity 400ms ease-in-out;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-plus-one-card {
+  border: 1px solid rgba(11, 33, 24, 0.16);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-add-link,
+.mr-v4 .mr-rsvp-v4 .rv-remove-link {
+  font-family: var(--grotesque);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--persimmon);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  touch-action: manipulation;
+}
+.mr-v4 .mr-rsvp-v4 .rv-add-link:focus-visible,
+.mr-v4 .mr-rsvp-v4 .rv-remove-link:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.mr-v4 .mr-rsvp-v4 .rv-remove-link {
+  color: rgba(11, 33, 24, 0.5);
+  text-decoration: none;
+}
+.mr-v4 .mr-rsvp-v4 .rv-remove-link:hover {
+  color: var(--persimmon);
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-error {
+  font-family: var(--body);
+  font-size: 0.85rem;
+  color: var(--persimmon);
+  text-align: center;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-cutoff-notice {
+  font-family: var(--body);
+  font-size: 0.85rem;
+  color: rgba(11, 33, 24, 0.6);
+  text-align: center;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-submit {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-family: var(--grotesque);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 16px 28px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  background: var(--persimmon);
+  color: var(--on-persimmon);
+  cursor: pointer;
+  transition: 0.2s;
+  touch-action: manipulation;
+}
+.mr-v4 .mr-rsvp-v4 .rv-submit:hover:not(:disabled) {
+  background: var(--gold);
+}
+.mr-v4 .mr-rsvp-v4 .rv-submit:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.mr-v4 .mr-rsvp-v4 .rv-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-update-link {
+  display: block;
+  margin: 0 auto;
+  background: none;
+  border: none;
+  font-family: var(--body);
+  font-size: 0.85rem;
+  color: var(--persimmon);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 20px 0 0;
+  touch-action: manipulation;
+}
+.mr-v4 .mr-rsvp-v4 .rv-update-link:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(11, 33, 24, 0.12);
+}
+.mr-v4 .mr-rsvp-v4 .rv-summary-row:last-child {
+  border-bottom: none;
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-badge {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(11, 33, 24, 0.2);
+  color: rgba(11, 33, 24, 0.5);
+  white-space: nowrap;
+}
+.mr-v4 .mr-rsvp-v4 .rv-badge.is-attending {
+  background: rgba(226, 178, 60, 0.18);
+  border-color: var(--gold);
+  color: var(--on-gold-badge);
+}
+
+.mr-v4 .mr-rsvp-v4 .rv-success-heading {
+  font-family: var(--display);
+  font-weight: 900;
+  font-style: italic;
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  margin: 0 0 14px;
+}
+.mr-v4 .mr-rsvp-v4 .rv-success-meta {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-deep);
+  margin: 0 0 22px;
+}
+.mr-v4 .mr-rsvp-v4 .rv-success-message {
+  font-family: var(--body);
+  font-size: 0.95rem;
+  color: rgba(11, 33, 24, 0.78);
+  margin: 0 0 6px;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Boarding pass (pre-wedding) — smaller ticket card. Perforation is vertical
+   on desktop (a left border on the stub column) and horizontal on mobile (a
+   top border with the card stacked in one column), each with two circular
+   "notch" cutouts at its ends.
+   ─────────────────────────────────────────────────────────────────────────── */
+.mr-v4 .mr-pass {
+  position: relative;
+  max-width: 580px;
+  margin: clamp(34px, 5vw, 52px) auto 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--bone);
+  color: var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 30px 64px -26px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+.mr-v4 .mr-pass-main {
+  padding: clamp(24px, 4vw, 34px);
+  position: relative;
+}
+.mr-v4 .mr-pass-toprow {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--persimmon);
+}
+.mr-v4 .mr-pass-toprow-r {
+  color: var(--muted);
+}
+.mr-v4 .mr-pass-label {
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 18px;
+}
+.mr-v4 .mr-pass-who {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(1.6rem, 5.5vw, 2.4rem);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  margin-top: 5px;
+}
+.mr-v4 .mr-pass-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(16px, 3.5vw, 30px);
+  margin-top: 20px;
+}
+.mr-v4 .mr-pass-meta-l {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.mr-v4 .mr-pass-meta-v {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 0.98rem;
+  margin-top: 3px;
+}
+.mr-v4 .mr-pass-barcode {
+  height: 38px;
+  margin-top: 24px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--ink) 0 2px, transparent 2px 4px,
+    var(--ink) 4px 7px, transparent 7px 9px,
+    var(--ink) 9px 10px, transparent 10px 13px,
+    var(--ink) 13px 16px, transparent 16px 17px
+  );
+  opacity: 0.85;
+}
+.mr-v4 .mr-pass-barcode-cap {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 7px;
+  text-align: center;
+}
+
+.mr-v4 .mr-pass-perf {
+  position: relative;
+  background: var(--bone);
+}
+.mr-v4 .mr-pass-perf::before {
+  content: '';
+  position: absolute;
+  border-top: 2px dashed rgba(11, 33, 24, 0.28);
+}
+.mr-v4 .mr-pass-perf::after,
+.mr-v4 .mr-pass-perf .mr-pass-notch-b {
+  content: '';
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--green-deep);
+}
+@media (min-width: 680px) {
+  .mr-v4 .mr-pass {
+    grid-template-columns: 1fr 0 200px;
+  }
+  .mr-v4 .mr-pass-perf {
+    width: 0;
+  }
+  .mr-v4 .mr-pass-perf::before {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    border-top: 0;
+    border-left: 2px dashed rgba(11, 33, 24, 0.28);
+  }
+  .mr-v4 .mr-pass-perf::after {
+    top: -13px;
+    left: -13px;
+  }
+  .mr-v4 .mr-pass-perf .mr-pass-notch-b {
+    bottom: -13px;
+    top: auto;
+    left: -13px;
+  }
+}
+@media (max-width: 679px) {
+  .mr-v4 .mr-pass-perf {
+    height: 0;
+  }
+  .mr-v4 .mr-pass-perf::before {
+    left: 0;
+    right: 0;
+    top: 0;
+  }
+  .mr-v4 .mr-pass-perf::after {
+    left: -13px;
+    top: -13px;
+  }
+  .mr-v4 .mr-pass-perf .mr-pass-notch-b {
+    right: -13px;
+    left: auto;
+    top: -13px;
+  }
+}
+
+.mr-v4 .mr-pass-stub {
+  background: var(--bone-2);
+  padding: clamp(20px, 3vw, 28px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  text-align: center;
+}
+.mr-v4 .mr-pass-seal {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  display: grid;
+  place-items: center;
+  font-family: var(--display);
+  font-weight: 900;
+  font-style: italic;
+  color: var(--green);
+  font-size: 1.2rem;
+}
+.mr-v4 .mr-pass-conf {
+  font-family: var(--grotesque);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  color: var(--green);
+}
+.mr-v4 .mr-pass-sd {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Tabbed reference section (RefTabs) */
+.mr-v4 .mr-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid rgba(11, 33, 24, 0.14);
+  padding-bottom: 16px;
+}
+.mr-v4 .mr-tab {
+  font-family: var(--grotesque);
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(11, 33, 24, 0.2);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: 0.2s;
+}
+.mr-v4 .mr-tab:hover {
+  border-color: var(--green);
+}
+.mr-v4 .mr-tab:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+.mr-v4 .mr-tab.is-active {
+  background: var(--persimmon);
+  color: var(--on-persimmon);
+  border-color: var(--persimmon);
+}
+.mr-v4 .mr-tab-panel {
+  padding-top: clamp(28px, 4vw, 40px);
+}
+.mr-v4 .mr-tab-panel[hidden] {
+  display: none;
+}
+
+/* Reference panel content */
+.mr-v4 .mr-ref-order-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  padding: 15px 0;
+  border-top: 1px solid rgba(11, 33, 24, 0.12);
+  align-items: baseline;
+}
+.mr-v4 .mr-ref-order-row:last-child {
+  border-bottom: 1px solid rgba(11, 33, 24, 0.12);
+}
+.mr-v4 .mr-ref-order-time {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  color: var(--persimmon);
+  min-width: 3.2em;
+}
+.mr-v4 .mr-ref-order-name {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.mr-v4 .mr-ref-gt {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+.mr-v4 .mr-ref-gt h4 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.3rem;
+  margin-bottom: 6px;
+}
+.mr-v4 .mr-ref-gt p {
+  opacity: 0.82;
+  max-width: 46ch;
+  margin: 0;
+}
+.mr-v4 .mr-ref-gt-label {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--persimmon);
+  margin-bottom: 8px;
+}
+@media (min-width: 680px) {
+  .mr-v4 .mr-ref-gt {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 38px;
+  }
+}
+
+.mr-v4 .mr-ref-faq dt {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  padding-top: 18px;
+  border-top: 1px solid rgba(11, 33, 24, 0.12);
+  margin-top: 18px;
+}
+.mr-v4 .mr-ref-faq dt:first-child {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+.mr-v4 .mr-ref-faq dd {
+  opacity: 0.8;
+  margin-top: 6px;
+  max-width: 48ch;
+}

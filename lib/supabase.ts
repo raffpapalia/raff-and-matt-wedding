@@ -205,6 +205,15 @@ export type Settings = {
   hashtag: string;
   wedding_photo_url: string;
   couple_photo_url: string;
+  story_photo_url: string;
+  band_photo_url: string;
+  story_heading: string;
+  story_body: string;
+  band_quote: string;
+  pass_stamp_line: string;
+  pass_stamp_sub: string;
+  contact_email: string;
+  getting_there: string;
   google_photos_url: string;
   wedding_schedule: ScheduleItem[];
   section_order: SectionOrderItem[];
@@ -233,6 +242,15 @@ export const DEFAULT_SETTINGS: Settings = {
   hashtag: '#mattraff2027',
   wedding_photo_url: '',
   couple_photo_url: '',
+  story_photo_url: '',
+  band_photo_url: '',
+  story_heading: 'Boy meets boy. Boy makes questionable dinner.',
+  story_body: "A line or two in your own voice goes here — where you met, the date that shouldn't have worked but did.",
+  band_quote: 'One afternoon that turns into a very good night.',
+  pass_stamp_line: "You're in",
+  pass_stamp_sub: 'dance floor: non-negotiable',
+  contact_email: '',
+  getting_there: '',
   google_photos_url: '',
   wedding_schedule: [
     { time: '3:00 PM', label: 'Arrive', location: 'QT Melbourne', description: 'Doors open — come say hello.' },

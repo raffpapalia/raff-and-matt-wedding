@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import type { Household, Guest, CustomQuestion, CustomAnswer } from '@/lib/supabase';
+import { formatShortWeekday } from '@/lib/date';
 
 interface RSVPPhaseProps {
   household: Household;
@@ -12,6 +13,8 @@ interface RSVPPhaseProps {
   dietaryOptions?: string[];
   rsvpCutoffDate?: string;
   embedded?: boolean;
+  // Display-only — shown on the post-submit confirmation card. Not used by submit logic.
+  weddingDate?: string;
 }
 
 function isPastCutoff(cutoffDate: string): boolean {
@@ -108,43 +111,31 @@ function SongQuestionInput({
 
   return (
     <div>
-      <p
-        className="mb-3"
-        style={{
-          fontFamily: 'var(--font-dm-sans)',
-          color: 'var(--cream)',
-          fontStyle: 'italic',
-          opacity: promptVisible ? 0.7 : 0,
-          fontSize: '0.85rem',
-          transition: 'opacity 400ms ease-in-out',
-        }}
-      >
+      <p className="rv-song-prompt" style={{ opacity: promptVisible ? 1 : 0 }}>
         {SONG_PROMPTS[promptIdx]}
       </p>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <span className="text-[var(--gold-base)] text-xl shrink-0" aria-hidden>🎵</span>
+        <span className="text-xl shrink-0" aria-hidden>🎵</span>
         <input
           type="text"
           placeholder="Artist"
           value={parsed.artist}
           onChange={e => update('artist', e.target.value)}
-          className="flex-1 px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
-          style={{ fontFamily: 'var(--font-dm-sans)' }}
+          className="rv-field flex-1"
         />
         <input
           type="text"
           placeholder="Song title"
           value={parsed.song}
           onChange={e => update('song', e.target.value)}
-          className="flex-1 px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
-          style={{ fontFamily: 'var(--font-dm-sans)' }}
+          className="rv-field flex-1"
         />
       </div>
     </div>
   );
 }
 
-export default function RSVPPhase({ household, guests, questions, existingAnswers, dietaryOptions, rsvpCutoffDate, embedded = false }: RSVPPhaseProps) {
+export default function RSVPPhase({ household, guests, questions, existingAnswers, dietaryOptions, rsvpCutoffDate, embedded = false, weddingDate }: RSVPPhaseProps) {
   const DIETARY_OPTIONS = buildDietaryOptions(dietaryOptions ?? DEFAULT_DIETARY_LABELS);
   const rsvpClosed = rsvpCutoffDate ? isPastCutoff(rsvpCutoffDate) : false;
   const [formData, setFormData] = useState<GuestFormData>(
@@ -325,35 +316,19 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
 
   if (submitted) {
     return (
-      <div className="w-full">
-        {!embedded && <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[var(--forest-accent)]/5 to-transparent opacity-100" aria-hidden="true" />}
-        <div className={embedded ? 'text-center py-4' : 'relative z-10 w-full max-w-2xl px-4 sm:px-6 text-center'}>
-          <h2 className="text-5xl sm:text-6xl font-light text-[var(--cream)] mb-8" style={{ fontFamily: 'var(--font-cinzel)' }}>
-            Thank you!
-          </h2>
-          <p className="text-xl sm:text-2xl text-white/80 mb-6 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-            {getConfirmationMessage()}
-          </p>
-          <p className="text-base sm:text-lg text-[var(--gold-base)]/80 font-light mb-8" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+      <div className="mr-rsvp-v4 mr-v4">
+        <div style={{ textAlign: 'center' }}>
+          <h2 className="rv-success-heading">You&apos;re on the list</h2>
+          {weddingDate && (
+            <p className="rv-success-meta">
+              {householdName} &nbsp;·&nbsp; {formatShortWeekday(weddingDate)}
+            </p>
+          )}
+          <p className="rv-success-message">{getConfirmationMessage()}</p>
+          <p className="rv-success-message" style={{ opacity: 0.7 }}>
             More details will be sent your way soon.
           </p>
-          <button
-            type="button"
-            onClick={() => setSubmitted(false)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--gold-base)',
-              textDecoration: 'underline',
-              fontSize: '1rem',
-              padding: '20px 40px',
-              margin: '0 auto',
-              display: 'block',
-              cursor: 'pointer',
-              WebkitTapHighlightColor: 'transparent',
-              touchAction: 'manipulation',
-            }}
-          >
+          <button type="button" onClick={() => setSubmitted(false)} className="rv-update-link">
             Update your RSVP
           </button>
         </div>
@@ -363,80 +338,48 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
 
   if (showSummary) {
     return (
-      <div className="w-full">
-        <div className="w-full">
-          <div className="mb-6">
-            <p className="text-lg font-light text-[var(--cream)] mb-1" style={{ fontFamily: 'var(--font-cinzel)' }}>
-              You&apos;re all set!
-            </p>
-            <p className="text-sm text-white/50 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-              Here&apos;s what we have for you.
-            </p>
-          </div>
+      <div className="mr-rsvp-v4 mr-v4">
+        <div style={{ marginBottom: 24 }}>
+          <p className="rv-guest-name" style={{ marginBottom: 4 }}>You&apos;re all set!</p>
+          <p className="rv-label" style={{ marginBottom: 0 }}>Here&apos;s what we have for you</p>
+        </div>
 
-          <div className="space-y-0 mb-6">
-            {guests.map(guest => (
-              <div key={guest.id} className="border-b border-[var(--gold-base)]/20 py-3 last:border-b-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-light text-[var(--cream)]" style={{ fontFamily: 'var(--font-cinzel)' }}>
-                    {guest.first_name} {guest.last_name}
-                  </h3>
-                  <span
-                    className={`text-xs uppercase tracking-widest px-3 py-1 font-light border ${
-                      guest.rsvp_status === 'attending'
-                        ? 'bg-[var(--gold-base)]/15 text-[var(--gold-base)] border-[var(--gold-base)]/40'
-                        : 'bg-white/5 text-white/40 border-white/20'
-                    }`}
-                    style={{ fontFamily: 'var(--font-dm-sans)' }}
-                  >
-                    {guest.rsvp_status === 'attending' ? 'Attending' : 'Not attending'}
-                  </span>
-                </div>
+        <div>
+          {guests.map(guest => (
+            <div key={guest.id} className="rv-summary-row">
+              <div>
+                <h3 style={{ fontFamily: 'var(--display)', fontWeight: 600, fontSize: '1.05rem', margin: 0 }}>
+                  {guest.first_name} {guest.last_name}
+                </h3>
                 {guest.rsvp_status === 'attending' && guest.dietary_requirement && guest.dietary_requirement !== 'none' && (
-                  <p className="text-xs text-white/40 font-light mt-0.5" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+                  <p style={{ fontFamily: 'var(--body)', fontSize: '0.78rem', opacity: 0.6, margin: '2px 0 0' }}>
                     {getDietaryLabel(guest.dietary_requirement, guest.dietary_other, DIETARY_OPTIONS)}
                     {guest.dietary_requirement === 'other' && guest.dietary_other ? ` — ${guest.dietary_other}` : ''}
                   </p>
                 )}
               </div>
-            ))}
-          </div>
-
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowSummary(false)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--gold-base)',
-                textDecoration: 'underline',
-                fontSize: '1rem',
-                padding: '20px 40px',
-                margin: '0 auto',
-                display: 'block',
-                cursor: 'pointer',
-                WebkitTapHighlightColor: 'transparent',
-                touchAction: 'manipulation',
-              }}
-            >
-              Update your RSVP
-            </button>
-          </div>
+              <span className={`rv-badge ${guest.rsvp_status === 'attending' ? 'is-attending' : ''}`}>
+                {guest.rsvp_status === 'attending' ? 'Attending' : 'Not attending'}
+              </span>
+            </div>
+          ))}
         </div>
+
+        <button type="button" onClick={() => setShowSummary(false)} className="rv-update-link">
+          Update your RSVP
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="w-full">
-      <div className="w-full">
-        {/* Header with Personal Photo and Message */}
-        {!embedded && <div className="mb-12 sm:mb-16 text-center">
-          {/* Personal Photo */}
+    <div className="mr-rsvp-v4 mr-v4">
+      {/* Header with Personal Photo and Message */}
+      {!embedded && (
+        <div className="rv-section" style={{ textAlign: 'center' }}>
           {household.personal_photo_url && (
-            <div className="mb-8 w-full max-w-sm mx-auto">
-              <div className="relative aspect-square rounded-sm overflow-hidden border border-accent-gold/30">
+            <div style={{ marginBottom: 24, width: '100%', maxWidth: 280, marginLeft: 'auto', marginRight: 'auto' }}>
+              <div style={{ position: 'relative', aspectRatio: 1, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(11,33,24,.16)' }}>
                 <Image
                   src={household.personal_photo_url}
                   alt="Personal photo"
@@ -448,393 +391,296 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
             </div>
           )}
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-light text-[var(--cream)] mb-4" style={{ fontFamily: 'var(--font-cinzel)' }}>
-            {householdName}
-          </h1>
+          <h1 className="rv-success-heading" style={{ margin: '0 0 12px' }}>{householdName}</h1>
 
-          {/* Personal Message */}
           {household.personal_message && (
-            <p className="text-lg sm:text-xl text-white/70 font-light italic mb-6" style={{ fontFamily: 'var(--font-dm-sans)' }}>
+            <p style={{ fontFamily: 'var(--body)', fontStyle: 'italic', fontSize: '1rem', opacity: 0.78, margin: 0 }}>
               {household.personal_message}
             </p>
           )}
+        </div>
+      )}
 
-          <div className="h-px w-24 bg-[var(--gold-base)] mx-auto" />
-        </div>}
+      {/* RSVP Form */}
+      <form onSubmit={handleSubmit}>
+        {/* Invited Guests */}
+        {guests.map(guest => (
+          <div key={guest.id} className="rv-section">
+            <h3 className="rv-guest-name">
+              {guest.first_name} {guest.last_name}
+            </h3>
 
-        {/* RSVP Form */}
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Invited Guests */}
-          {guests.map((guest, idx) => (
-            <div key={guest.id} className="border-b border-[var(--gold-base)]/20 pb-8 last:border-b-0">
-              <h3 className="text-2xl text-[var(--cream)] mb-8 font-light" style={{ fontFamily: 'var(--font-cinzel)' }}>
-                {guest.first_name} {guest.last_name}
-              </h3>
+            {/* Attending Toggle - Primary Question */}
+            <div style={{ marginBottom: formData[guest.id].attending ? 24 : 0 }}>
+              <p className="rv-label">Will you be attending?</p>
+              <div className="rv-pill-row">
+                <button
+                  type="button"
+                  onClick={() => handleAttendingChange(guest.id, true)}
+                  className={`rv-pill ${formData[guest.id].attending ? 'is-active' : ''}`}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAttendingChange(guest.id, false)}
+                  className={`rv-pill ${!formData[guest.id].attending ? 'is-active' : ''}`}
+                >
+                  No
+                </button>
+              </div>
+            </div>
 
-              {/* Attending Toggle - Primary Question */}
-              <div className="mb-8">
-                <p className="text-base uppercase tracking-widest text-[var(--gold-base)] mb-5 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-                  Will you be attending?
-                </p>
-                <div className="flex gap-4">
+            {/* Dietary Requirements - Only show if attending */}
+            {formData[guest.id].attending && (
+              <div>
+                <p className="rv-label">Dietary requirements</p>
+                <div className="rv-pill-row" style={{ marginBottom: 16 }}>
                   <button
                     type="button"
-                    onClick={() => handleAttendingChange(guest.id, true)}
-                    className={`px-8 py-4 font-light text-base transition-all ${
-                      formData[guest.id].attending
-                        ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
-                        : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
-                    }`}
-                    style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
-                  >
-                    Yes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAttendingChange(guest.id, false)}
-                    className={`px-8 py-4 font-light text-base transition-all ${
-                      !formData[guest.id].attending
-                        ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
-                        : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
-                    }`}
-                    style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
+                    onClick={() => handleHasDietaryChange(guest.id, false)}
+                    className={`rv-pill rv-pill-sm ${!formData[guest.id].hasDietary ? 'is-active' : ''}`}
                   >
                     No
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => handleHasDietaryChange(guest.id, true)}
+                    className={`rv-pill rv-pill-sm ${formData[guest.id].hasDietary ? 'is-active' : ''}`}
+                  >
+                    Yes
+                  </button>
                 </div>
-              </div>
 
-              {/* Dietary Requirements - Only show if attending */}
-              {formData[guest.id].attending && (
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-[var(--gold-base)]/80 mb-3" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-                    Dietary requirements
-                  </p>
-                  <div className="flex gap-3 mb-4">
-                    <button
-                      type="button"
-                      onClick={() => handleHasDietaryChange(guest.id, false)}
-                      className={`px-4 py-2 font-light text-sm transition-all ${
-                        !formData[guest.id].hasDietary
-                          ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
-                          : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
-                      }`}
-                      style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
+                {/* Dietary Dropdown */}
+                {formData[guest.id].hasDietary && (
+                  <>
+                    <label className="rv-label">What are your requirements?</label>
+                    <select
+                      value={formData[guest.id].dietary_requirement}
+                      onChange={(e) => handleDietaryChange(guest.id, e.target.value)}
+                      className="rv-field"
+                      style={{ marginBottom: 16 }}
                     >
-                      No
-                    </button>
+                      {DIETARY_OPTIONS.filter(opt => opt.value !== 'none').map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Other Dietary Text Field */}
+                    {formData[guest.id].dietary_requirement === 'other' && (
+                      <input
+                        type="text"
+                        placeholder="Please specify"
+                        value={formData[guest.id].dietary_other}
+                        onChange={(e) => handleDietaryOtherChange(guest.id, e.target.value)}
+                        className="rv-field"
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* Plus One Guests Section */}
+        {household.plus_one_allowance > 0 && (
+          <div className="rv-divider" style={{ marginBottom: 'clamp(24px, 4vw, 32px)' }}>
+            <p style={{ fontFamily: 'var(--body)', fontSize: '0.92rem', marginBottom: 18 }}>
+              You&apos;re welcome to bring {household.plus_one_allowance} additional guest{household.plus_one_allowance !== 1 ? 's' : ''}
+            </p>
+
+            {/* Existing Plus Ones */}
+            {plusOnes.map((plusOne, idx) => (
+              <div key={plusOne.id} className="rv-plus-one-card">
+                <div className="flex justify-between items-center" style={{ marginBottom: 14 }}>
+                  <p className="rv-label" style={{ margin: 0 }}>Additional Guest {idx + 1}</p>
+                  <button type="button" onClick={() => removePlusOne(plusOne.id)} className="rv-remove-link">
+                    Remove
+                  </button>
+                </div>
+
+                <div className="grid gap-3 grid-cols-2" style={{ marginBottom: 14 }}>
+                  <input
+                    type="text"
+                    placeholder="First name"
+                    value={plusOne.first_name}
+                    onChange={(e) => handlePlusOneChange(plusOne.id, 'first_name', e.target.value)}
+                    className="rv-field rv-field-sm"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Last name"
+                    value={plusOne.last_name}
+                    onChange={(e) => handlePlusOneChange(plusOne.id, 'last_name', e.target.value)}
+                    className="rv-field rv-field-sm"
+                  />
+                </div>
+
+                <div style={{ marginBottom: 14 }}>
+                  <p className="rv-label">Attending?</p>
+                  <div className="rv-pill-row">
                     <button
                       type="button"
-                      onClick={() => handleHasDietaryChange(guest.id, true)}
-                      className={`px-4 py-2 font-light text-sm transition-all ${
-                        formData[guest.id].hasDietary
-                          ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
-                          : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
-                      }`}
-                      style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
+                      onClick={() => handlePlusOneChange(plusOne.id, 'attending', true)}
+                      className={`rv-pill rv-pill-sm ${plusOne.attending ? 'is-active' : ''}`}
                     >
                       Yes
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePlusOneChange(plusOne.id, 'attending', false)}
+                      className={`rv-pill rv-pill-sm ${!plusOne.attending ? 'is-active' : ''}`}
+                    >
+                      No
+                    </button>
                   </div>
-
-                  {/* Dietary Dropdown */}
-                  {formData[guest.id].hasDietary && (
-                    <>
-                      <label className="text-xs uppercase tracking-widest text-[var(--gold-base)]/80 mb-2 block" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-                        What are your requirements?
-                      </label>
-                      <select
-                        value={formData[guest.id].dietary_requirement}
-                        onChange={(e) => handleDietaryChange(guest.id, e.target.value)}
-                        className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] focus:border-[var(--gold-base)] outline-none transition-colors mb-4 text-sm"
-                        style={{ fontFamily: 'var(--font-dm-sans)' }}
-                      >
-                        {DIETARY_OPTIONS.filter(opt => opt.value !== 'none').map(option => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-
-                      {/* Other Dietary Text Field */}
-                      {formData[guest.id].dietary_requirement === 'other' && (
-                        <input
-                          type="text"
-                          placeholder="Please specify"
-                          value={formData[guest.id].dietary_other}
-                          onChange={(e) => handleDietaryOtherChange(guest.id, e.target.value)}
-                          className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
-                          style={{ fontFamily: 'var(--font-dm-sans)' }}
-                        />
-                      )}
-                    </>
-                  )}
                 </div>
-              )}
-            </div>
-          ))}
 
-          {/* Plus One Guests Section */}
-          {household.plus_one_allowance > 0 && (
-            <div className="border-t border-[var(--gold-base)]/20 pt-8">
-              <div className="mb-8">
-                <p className="text-base text-[var(--cream)] mb-4 font-light" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-                  You're welcome to bring {household.plus_one_allowance} additional guest{household.plus_one_allowance !== 1 ? 's' : ''}
-                </p>
-
-                {/* Existing Plus Ones */}
-                {plusOnes.map((plusOne, idx) => (
-                  <div key={plusOne.id} className="mb-6 p-4 border border-[var(--gold-base)]/20 rounded">
-                    <div className="flex justify-between items-center mb-4">
-                      <p className="text-sm text-[var(--gold-base)]" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-                        Additional Guest {idx + 1}
-                      </p>
+                {plusOne.attending && (
+                  <div>
+                    <p className="rv-label">Dietary requirements?</p>
+                    <div className="rv-pill-row" style={{ marginBottom: 10 }}>
                       <button
                         type="button"
-                        onClick={() => removePlusOne(plusOne.id)}
-                        className="text-xs text-[var(--gold-base)]/60 hover:text-[var(--gold-base)] transition-colors"
-                        style={{ touchAction: 'manipulation' }}
+                        onClick={() => handlePlusOneChange(plusOne.id, 'hasDietary', false)}
+                        className={`rv-pill rv-pill-sm ${!plusOne.hasDietary ? 'is-active' : ''}`}
                       >
-                        Remove
+                        No
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handlePlusOneChange(plusOne.id, 'hasDietary', true)}
+                        className={`rv-pill rv-pill-sm ${plusOne.hasDietary ? 'is-active' : ''}`}
+                      >
+                        Yes
                       </button>
                     </div>
 
-                    <div className="grid gap-4 grid-cols-2 mb-4">
-                      <input
-                        type="text"
-                        placeholder="First name"
-                        value={plusOne.first_name}
-                        onChange={(e) => handlePlusOneChange(plusOne.id, 'first_name', e.target.value)}
-                        className="px-4 py-2 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
-                        style={{ fontFamily: 'var(--font-dm-sans)' }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Last name"
-                        value={plusOne.last_name}
-                        onChange={(e) => handlePlusOneChange(plusOne.id, 'last_name', e.target.value)}
-                        className="px-4 py-2 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
-                        style={{ fontFamily: 'var(--font-dm-sans)' }}
-                      />
-                    </div>
-
-                    <div className="mb-4">
-                      <p className="text-xs uppercase tracking-widest text-[var(--gold-base)]/80 mb-2" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-                        Attending?
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handlePlusOneChange(plusOne.id, 'attending', true)}
-                          className={`px-3 py-2 font-light text-xs transition-all ${
-                            plusOne.attending
-                              ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
-                              : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
-                          }`}
-                          style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
+                    {plusOne.hasDietary && (
+                      <>
+                        <select
+                          value={plusOne.dietary_requirement}
+                          onChange={(e) => handlePlusOneChange(plusOne.id, 'dietary_requirement', e.target.value)}
+                          className="rv-field rv-field-sm"
+                          style={{ marginBottom: 10 }}
                         >
-                          Yes
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handlePlusOneChange(plusOne.id, 'attending', false)}
-                          className={`px-3 py-2 font-light text-xs transition-all ${
-                            !plusOne.attending
-                              ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
-                              : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
-                          }`}
-                          style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
-                        >
-                          No
-                        </button>
-                      </div>
-                    </div>
+                          {DIETARY_OPTIONS.filter(opt => opt.value !== 'none').map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
 
-                    {plusOne.attending && (
-                      <div>
-                        <p className="text-xs uppercase tracking-widest text-[var(--gold-base)]/80 mb-2" style={{ fontFamily: 'var(--font-dm-sans)' }}>
-                          Dietary requirements?
-                        </p>
-                        <div className="flex gap-2 mb-2">
-                          <button
-                            type="button"
-                            onClick={() => handlePlusOneChange(plusOne.id, 'hasDietary', false)}
-                            className={`px-3 py-2 font-light text-xs transition-all ${
-                              !plusOne.hasDietary
-                                ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
-                                : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
-                            }`}
-                            style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
-                          >
-                            No
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handlePlusOneChange(plusOne.id, 'hasDietary', true)}
-                            className={`px-3 py-2 font-light text-xs transition-all ${
-                              plusOne.hasDietary
-                                ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
-                                : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
-                            }`}
-                            style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
-                          >
-                            Yes
-                          </button>
-                        </div>
-
-                        {plusOne.hasDietary && (
-                          <>
-                            <select
-                              value={plusOne.dietary_requirement}
-                              onChange={(e) => handlePlusOneChange(plusOne.id, 'dietary_requirement', e.target.value)}
-                              className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] focus:border-[var(--gold-base)] outline-none transition-colors mb-2 text-xs"
-                              style={{ fontFamily: 'var(--font-dm-sans)' }}
-                            >
-                              {DIETARY_OPTIONS.filter(opt => opt.value !== 'none').map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-
-                            {plusOne.dietary_requirement === 'other' && (
-                              <input
-                                type="text"
-                                placeholder="Please specify"
-                                value={plusOne.dietary_other}
-                                onChange={(e) => handlePlusOneChange(plusOne.id, 'dietary_other', e.target.value)}
-                                className="w-full px-3 py-2 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-xs"
-                                style={{ fontFamily: 'var(--font-dm-sans)' }}
-                              />
-                            )}
-                          </>
+                        {plusOne.dietary_requirement === 'other' && (
+                          <input
+                            type="text"
+                            placeholder="Please specify"
+                            value={plusOne.dietary_other}
+                            onChange={(e) => handlePlusOneChange(plusOne.id, 'dietary_other', e.target.value)}
+                            className="rv-field rv-field-sm"
+                          />
                         )}
-                      </div>
+                      </>
                     )}
                   </div>
-                ))}
-
-                {/* Add Plus One Button */}
-                {plusOnes.length < household.plus_one_allowance && (
-                  <button
-                    type="button"
-                    onClick={addPlusOne}
-                    className="text-sm text-[var(--gold-base)] hover:text-[var(--cream)] transition-colors underline"
-                    style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
-                  >
-                    + Add another guest
-                  </button>
                 )}
               </div>
-            </div>
-          )}
+            ))}
 
-          {/* Custom Questions */}
-          {questions.length > 0 && (
-            <div className="border-t border-[var(--gold-base)]/20 pt-8 space-y-10">
-              {questions.map(q => (
-                <div key={q.id}>
-                  <p
-                    className="text-base uppercase tracking-widest text-[var(--gold-base)] mb-5 font-light"
-                    style={{ fontFamily: 'var(--font-dm-sans)' }}
-                  >
-                    {q.question_text}
-                  </p>
-
-                  {q.question_type === 'text' && (
-                    <input
-                      type="text"
-                      value={questionAnswers[q.id] ?? ''}
-                      onChange={e => setQuestionAnswer(q.id, e.target.value)}
-                      className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
-                      style={{ fontFamily: 'var(--font-dm-sans)' }}
-                    />
-                  )}
-
-                  {q.question_type === 'textarea' && (
-                    <textarea
-                      rows={3}
-                      value={questionAnswers[q.id] ?? ''}
-                      onChange={e => setQuestionAnswer(q.id, e.target.value)}
-                      className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] placeholder-[var(--gold-base)]/30 focus:border-[var(--gold-base)] outline-none transition-colors text-sm resize-none"
-                      style={{ fontFamily: 'var(--font-dm-sans)' }}
-                    />
-                  )}
-
-                  {q.question_type === 'yes_no' && (
-                    <div className="flex gap-4">
-                      {(['yes', 'no'] as const).map(val => (
-                        <button
-                          key={val}
-                          type="button"
-                          onClick={() => setQuestionAnswer(q.id, val)}
-                          className={`px-8 py-4 font-light text-base transition-all ${
-                            questionAnswers[q.id] === val
-                              ? 'bg-[var(--gold-base)] text-[var(--bg-primary)]'
-                              : 'border border-[var(--gold-base)]/50 text-[var(--cream)] hover:border-[var(--gold-base)]'
-                          }`}
-                          style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
-                        >
-                          {val === 'yes' ? 'Yes' : 'No'}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {q.question_type === 'dropdown' && (
-                    <select
-                      value={questionAnswers[q.id] ?? ''}
-                      onChange={e => setQuestionAnswer(q.id, e.target.value)}
-                      className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--gold-base)]/50 text-[var(--cream)] focus:border-[var(--gold-base)] outline-none transition-colors text-sm"
-                      style={{ fontFamily: 'var(--font-dm-sans)' }}
-                    >
-                      <option value="">Select an option...</option>
-                      {(q.options ?? []).map(opt => (
-                        <option key={opt} value={opt}>{opt}</option>
-                      ))}
-                    </select>
-                  )}
-
-                  {q.question_type === 'song' && (
-                    <SongQuestionInput
-                      value={questionAnswers[q.id] ?? ''}
-                      onChange={val => setQuestionAnswer(q.id, val)}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="text-center text-red-300 text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Submit Button or cutoff notice */}
-          <div className="pt-8">
-            {rsvpClosed ? (
-              <p
-                className="text-center text-sm text-[var(--cream)]/60 font-light"
-                style={{ fontFamily: 'var(--font-dm-sans)' }}
-              >
-                RSVP submissions are now closed. Please contact Matt &amp; Raff directly.
-              </p>
-            ) : (
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 bg-[var(--gold-base)] text-[var(--bg-primary)] font-light uppercase tracking-widest transition-all disabled:opacity-50 hover:bg-[var(--gold-champagne)]"
-                style={{ fontFamily: 'var(--font-dm-sans)', touchAction: 'manipulation' }}
-              >
-                {loading ? 'Submitting...' : 'Submit RSVP'}
+            {/* Add Plus One Button */}
+            {plusOnes.length < household.plus_one_allowance && (
+              <button type="button" onClick={addPlusOne} className="rv-add-link">
+                + Add another guest
               </button>
             )}
           </div>
-        </form>
-      </div>
+        )}
+
+        {/* Custom Questions */}
+        {questions.length > 0 && (
+          <div className="rv-divider" style={{ marginBottom: 'clamp(24px, 4vw, 32px)' }}>
+            {questions.map((q, qi) => (
+              <div key={q.id} style={{ marginBottom: qi < questions.length - 1 ? 28 : 0 }}>
+                <p className="rv-label">{q.question_text}</p>
+
+                {q.question_type === 'text' && (
+                  <input
+                    type="text"
+                    value={questionAnswers[q.id] ?? ''}
+                    onChange={e => setQuestionAnswer(q.id, e.target.value)}
+                    className="rv-field"
+                  />
+                )}
+
+                {q.question_type === 'textarea' && (
+                  <textarea
+                    rows={3}
+                    value={questionAnswers[q.id] ?? ''}
+                    onChange={e => setQuestionAnswer(q.id, e.target.value)}
+                    className="rv-field"
+                    style={{ resize: 'none' }}
+                  />
+                )}
+
+                {q.question_type === 'yes_no' && (
+                  <div className="rv-pill-row">
+                    {(['yes', 'no'] as const).map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setQuestionAnswer(q.id, val)}
+                        className={`rv-pill ${questionAnswers[q.id] === val ? 'is-active' : ''}`}
+                      >
+                        {val === 'yes' ? 'Yes' : 'No'}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {q.question_type === 'dropdown' && (
+                  <select
+                    value={questionAnswers[q.id] ?? ''}
+                    onChange={e => setQuestionAnswer(q.id, e.target.value)}
+                    className="rv-field"
+                  >
+                    <option value="">Select an option...</option>
+                    {(q.options ?? []).map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                )}
+
+                {q.question_type === 'song' && (
+                  <SongQuestionInput
+                    value={questionAnswers[q.id] ?? ''}
+                    onChange={val => setQuestionAnswer(q.id, val)}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && <div className="rv-error" style={{ marginBottom: 20 }}>{error}</div>}
+
+        {/* Submit Button or cutoff notice */}
+        <div>
+          {rsvpClosed ? (
+            <p className="rv-cutoff-notice">
+              RSVP submissions are now closed. Please contact Matt &amp; Raff directly.
+            </p>
+          ) : (
+            <button type="submit" disabled={loading} className="rv-submit">
+              {loading ? 'Submitting...' : 'Submit RSVP'}
+            </button>
+          )}
+        </div>
+      </form>
     </div>
   );
 }

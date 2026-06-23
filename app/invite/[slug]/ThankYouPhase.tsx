@@ -1,9 +1,13 @@
-'use client';
-
-import { useState } from 'react';
 import type { Household, Guest, Settings } from '@/lib/supabase';
-import { Parallelogram, EmeraldJewel, WaterRipple } from './v3/primitives';
-import { palette, alpha } from './v3/tokens';
+import { formatDotted, cityFromLocation } from '@/lib/date';
+import StickyBar from './v4/components/StickyBar';
+import Section from './v4/components/Section';
+import Reveal from './v4/components/Reveal';
+import Kicker from './v4/components/Kicker';
+import Button from './v4/components/Button';
+import Stamp from './v4/components/Stamp';
+import TreatedPhoto from './v4/components/TreatedPhoto';
+import { tokens } from './v4/tokens';
 
 interface ThankYouPhaseProps {
   household: Household;
@@ -11,250 +15,184 @@ interface ThankYouPhaseProps {
   settings: Settings;
 }
 
+interface StateCopy {
+  headline: string;
+  opening: string;
+  galleryHeading: string;
+  signoff: string;
+}
+
+const ATTENDED_COPY: StateCopy = {
+  headline: 'Thank you for being there.',
+  opening: "It wouldn't have been the same without you in the room.",
+  galleryHeading: 'In case you want to relive it',
+  signoff: 'Until the next dance floor —',
+};
+
+const MISSED_COPY: StateCopy = {
+  headline: 'We missed you.',
+  opening: "You were there in spirit — here's the night, so you don't miss a thing.",
+  galleryHeading: "Here's how it went",
+  signoff: "Hopefully we'll catch you on the next one —",
+};
+
 export default function ThankYouPhase({ household, guests, settings }: ThankYouPhaseProps) {
-  const [photoError, setPhotoError] = useState(false);
+  const attended = guests.some(g => g.rsvp_status === 'attending');
+  const copy = attended ? ATTENDED_COPY : MISSED_COPY;
+  const [name1, name2] = settings.couple_names.includes(' & ')
+    ? settings.couple_names.split(' & ')
+    : [settings.couple_names, ''];
 
-  const anyStatuses = guests.some(g => g.rsvp_status !== 'pending');
-  const attended = !anyStatuses || guests.some(g => g.rsvp_status === 'attending');
-
-  const photoUrl = settings.wedding_photo_url;
-  const photosUrl = settings.google_photos_url;
-
-  const showPhoto = !!photoUrl && !photoError;
+  const hasNote = Boolean(household.thank_you_message || household.thank_you_photo_url);
+  const hasFeaturePhotos = Boolean(settings.wedding_photo_url || household.thank_you_photo_url);
+  const bothPhotos = Boolean(settings.wedding_photo_url && household.thank_you_photo_url);
 
   return (
-    <div style={{ backgroundColor: palette.bgPrimary, color: palette.cream, minHeight: '100dvh' }}>
+    <div style={{ fontFamily: tokens.body, fontWeight: 300, lineHeight: 1.6 }}>
+      <StickyBar
+        coupleNames={settings.couple_names}
+        rightHref={settings.google_photos_url || '#gallery'}
+        rightLabel="The photos"
+        rightVariant="ghost"
+      />
 
-      {/* Hero photo — full width 16:9 max-height 560px */}
-      {showPhoto && (
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            aspectRatio: '16/9',
-            maxHeight: '560px',
-            overflow: 'hidden',
-          }}
-        >
-          <img
-            src={photoUrl}
-            alt="Wedding day"
-            onError={() => setPhotoError(true)}
+      {/* ── HERO ── */}
+      <Section variant="deep" backgroundImage={settings.wedding_photo_url || undefined} minHeight="96svh" contentAlign="center">
+        <Reveal style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          <Stamp line="That's a wrap ✓" color={tokens.gold} inline />
+          <h1
             style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-              display: 'block',
-              filter: 'brightness(0.88) contrast(1.02) saturate(0.95)',
-            }}
-          />
-
-          {/* Water ripple overlay */}
-          <div style={{ position: 'absolute', inset: 0, mixBlendMode: 'overlay', pointerEvents: 'none' }}>
-            <WaterRipple opacity={0.2} />
-          </div>
-
-          {/* Gradient fade to background at bottom */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: `linear-gradient(to bottom, transparent 45%, ${palette.bgPrimary} 100%)`,
-              pointerEvents: 'none',
-            }}
-          />
-
-          {/* Top-left overlay: EmeraldJewel + "WITH GRATITUDE" */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '1.75rem',
-              left: '1.75rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.6rem',
-              pointerEvents: 'none',
+              fontFamily: tokens.display,
+              fontWeight: 900,
+              fontSize: 'clamp(2.8rem, 10vw, 6rem)',
+              lineHeight: 0.98,
+              letterSpacing: '-0.02em',
+              maxWidth: '15ch',
+              margin: 0,
             }}
           >
-            <EmeraldJewel width={18} height={10} />
+            {copy.headline}
+          </h1>
+          <p
+            style={{
+              fontFamily: tokens.display,
+              fontStyle: 'italic',
+              fontSize: 'clamp(1.15rem, 3.4vw, 1.7rem)',
+              marginTop: 22,
+              maxWidth: '26ch',
+              opacity: 0.9,
+            }}
+          >
+            {copy.opening}
+          </p>
+        </Reveal>
+      </Section>
+
+      {/* ── NOTE — household-driven, optional ── */}
+      {hasNote && (
+        <Section variant="deep">
+          <Reveal style={{ maxWidth: 620, margin: '0 auto', textAlign: 'center' }}>
+            <Kicker variant="bare" label="A note from us" />
+            {household.thank_you_message && (
+              <p
+                style={{
+                  fontFamily: tokens.display,
+                  fontStyle: 'italic',
+                  fontWeight: 400,
+                  fontSize: 'clamp(1.3rem, 4vw, 2rem)',
+                  lineHeight: 1.3,
+                  marginTop: 18,
+                  whiteSpace: 'pre-line',
+                }}
+              >
+                {household.thank_you_message}
+              </p>
+            )}
+            {household.thank_you_photo_url && (
+              <div style={{ marginTop: 24, maxWidth: 280, marginLeft: 'auto', marginRight: 'auto' }}>
+                <TreatedPhoto src={household.thank_you_photo_url} alt="" ratio={3 / 4} shape="rect" />
+              </div>
+            )}
             <p
               style={{
-                fontFamily: 'var(--font-dm-sans)',
-                fontSize: '0.6rem',
+                fontFamily: tokens.mono,
+                fontSize: '0.66rem',
+                letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                letterSpacing: '0.4em',
-                color: palette.goldChampagne,
-                margin: 0,
+                color: tokens.gold,
+                marginTop: 24,
               }}
             >
-              With Gratitude
+              — {settings.couple_names}
             </p>
-          </div>
-        </div>
+          </Reveal>
+        </Section>
       )}
 
-      {!showPhoto && <div style={{ paddingTop: '5rem' }} />}
-
-      {/* Content */}
-      <div
-        style={{
-          maxWidth: '640px',
-          margin: '0 auto',
-          padding: `${showPhoto ? '2rem' : '0'} 1.75rem 5rem`,
-        }}
-      >
-        {/* "To" + guest names */}
-        <div style={{ marginBottom: '1rem' }}>
-          <p
-            style={{
-              fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.65rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.3em',
-              color: palette.goldChampagne,
-              opacity: 0.7,
-              marginBottom: '0.35rem',
-            }}
-          >
-            To
-          </p>
-          <p
-            style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: 'clamp(1.25rem, 4vw, 1.75rem)',
-              color: palette.cream,
-              margin: 0,
-            }}
-          >
-            {household.name}
-          </p>
-        </div>
-
-        {/* "Thank" + forestAccent bar + rule, "You" right-aligned in gold gradient */}
-        <div style={{ marginBottom: '2.5rem' }}>
-          <h1
-            style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: 'clamp(3.25rem, 11vw, 6rem)',
-              color: palette.cream,
-              lineHeight: 1,
-              margin: 0,
-            }}
-          >
-            Thank
-          </h1>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1rem',
-              margin: '0.35rem 0',
-            }}
-          >
-            <Parallelogram width={64} height={26} color={palette.forestAccent} skew={16} />
-            <div style={{ flex: 1, height: '1px', backgroundColor: alpha(palette.cream, 0.18) }} />
+      {/* ── GALLERY ── */}
+      <Section variant="bone" id="gallery">
+        <Reveal>
+          <div style={{ textAlign: 'center', marginBottom: 'clamp(34px, 5vw, 52px)' }}>
+            <Kicker variant="bare" label="The night" />
+            <h2 style={{ fontFamily: tokens.display, fontWeight: 900, fontSize: 'clamp(2rem, 7vw, 3.4rem)', marginTop: 12, color: tokens.green }}>
+              {copy.galleryHeading}
+            </h2>
           </div>
-          <h1
-            style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: 'clamp(3.25rem, 11vw, 6rem)',
-              background: `linear-gradient(135deg, ${palette.goldChampagne} 0%, ${palette.goldDeep} 100%)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              lineHeight: 1,
-              margin: '0.25rem 0 0',
-              paddingRight: '0.25rem',
-              textAlign: 'right',
-            }}
-          >
-            You
-          </h1>
-        </div>
 
-        {/* Thank you message in card with left forestAccent border */}
-        <div
-          style={{
-            borderLeft: `3px solid ${palette.forestAccent}`,
-            padding: '1.25rem 1.5rem',
-            background: alpha(palette.forestAccent, 0.12),
-            marginBottom: '2.5rem',
-          }}
-        >
-          <p
-            style={{
-              fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.95rem',
-              color: alpha(palette.cream, 0.85),
-              lineHeight: 1.85,
-              margin: 0,
-            }}
-          >
-            {attended
-              ? (household.thank_you_message?.trim() || settings.thank_you_attended_message)
-              : settings.thank_you_not_attended_message}
-          </p>
-        </div>
-
-        {/* View Photos button */}
-        {photosUrl && (
-          <div style={{ marginBottom: '3rem' }}>
-            <a
-              href={photosUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+          {hasFeaturePhotos && (
+            <div
               style={{
-                display: 'inline-block',
-                padding: '0 2.5rem',
-                minHeight: '44px',
-                lineHeight: '44px',
-                backgroundColor: palette.goldChampagne,
-                color: palette.bgDeepest,
-                fontFamily: 'var(--font-dm-sans)',
-                fontSize: '0.7rem',
-                fontWeight: 500,
-                textTransform: 'uppercase',
-                letterSpacing: '0.25em',
-                clipPath: 'polygon(8% 0, 100% 0, 92% 100%, 0 100%)',
-                textDecoration: 'none',
+                display: 'grid',
+                gridTemplateColumns: bothPhotos ? 'repeat(2, 1fr)' : '1fr',
+                gap: 16,
+                maxWidth: bothPhotos ? 720 : 420,
+                margin: '0 auto',
               }}
             >
-              View Photos from the Day
-            </a>
-          </div>
-        )}
+              {settings.wedding_photo_url && <TreatedPhoto src={settings.wedding_photo_url} alt="" ratio={4 / 5} shape="rect" />}
+              {household.thank_you_photo_url && <TreatedPhoto src={household.thank_you_photo_url} alt="" ratio={4 / 5} shape="rect" />}
+            </div>
+          )}
 
-        {/* Closing */}
-        <div style={{ marginTop: '3rem' }}>
-          <p
-            style={{
-              fontFamily: 'var(--font-dm-sans)',
-              fontSize: '0.6rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.4em',
-              color: palette.goldChampagne,
-              marginBottom: '0.5rem',
-            }}
-          >
-            With love,
+          {settings.google_photos_url && (
+            <div style={{ textAlign: 'center', marginTop: 'clamp(34px, 5vw, 48px)' }}>
+              <p style={{ opacity: 0.7, marginBottom: 18 }}>The full album lives here — download anything you love.</p>
+              <Button href={settings.google_photos_url} variant="solid">
+                View the full gallery
+              </Button>
+            </div>
+          )}
+        </Reveal>
+      </Section>
+
+      {/* ── SIGN-OFF ── */}
+      <Section variant="deep">
+        <Reveal style={{ textAlign: 'center' }}>
+          <p style={{ fontFamily: tokens.display, fontStyle: 'italic', fontSize: 'clamp(1.3rem, 4vw, 2rem)', opacity: 0.9, margin: 0 }}>
+            {copy.signoff}
           </p>
-          <p
-            style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: 'clamp(1.75rem, 5vw, 2.5rem)',
-              color: palette.cream,
-              margin: 0,
-            }}
-          >
-            {settings.couple_names}
-          </p>
-        </div>
-      </div>
+          <div style={{ fontFamily: tokens.display, fontWeight: 900, fontSize: 'clamp(2.2rem, 9vw, 4rem)', marginTop: 14 }}>
+            {name1} <em style={{ fontStyle: 'italic', color: tokens.persimmon }}>&amp;</em> {name2}
+          </div>
+        </Reveal>
+      </Section>
+
+      {/* ── FOOTER ── */}
+      <footer style={{ background: tokens.greenDeep, textAlign: 'center', padding: '46px clamp(20px, 5.5vw, 90px)' }}>
+        <p
+          style={{
+            fontFamily: tokens.mono,
+            fontSize: '0.6rem',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            opacity: 0.55,
+            margin: 0,
+            color: tokens.bone,
+          }}
+        >
+          {settings.hashtag} · {formatDotted(settings.wedding_date, { year: '4', spaced: true })} · {cityFromLocation(settings.location)}
+        </p>
+      </footer>
     </div>
   );
 }

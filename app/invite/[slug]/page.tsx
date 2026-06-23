@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
 const SaveTheDatePhase = dynamic(() => import('./SaveTheDatePhase'));
-const InvitationPhase = dynamic(() => import('./InvitationPhase'));
+const InvitationPhaseV4 = dynamic(() => import('./InvitationPhaseV4'));
+const PreWeddingPhase = dynamic(() => import('./PreWeddingPhase'));
 const ThankYouPhase = dynamic(() => import('./ThankYouPhase'));
 
 export const revalidate = 0; // ISR with on-demand revalidation
@@ -165,7 +166,26 @@ export default async function InvitePage({
 
   if (phase.current_phase === 'invitation') {
     return (
-      <InvitationPhase
+      <InvitationPhaseV4
+        household={household}
+        guests={guests}
+        settings={settings}
+        questions={questions}
+        existingAnswers={existingAnswers}
+        guestName={guestName}
+        coupleNames={settings.couple_names}
+        couplePhotoUrl={settings.couple_photo_url || ''}
+        faqs={faqs}
+        weddingSchedule={settings.wedding_schedule}
+        sectionOrder={settings.section_order}
+        currentPhase={phase.current_phase}
+      />
+    );
+  }
+
+  if (phase.current_phase === 'pre_wedding') {
+    return (
+      <PreWeddingPhase
         household={household}
         guests={guests}
         settings={settings}
