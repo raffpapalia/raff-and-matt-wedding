@@ -9,6 +9,13 @@ import Button from './v4/components/Button';
 import CalendarControl from './v4/components/CalendarControl';
 import { tokens } from './v4/tokens';
 
+// Film-grain texture for the hero only — local to this page, distinct from the
+// site-wide grain in app/globals.css (which sits at z-index:9999 above everything
+// for an overall vignette). This one paints into the hero's own background stack,
+// below the text/CTA content.
+const HERO_GRAIN_URL =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='heroGrain'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23heroGrain)' opacity='0.5'/></svg>\")";
+
 interface SaveTheDatePhaseProps {
   coupleNames: string;
   tagline?: string;
@@ -125,12 +132,33 @@ export default function SaveTheDatePhase({
           color: tokens.bone,
           overflow: 'hidden',
           background: [
+            // Dark legibility gradient — stays on top of the colour blooms below.
             'linear-gradient(100deg, rgba(11,46,34,.8) 0%, rgba(11,46,34,.45) 45%, transparent 75%)',
-            'radial-gradient(120% 90% at 85% 12%, rgba(226,178,60,.22) 0%, transparent 60%)',
+            // Persimmon — the dominant warm bloom, upper-right.
+            'radial-gradient(120% 95% at 88% 10%, rgba(242,96,60,.32) 0%, transparent 58%)',
+            // Gold — secondary warm accent, smaller and fainter, lower-right.
+            'radial-gradient(65% 55% at 90% 80%, rgba(226,178,60,.14) 0%, transparent 60%)',
+            // Emerald presence, upper-left.
+            'radial-gradient(95% 85% at 8% 8%, rgba(15,122,82,.22) 0%, transparent 62%)',
             tokens.greenDeep,
           ].join(', '),
         }}
       >
+        {/* Film grain — above the gradient, below the bar/date-line/content (all z-indexed) */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            opacity: 0.07,
+            mixBlendMode: 'overlay',
+            backgroundImage: HERO_GRAIN_URL,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '180px 180px',
+          }}
+        />
+
         {/* Minimal top bar */}
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: `18px ${pad}`, zIndex: 5 }}>
           <div style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1rem' }}>
