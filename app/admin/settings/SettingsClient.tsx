@@ -130,6 +130,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       location: settings.location,
       tagline: settings.tagline,
       hashtag: settings.hashtag,
+      contact_email: settings.contact_email,
     });
   }
 
@@ -150,6 +151,9 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       story_heading: settings.story_heading,
       story_body: settings.story_body,
       band_quote: settings.band_quote,
+      getting_there: settings.getting_there,
+      pass_stamp_line: settings.pass_stamp_line,
+      pass_stamp_sub: settings.pass_stamp_sub,
     });
   }
 
@@ -426,6 +430,18 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               className={INPUT_CLASS}
             />
           </Field>
+          <Field
+            label="Contact email"
+            helper="Used for the 'Get in touch' button guests see once RSVPs are locked."
+          >
+            <input
+              type="email"
+              value={settings.contact_email}
+              onChange={e => update('contact_email', e.target.value)}
+              placeholder="you@example.com"
+              className={INPUT_CLASS}
+            />
+          </Field>
 
           <SaveFeedback error={tabError.wedding} success={tabSuccess.wedding} />
           <div>
@@ -636,6 +652,58 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 })}
               </div>
             </div>
+
+            <SaveFeedback error={tabError.invitation} success={tabSuccess.invitation} />
+            <div>
+              <button
+                type="button"
+                onClick={handleSaveInvitation}
+                disabled={savingTab === 'invitation'}
+                className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+              >
+                {savingTab === 'invitation' ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </Section>
+
+          {/* Pre-wedding */}
+          <Section label="Invitation Page" title="Pre-wedding">
+            <Field
+              label="Getting there"
+              helper="Shown on the Pre-wedding page's 'Getting there' tab — transport, parking, travel notes."
+            >
+              <textarea
+                rows={4}
+                value={settings.getting_there}
+                onChange={e => update('getting_there', e.target.value)}
+                className={TEXTAREA_CLASS}
+                style={{ resize: 'vertical', minHeight: '120px' }}
+              />
+            </Field>
+
+            <Field
+              label="Pass stamp"
+              helper="The stamp on the confirmed boarding pass, e.g. 'You're in'. Leave blank to hide the stamp."
+            >
+              <input
+                type="text"
+                value={settings.pass_stamp_line}
+                onChange={e => update('pass_stamp_line', e.target.value)}
+                className={INPUT_CLASS}
+              />
+            </Field>
+
+            <Field
+              label="Pass stamp sub-line"
+              helper="Small line under the stamp, e.g. 'dance floor: non-negotiable'."
+            >
+              <input
+                type="text"
+                value={settings.pass_stamp_sub}
+                onChange={e => update('pass_stamp_sub', e.target.value)}
+                className={INPUT_CLASS}
+              />
+            </Field>
 
             <SaveFeedback error={tabError.invitation} success={tabSuccess.invitation} />
             <div>
