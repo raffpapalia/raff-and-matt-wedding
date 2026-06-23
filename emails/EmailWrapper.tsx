@@ -22,10 +22,27 @@ export interface EmailWrapperProps {
   ctaLabel?: string;
 }
 
-const bg = '#0A1F14';
-const gold = '#D4A83A';
-const cream = '#F2E8D0';
-const amber = '#C4621A';
+// v4 "Admit Two" palette.
+const deepGreen = '#0B2E22';
+const bone = '#F6EEDD';
+const gold = '#E2B23C';
+const persimmon = '#F2603C';
+const ink = '#0B2118';
+
+// Muted tints derived from the palette above for secondary text — kept as
+// solid hex (no rgba) so colour holds up in Outlook's Word rendering engine.
+const boneMuted = '#C9BFA1';
+const inkMuted = '#6B7268';
+
+const edgeDividerStyle: React.CSSProperties = {
+  borderTopStyle: 'solid',
+  borderTopColor: gold,
+  borderTopWidth: '2px',
+  borderBottomWidth: 0,
+  borderLeftWidth: 0,
+  borderRightWidth: 0,
+  margin: 0,
+};
 
 const dividerStyle: React.CSSProperties = {
   borderTopStyle: 'solid',
@@ -37,20 +54,9 @@ const dividerStyle: React.CSSProperties = {
   margin: '0 0 32px',
 };
 
-const thickDividerStyle: React.CSSProperties = {
-  borderTopStyle: 'solid',
-  borderTopColor: gold,
-  borderTopWidth: '4px',
-  borderBottomWidth: 0,
-  borderLeftWidth: 0,
-  borderRightWidth: 0,
-  margin: 0,
-};
-
 const sansFontStack =
-  '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif';
+  '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
 const serifFontStack = 'Georgia, "Times New Roman", serif';
-const displayFontStack = '"Arial Black", "Arial Bold", Gadget, Arial, sans-serif';
 
 // Code-owned brand shell. Template content (subject/body) is the only thing the
 // admin can edit — the invite link, date, and venue below are always engine-injected.
@@ -67,13 +73,14 @@ export default function EmailWrapper({
     <Html lang="en">
       <Head />
       <Preview>{previewText}</Preview>
-      <Body style={{ backgroundColor: bg, margin: 0, padding: '40px 0' }}>
-        <Container style={{ maxWidth: '560px', margin: '0 auto', backgroundColor: bg }}>
+      <Body style={{ backgroundColor: bone, margin: 0, padding: '40px 0' }}>
+        <Container style={{ maxWidth: '560px', margin: '0 auto', backgroundColor: bone }}>
 
-          {/* Top gold bar */}
-          <Hr style={thickDividerStyle} />
+          {/* Top gold rule */}
+          <Hr style={edgeDividerStyle} />
 
-          <Section style={{ padding: '52px 48px 8px' }}>
+          {/* Header band */}
+          <Section style={{ backgroundColor: deepGreen, padding: '48px 48px 8px' }}>
 
             {/* Eyebrow */}
             <Text
@@ -84,7 +91,7 @@ export default function EmailWrapper({
                 letterSpacing: '5px',
                 textTransform: 'uppercase',
                 color: gold,
-                fontFamily: serifFontStack,
+                fontFamily: sansFontStack,
               }}
             >
               {eyebrow}
@@ -97,13 +104,13 @@ export default function EmailWrapper({
                 textAlign: 'center',
                 fontSize: '54px',
                 lineHeight: '1',
-                fontWeight: 900,
-                fontFamily: displayFontStack,
-                color: cream,
-                letterSpacing: '-1px',
+                fontWeight: 700,
+                fontFamily: serifFontStack,
+                color: bone,
+                letterSpacing: '-0.5px',
               }}
             >
-              Matt &amp; Raff
+              Matt <span style={{ color: persimmon }}>&amp;</span> Raff
             </Text>
 
             {/* Date */}
@@ -112,7 +119,7 @@ export default function EmailWrapper({
                 margin: '0 0 8px',
                 textAlign: 'center',
                 fontSize: '20px',
-                color: cream,
+                color: boneMuted,
                 fontFamily: serifFontStack,
                 letterSpacing: '1px',
               }}
@@ -128,7 +135,7 @@ export default function EmailWrapper({
                 fontSize: '11px',
                 letterSpacing: '4px',
                 textTransform: 'uppercase',
-                color: gold,
+                color: boneMuted,
                 fontFamily: sansFontStack,
               }}
             >
@@ -139,14 +146,14 @@ export default function EmailWrapper({
 
           </Section>
 
-          <Section style={{ padding: '0 48px 40px' }}>
+          <Section style={{ backgroundColor: bone, padding: '0 48px 40px' }}>
 
             {/* Merged body content slot */}
             <Text
               style={{
                 margin: '0 0 36px',
                 fontSize: '15px',
-                color: cream,
+                color: ink,
                 fontFamily: sansFontStack,
                 lineHeight: '1.75',
                 whiteSpace: 'pre-line',
@@ -161,8 +168,8 @@ export default function EmailWrapper({
                 <Button
                   href={inviteLink}
                   style={{
-                    backgroundColor: gold,
-                    color: bg,
+                    backgroundColor: persimmon,
+                    color: ink,
                     padding: '14px 36px',
                     fontSize: '12px',
                     fontWeight: 700,
@@ -186,7 +193,7 @@ export default function EmailWrapper({
                 textAlign: 'center',
                 fontSize: '13px',
                 fontStyle: 'italic',
-                color: amber,
+                color: inkMuted,
                 fontFamily: serifFontStack,
               }}
             >
@@ -195,15 +202,16 @@ export default function EmailWrapper({
 
           </Section>
 
-          {/* Footer */}
-          <Section style={{ padding: '20px 48px 40px' }}>
+          {/* Footer band */}
+          <Section style={{ backgroundColor: deepGreen, padding: '20px 48px 40px' }}>
             <Text
               style={{
                 margin: 0,
                 textAlign: 'center',
                 fontSize: '11px',
                 letterSpacing: '3px',
-                color: '#7A6530',
+                textTransform: 'uppercase',
+                color: bone,
                 fontFamily: sansFontStack,
               }}
             >
@@ -211,8 +219,8 @@ export default function EmailWrapper({
             </Text>
           </Section>
 
-          {/* Bottom gold bar */}
-          <Hr style={thickDividerStyle} />
+          {/* Bottom gold rule */}
+          <Hr style={edgeDividerStyle} />
 
         </Container>
       </Body>
