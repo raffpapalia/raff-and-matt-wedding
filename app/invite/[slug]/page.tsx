@@ -157,6 +157,7 @@ export default async function InvitePage({
         weddingDate={settings.wedding_date}
         weddingLocation={settings.location}
         couplePhotoUrl={settings.couple_photo_url || ''}
+        guestName={guestName}
         settings={settings}
       />
     );
