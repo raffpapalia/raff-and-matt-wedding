@@ -29,7 +29,7 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 // Each practicality card's link button points at one of these existing flat settings keys,
-// matched by card id. Mirrors PRACTICALITIES_LINK_KEY_BY_ID in InvitationPhase.tsx.
+// matched by card id.
 const PRACTICALITIES_LINK_FIELD_BY_ID: Record<string, 'accommodation_url' | 'photos_upload_url' | 'registry_url'> = {
   accommodation: 'accommodation_url',
   culture: 'photos_upload_url',

@@ -11,10 +11,8 @@ import CalendarControl from './v4/components/CalendarControl';
 import { tokens } from './v4/tokens';
 
 interface SaveTheDatePhaseProps {
-  guestName: string;
   coupleNames: string;
   tagline?: string;
-  invitationFooter?: string;
   weddingDate?: string;
   weddingLocation?: string;
   couplePhotoUrl?: string;

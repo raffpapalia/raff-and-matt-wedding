@@ -1,7 +1,7 @@
 'use client';
 
 import RSVPPhase from './RSVPPhase';
-import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Faq, Phase, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
+import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Phase, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
 import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
 import { parseIsoDate, formatShortWeekday, formatDayMonthYear, deriveSerial } from '@/lib/date';
 import Section from './v4/components/Section';
@@ -23,10 +23,8 @@ interface InvitationPhaseV4Props {
   settings: Settings;
   questions: CustomQuestion[];
   existingAnswers: CustomAnswer[];
-  guestName: string;
   coupleNames: string;
   couplePhotoUrl?: string;
-  faqs: Faq[];
   weddingSchedule: ScheduleItem[];
   sectionOrder: SectionOrderItem[];
   currentPhase: Phase['current_phase'];
@@ -515,7 +513,6 @@ export default function InvitationPhaseV4({
             dietaryOptions={settings.dietary_options}
             rsvpCutoffDate={settings.rsvp_cutoff_date}
             weddingDate={settings.wedding_date}
-            embedded
           />
         </div>
       </Section>

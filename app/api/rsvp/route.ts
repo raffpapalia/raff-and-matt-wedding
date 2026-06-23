@@ -24,13 +24,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { household_id, responses, plus_ones, custom_answers } = body;
 
-    console.log('[RSVP API] Received request:', {
-      household_id,
-      responseCount: responses?.length,
-      plusOneCount: plus_ones?.length ?? 0,
-      timestamp: new Date().toISOString(),
-    });
-
     if (!household_id || !responses || !Array.isArray(responses)) {
       console.error('[RSVP API] Validation failed - missing required fields');
       return NextResponse.json(
@@ -55,12 +48,6 @@ export async function POST(request: NextRequest) {
 
     // Update each guest's RSVP status and dietary requirements
     const updates = responses.map((response: any) => {
-      console.log('[RSVP API] Updating guest:', {
-        guest_id: response.guest_id,
-        rsvp_status: response.rsvp_status,
-        dietary_requirement: response.dietary_requirement,
-      });
-
       return supabase
         .from('guests')
         .update({
@@ -96,8 +83,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('[RSVP API] All guests updated successfully');
-
     // Handle plus ones: delete any previously-created plus-one guests, then re-insert.
     // This makes re-submissions idempotent — clicking "update RSVP" won't duplicate records.
     const originalGuestIds = responses.map((r: any) => r.guest_id);
@@ -132,7 +117,6 @@ export async function POST(request: NextRequest) {
         }));
 
       if (plusOneRecords.length > 0) {
-        console.log('[RSVP API] Inserting plus-one guests:', plusOneRecords.length);
         const { error: insertError } = await supabaseServer
           .from('guests')
           .insert(plusOneRecords);
@@ -177,7 +161,6 @@ export async function POST(request: NextRequest) {
           }));
 
         if (answersToInsert.length > 0) {
-          console.log('[RSVP API] Inserting custom answers:', answersToInsert.length);
           const { error: answerInsertError } = await supabaseServer
             .from('custom_answers')
             .insert(answersToInsert);

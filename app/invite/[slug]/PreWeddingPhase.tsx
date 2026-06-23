@@ -1,6 +1,6 @@
 'use client';
 
-import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Faq, Phase, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
+import type { Household, Guest, Settings, Faq, Phase, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
 import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
 import { parseIsoDate, formatShortWeekday, formatDotted, deriveSerial } from '@/lib/date';
 import StickyBar from './v4/components/StickyBar';
@@ -16,9 +16,6 @@ interface PreWeddingPhaseProps {
   household: Household;
   guests: Guest[];
   settings: Settings;
-  questions: CustomQuestion[];
-  existingAnswers: CustomAnswer[];
-  guestName: string;
   coupleNames: string;
   couplePhotoUrl?: string;
   faqs: Faq[];

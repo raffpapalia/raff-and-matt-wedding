@@ -152,10 +152,8 @@ export default async function InvitePage({
   if (phase.current_phase === 'save_the_date') {
     return (
       <SaveTheDatePhase
-        guestName={guestName}
         coupleNames={settings.couple_names}
         tagline={settings.tagline}
-        invitationFooter={settings.save_the_date_footer}
         weddingDate={settings.wedding_date}
         weddingLocation={settings.location}
         couplePhotoUrl={settings.couple_photo_url || ''}
@@ -172,10 +170,8 @@ export default async function InvitePage({
         settings={settings}
         questions={questions}
         existingAnswers={existingAnswers}
-        guestName={guestName}
         coupleNames={settings.couple_names}
         couplePhotoUrl={settings.couple_photo_url || ''}
-        faqs={faqs}
         weddingSchedule={settings.wedding_schedule}
         sectionOrder={settings.section_order}
         currentPhase={phase.current_phase}
@@ -189,9 +185,6 @@ export default async function InvitePage({
         household={household}
         guests={guests}
         settings={settings}
-        questions={questions}
-        existingAnswers={existingAnswers}
-        guestName={guestName}
         coupleNames={settings.couple_names}
         couplePhotoUrl={settings.couple_photo_url || ''}
         faqs={faqs}

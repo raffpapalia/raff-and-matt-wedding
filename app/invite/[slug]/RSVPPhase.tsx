@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import type { Household, Guest, CustomQuestion, CustomAnswer } from '@/lib/supabase';
 import { formatShortWeekday } from '@/lib/date';
 
@@ -12,7 +11,6 @@ interface RSVPPhaseProps {
   existingAnswers: CustomAnswer[];
   dietaryOptions?: string[];
   rsvpCutoffDate?: string;
-  embedded?: boolean;
   // Display-only — shown on the post-submit confirmation card. Not used by submit logic.
   weddingDate?: string;
 }
@@ -135,7 +133,7 @@ function SongQuestionInput({
   );
 }
 
-export default function RSVPPhase({ household, guests, questions, existingAnswers, dietaryOptions, rsvpCutoffDate, embedded = false, weddingDate }: RSVPPhaseProps) {
+export default function RSVPPhase({ household, guests, questions, existingAnswers, dietaryOptions, rsvpCutoffDate, weddingDate }: RSVPPhaseProps) {
   const DIETARY_OPTIONS = buildDietaryOptions(dietaryOptions ?? DEFAULT_DIETARY_LABELS);
   const rsvpClosed = rsvpCutoffDate ? isPastCutoff(rsvpCutoffDate) : false;
   const [formData, setFormData] = useState<GuestFormData>(
@@ -374,33 +372,6 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
 
   return (
     <div className="mr-rsvp-v4 mr-v4">
-      {/* Header with Personal Photo and Message */}
-      {!embedded && (
-        <div className="rv-section" style={{ textAlign: 'center' }}>
-          {household.personal_photo_url && (
-            <div style={{ marginBottom: 24, width: '100%', maxWidth: 280, marginLeft: 'auto', marginRight: 'auto' }}>
-              <div style={{ position: 'relative', aspectRatio: 1, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(11,33,24,.16)' }}>
-                <Image
-                  src={household.personal_photo_url}
-                  alt="Personal photo"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-            </div>
-          )}
-
-          <h1 className="rv-success-heading" style={{ margin: '0 0 12px' }}>{householdName}</h1>
-
-          {household.personal_message && (
-            <p style={{ fontFamily: 'var(--body)', fontStyle: 'italic', fontSize: '1rem', opacity: 0.78, margin: 0 }}>
-              {household.personal_message}
-            </p>
-          )}
-        </div>
-      )}
-
       {/* RSVP Form */}
       <form onSubmit={handleSubmit}>
         {/* Invited Guests */}
