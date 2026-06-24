@@ -1,18 +1,28 @@
 import type { Metadata } from "next";
-import { Cinzel, DM_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const cinzel = Cinzel({
+// Self-hosted — see app/fonts/. Swapped from next/font/google because the
+// build-time fetch to fonts.gstatic.com is not guaranteed to succeed in every
+// production build environment; a failed fetch there silently drops the
+// @font-face rule (the CSS variable name still gets referenced everywhere,
+// but never defined), so every page falls back to the browser's default serif.
+const cinzel = localFont({
+  src: [
+    { path: "./fonts/cinzel-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/cinzel-600.woff2", weight: "600", style: "normal" },
+  ],
   variable: "--font-cinzel",
-  subsets: ["latin"],
-  weight: ["400", "600"],
   display: "swap",
+  adjustFontFallback: "Times New Roman",
 });
 
-const dmSans = DM_Sans({
+const dmSans = localFont({
+  src: "./fonts/dm-sans-variable.woff2",
+  weight: "100 1000",
+  style: "normal",
   variable: "--font-dm-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {

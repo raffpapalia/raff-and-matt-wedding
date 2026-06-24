@@ -1,22 +1,40 @@
-import { Fraunces, Bricolage_Grotesque, DM_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import './v4/design.css';
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  style: ['normal', 'italic'],
+// Self-hosted — see ./fonts/. Swapped from next/font/google because the
+// build-time fetch to fonts.gstatic.com is not guaranteed to succeed in every
+// production build environment; a failed fetch there silently drops the
+// @font-face rule (the CSS variable name still gets referenced everywhere,
+// but never defined), so every guest phase falls back to the browser's
+// default serif. Fraunces and Bricolage Grotesque are both variable fonts —
+// one file each covers the full weight (and, for Fraunces, opsz) range,
+// which also fixes Bricolage previously being loaded as 3 separate static
+// weight instances (500/700/800) instead of one variable file.
+const fraunces = localFont({
+  src: [
+    { path: './fonts/fraunces-normal-variable.woff2', weight: '100 900', style: 'normal' },
+    { path: './fonts/fraunces-italic-variable.woff2', weight: '100 900', style: 'italic' },
+  ],
   variable: '--font-fraunces',
+  display: 'swap',
+  adjustFontFallback: 'Times New Roman',
 });
 
-const bricolage = Bricolage_Grotesque({
-  subsets: ['latin'],
-  weight: ['500', '700', '800'],
+const bricolage = localFont({
+  src: './fonts/bricolage-grotesque-variable.woff2',
+  weight: '200 800',
+  style: 'normal',
   variable: '--font-bricolage',
+  display: 'swap',
 });
 
-const dmMono = DM_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
+const dmMono = localFont({
+  src: [
+    { path: './fonts/dm-mono-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/dm-mono-500.woff2', weight: '500', style: 'normal' },
+  ],
   variable: '--font-dm-mono',
+  display: 'swap',
 });
 
 export default function InviteLayout({
