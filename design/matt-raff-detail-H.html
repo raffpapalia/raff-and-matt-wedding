@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet"/>
+<style>
+  :root{--green:#0F4331;--persimmon:#F2603C;--violet:#8E7CC3;--sand:#A88C60;--bone:#F6EEDD;--ink:#0B2118;
+    --pad:clamp(22px,6vw,90px);--display:"Fraunces",serif;--grot:"Bricolage Grotesque",sans-serif;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--green);font-family:var(--grot);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 var(--pad)}
+  .date-sec{background:var(--sand);color:var(--green);padding:clamp(60px,10vw,120px) 0}
+  .spine{border-left:5px solid var(--persimmon);padding-left:clamp(18px,5vw,30px);max-width:760px}
+  .k{font-family:var(--grot);font-weight:800;letter-spacing:.22em;text-transform:uppercase;font-size:clamp(1.1rem,3.6vw,1.5rem);color:var(--green)}
+  .bigdate{font-family:var(--display);font-weight:850;font-size:clamp(3rem,13vw,6.5rem);line-height:.88;letter-spacing:-.01em;margin:clamp(12px,3vw,20px) 0 clamp(10px,2vw,14px);color:var(--green)}
+  .dateline{font-family:var(--grot);font-weight:700;font-size:clamp(1.05rem,3.4vw,1.4rem);color:var(--green)}
+  .venue{font-family:var(--grot);font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:clamp(1rem,3.2vw,1.3rem);color:var(--green);margin-top:clamp(14px,3vw,20px);line-height:1.4}
+  .actions{padding-left:clamp(18px,5vw,30px);margin-top:clamp(30px,6vw,44px)}
+  .btn{display:inline-block;font-family:var(--grot);font-weight:700;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;padding:16px 32px;border-radius:999px;background:var(--violet);color:var(--ink)}
+  .more{font-family:var(--grot);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:clamp(1rem,3vw,1.25rem);color:var(--green);margin-top:clamp(26px,5vw,36px)}
+</style></head><body>
+<section class="date-sec"><div class="wrap">
+  <div class="spine">
+    <div class="k">Lock it in</div>
+    <div class="bigdate">ten 7 twenty 7</div>
+    <div class="dateline">3PM · Saturday 10 July 2027</div>
+    <div class="venue">QT Hotel Melbourne<br/>133 Russell St, Melbourne</div>
+  </div>
+  <div class="actions">
+    <a class="btn">Add to calendar</a>
+    <div class="more">More info coming soon!</div>
+  </div>
+</div></section>
+</body></html>
