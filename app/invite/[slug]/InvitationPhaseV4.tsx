@@ -29,10 +29,6 @@ interface InvitationPhaseV4Props {
   guestName?: string;
 }
 
-// Film-grain texture for the hero panel — same recipe as SaveTheDatePhase's hero grain.
-const HERO_GRAIN_URL =
-  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='heroGrain'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23heroGrain)' opacity='0.5'/></svg>\")";
-
 const ADMIT_WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 
 // Normalises a schedule time — legacy "H:MM AM/PM" (e.g. "3:00 PM") or already-24h
@@ -83,7 +79,7 @@ function ConciergeCard({
   href: string;
 }) {
   return (
-    <div style={{ background: tokens.greenDeep, padding: '30px 26px' }}>
+    <div style={{ background: tokens.greenDeep, color: tokens.bone, padding: '30px 26px' }}>
       <div style={{ fontFamily: tokens.grotesque, fontWeight: 700, textTransform: 'uppercase', fontSize: '0.6rem', letterSpacing: '0.18em', color: tokens.sand }}>
         {num} / {category}
       </div>
@@ -177,7 +173,6 @@ export default function InvitationPhaseV4({
         .mr-inv-hero-photo { order: 1; position: relative; overflow: hidden; aspect-ratio: 4 / 3; flex: 0 0 auto; }
         .mr-inv-hero-panel { order: 2; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: clamp(56px, 11vw, 90px) clamp(24px, 6vw, 64px); flex: 1 1 auto; }
         .mr-inv-hero-fade { display: none; }
-        .mr-inv-hero-fade-bottom { display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 120px; pointer-events: none; background: linear-gradient(to bottom, transparent 40%, ${tokens.greenDeep}); }
         .mr-inv-names { padding-left: clamp(26px, 8vw, 46px); }
         @media (min-width: 760px) {
           .mr-inv-hero-inner { display: grid; grid-template-columns: 1fr; min-height: 100svh; }
@@ -185,37 +180,37 @@ export default function InvitationPhaseV4({
           .mr-inv-hero-panel { order: 1; }
           .mr-inv-hero-photo { order: 2; aspect-ratio: auto; }
           .mr-inv-hero-fade { display: block; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(15,67,49,1) 0%, rgba(15,67,49,0) 26%); }
-          .mr-inv-hero-fade-bottom { display: none; }
           .mr-inv-names { padding-left: 0; }
+        }
+
+        /* ── Section-transition glow — subtle persimmon+violet bloom at the seam between
+           a green section and the sand section below it. CSS-only; remove these two
+           rules and their classNames to revert with zero structural changes. ── */
+        .mr-inv-green-glow { position: relative; overflow: hidden; }
+        .mr-inv-green-glow::after {
+          content: ""; position: absolute; bottom: 0; left: 0; right: 0;
+          height: 180px; pointer-events: none;
+          background:
+            radial-gradient(80% 120% at 15% 120%, rgba(242,96,60,.38), rgba(242,96,60,0) 60%),
+            radial-gradient(70% 100% at 85% 130%, rgba(142,124,195,.32), rgba(142,124,195,0) 55%);
+        }
+        .mr-inv-sand-glow { position: relative; overflow: hidden; }
+        .mr-inv-sand-glow::before {
+          content: ""; position: absolute; top: 0; left: 0; right: 0;
+          height: 120px; pointer-events: none;
+          background:
+            radial-gradient(90% 100% at 20% -20%, rgba(242,96,60,.22), rgba(242,96,60,0) 65%),
+            radial-gradient(70% 90% at 80% -10%, rgba(142,124,195,.18), rgba(142,124,195,0) 60%);
         }
       `}</style>
       <header className={`mr-inv-hero-inner${hasPhoto ? ' mr-inv-hero-inner--photo' : ''}`}>
         <div
-          className="mr-inv-hero-panel"
+          className="mr-inv-hero-panel mr-inv-green-glow"
           style={{
             color: tokens.bone,
-            background: [
-              'linear-gradient(180deg, rgba(11,33,24,.32), rgba(11,33,24,0) 45%)',
-              'radial-gradient(60% 55% at 88% 10%, rgba(242,96,60,.5), rgba(242,96,60,0) 72%)',
-              'radial-gradient(68% 62% at 8% 8%, rgba(142,124,195,.4), rgba(142,124,195,0) 75%)',
-              'radial-gradient(55% 50% at 92% 90%, rgba(168,140,96,.25), rgba(168,140,96,0) 72%)',
-              tokens.greenDeep,
-            ].join(', '),
+            background: tokens.greenDeep,
           }}
         >
-          <div
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              pointerEvents: 'none',
-              opacity: 0.08,
-              mixBlendMode: 'overlay',
-              backgroundImage: HERO_GRAIN_URL,
-              backgroundRepeat: 'repeat',
-              backgroundSize: '180px 180px',
-            }}
-          />
           <Reveal style={{ position: 'relative', zIndex: 2 }}>
             <div>
               {guestName && (
@@ -233,10 +228,11 @@ export default function InvitationPhaseV4({
               )}
               <p
                 style={{
-                  fontFamily: tokens.display,
-                  fontStyle: 'italic',
-                  fontWeight: 400,
-                  fontSize: 'clamp(1.1rem, 3.4vw, 1.5rem)',
+                  fontFamily: tokens.grotesque,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.15em',
+                  fontSize: 'clamp(1.5rem, 5vw, 2.4rem)',
                   color: tokens.sand,
                   margin: `${guestName ? 4 : 0}px 0 clamp(34px, 8vw, 52px)`,
                 }}
@@ -251,14 +247,13 @@ export default function InvitationPhaseV4({
               </h1>
               <p
                 style={{
-                  fontFamily: tokens.display,
-                  fontStyle: 'italic',
-                  fontWeight: 400,
-                  fontSize: 'clamp(0.95rem, 2.6vw, 1.45rem)',
+                  fontFamily: tokens.grotesque,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.15em',
+                  fontSize: 'clamp(1.5rem, 5vw, 2.4rem)',
                   marginTop: 22,
-                  maxWidth: '32ch',
                   color: tokens.sand,
-                  opacity: 0.85,
                 }}
               >
                 {settings.tagline}
@@ -276,39 +271,41 @@ export default function InvitationPhaseV4({
               style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}
             />
             <div className="mr-inv-hero-fade" aria-hidden="true" />
-            <div className="mr-inv-hero-fade-bottom" aria-hidden="true" />
           </div>
         )}
       </header>
 
       {/* ── A NOTE FOR YOU — household-driven, optional ── */}
       {(household.personal_message || household.personal_photo_url) && (
-        <Section variant="bone" id="note">
-          <Kicker label="A note for you" color={tokens.green} />
-          {household.personal_message && household.personal_photo_url && (
-            <Reveal className="mr-note-grid">
-              <TreatedPhoto src={household.personal_photo_url} alt="" ratio={3 / 4} shape="rect" />
-              <div className="mr-note-message">
+        <>
+          <style>{`#note { background: ${tokens.sand} !important; }`}</style>
+          <Section variant="bone" id="note" className="mr-inv-sand-glow">
+            <Kicker label="A note for you" color={tokens.green} />
+            {household.personal_message && household.personal_photo_url && (
+              <Reveal className="mr-note-grid">
+                <TreatedPhoto src={household.personal_photo_url} alt="" ratio={3 / 4} shape="rect" />
+                <div className="mr-note-message">
+                  <p style={{ whiteSpace: 'pre-line' }}>{household.personal_message}</p>
+                </div>
+              </Reveal>
+            )}
+            {household.personal_message && !household.personal_photo_url && (
+              <Reveal className="mr-note-solo">
                 <p style={{ whiteSpace: 'pre-line' }}>{household.personal_message}</p>
-              </div>
-            </Reveal>
-          )}
-          {household.personal_message && !household.personal_photo_url && (
-            <Reveal className="mr-note-solo">
-              <p style={{ whiteSpace: 'pre-line' }}>{household.personal_message}</p>
-              <p className="mr-note-sign">— {coupleNames}</p>
-            </Reveal>
-          )}
-          {!household.personal_message && household.personal_photo_url && (
-            <Reveal className="mr-note-photo-solo">
-              <TreatedPhoto src={household.personal_photo_url} alt="" ratio={3 / 4} shape="rect" />
-            </Reveal>
-          )}
-        </Section>
+                <p className="mr-note-sign">— {coupleNames}</p>
+              </Reveal>
+            )}
+            {!household.personal_message && household.personal_photo_url && (
+              <Reveal className="mr-note-photo-solo">
+                <TreatedPhoto src={household.personal_photo_url} alt="" ratio={3 / 4} shape="rect" />
+              </Reveal>
+            )}
+          </Section>
+        </>
       )}
 
       {/* ── HOW WE GOT HERE ── */}
-      <Section variant="deep">
+      <Section variant="deep" className="mr-inv-green-glow">
         <Kicker label="How we got here" />
         <div className={`mr-story-grid${settings.story_photo_url ? '' : ' mr-story-grid--solo'}`}>
           <div>
@@ -327,7 +324,7 @@ export default function InvitationPhaseV4({
       <style>{`
         #inv-details { background: ${tokens.sand} !important; }
       `}</style>
-      <Section variant="bone" id="inv-details">
+      <Section variant="bone" id="inv-details" className="mr-inv-sand-glow">
         <Kicker label="The Details" color={tokens.persimmon} />
         <div
           style={{
@@ -373,7 +370,7 @@ export default function InvitationPhaseV4({
 
       {/* ── RUNNING ORDER ── */}
       {showRunningOrder && (
-        <Section variant="green" id="order">
+        <Section variant="green" id="order" className="mr-inv-green-glow">
           <div>
             <Kicker label="The running order" color={tokens.bone} labelColor="#0a2e20" />
             <h2
@@ -400,79 +397,89 @@ export default function InvitationPhaseV4({
 
       {/* ── DRESS CODE ── */}
       {showDressCode && (
-        <Section variant="bone" id="dress">
-          <Kicker label="Dress code" color={tokens.green} />
-          <div style={{ marginTop: 'clamp(20px, 3vw, 34px)' }}>
-            <h2
-              style={{
-                fontFamily: tokens.display,
-                fontWeight: 900,
-                fontSize: 'clamp(2.6rem, 11vw, 5.8rem)',
-                lineHeight: 0.95,
-                letterSpacing: '-0.01em',
-                color: tokens.green,
-                margin: 0,
-              }}
-            >
-              {dressHeadingFirst && (
-                <>
-                  {dressHeadingFirst}
-                  <br />
-                </>
-              )}
-              {dressHeadingLast}
-            </h2>
-            <p style={{ maxWidth: '44ch', opacity: 0.8, fontSize: '1.04rem', margin: '30px 0 0', whiteSpace: 'pre-wrap' }}>
-              {settings.dress_code_description}
-            </p>
-          </div>
-        </Section>
+        <>
+          <style>{`#dress { background: ${tokens.sand} !important; }`}</style>
+          <Section variant="bone" id="dress" className="mr-inv-sand-glow">
+            <Kicker label="Dress code" color={tokens.green} />
+            <div style={{ marginTop: 'clamp(20px, 3vw, 34px)' }}>
+              <h2
+                style={{
+                  fontFamily: tokens.display,
+                  fontWeight: 900,
+                  fontSize: 'clamp(2.6rem, 11vw, 5.8rem)',
+                  lineHeight: 0.95,
+                  letterSpacing: '-0.01em',
+                  color: tokens.green,
+                  margin: 0,
+                }}
+              >
+                {dressHeadingFirst && (
+                  <>
+                    {dressHeadingFirst}
+                    <br />
+                  </>
+                )}
+                {dressHeadingLast}
+              </h2>
+              <p style={{ maxWidth: '44ch', opacity: 0.8, fontSize: '1.04rem', margin: '30px 0 0', whiteSpace: 'pre-wrap' }}>
+                {settings.dress_code_description}
+              </p>
+            </div>
+          </Section>
+        </>
       )}
 
       {/* ── BAND ── */}
-      {settings.band_photo_url && <BandQuote src={settings.band_photo_url} alt="">{settings.band_quote}</BandQuote>}
+      {settings.band_photo_url && (
+        <BandQuote src={settings.band_photo_url} alt="" className="mr-inv-green-glow">
+          {settings.band_quote}
+        </BandQuote>
+      )}
 
       {/* ── GOOD TO KNOW ── */}
       {showGoodToKnow && (
-        <Section variant="deep">
-          <Kicker label="Good to know" />
-          <div className="mr-conc">
-            {settings.accommodation_url && (
-              <ConciergeCard
-                num="01"
-                category="Stay"
-                title="Where to sleep"
-                body="A special rate nearby, plus plenty of CBD options a short walk away."
-                ctaLabel="Book a room"
-                href={settings.accommodation_url}
-              />
-            )}
-            {settings.photos_upload_url && (
-              <ConciergeCard
-                num="02"
-                category="Photos"
-                title="Share the night"
-                body={`Snap away and tag us. Everything lands in one place with ${settings.hashtag}.`}
-                ctaLabel="Upload yours"
-                href={settings.photos_upload_url}
-              />
-            )}
-            {settings.registry_url && (
-              <ConciergeCard
-                num="03"
-                category="Gifts"
-                title="The registry"
-                body="Your presence is the gift. If you'd like to give more, we've made a small list."
-                ctaLabel="View registry"
-                href={settings.registry_url}
-              />
-            )}
-          </div>
-        </Section>
+        <>
+          <style>{`#good-to-know { background: ${tokens.sand} !important; }`}</style>
+          <Section variant="bone" id="good-to-know" className="mr-inv-sand-glow">
+            <Kicker label="Good to know" />
+            <div className="mr-conc">
+              {settings.accommodation_url && (
+                <ConciergeCard
+                  num="01"
+                  category="Stay"
+                  title="Where to sleep"
+                  body="A special rate nearby, plus plenty of CBD options a short walk away."
+                  ctaLabel="Book a room"
+                  href={settings.accommodation_url}
+                />
+              )}
+              {settings.photos_upload_url && (
+                <ConciergeCard
+                  num="02"
+                  category="Photos"
+                  title="Share the night"
+                  body={`Snap away and tag us. Everything lands in one place with ${settings.hashtag}.`}
+                  ctaLabel="Upload yours"
+                  href={settings.photos_upload_url}
+                />
+              )}
+              {settings.registry_url && (
+                <ConciergeCard
+                  num="03"
+                  category="Gifts"
+                  title="The registry"
+                  body="Your presence is the gift. If you'd like to give more, we've made a small list."
+                  ctaLabel="View registry"
+                  href={settings.registry_url}
+                />
+              )}
+            </div>
+          </Section>
+        </>
       )}
 
       {/* ── THE PASS ── */}
-      <Section variant="bright" id="pass">
+      <Section variant="bright" id="pass" className="mr-inv-green-glow">
         <div style={{ textAlign: 'center', marginBottom: 'clamp(20px, 3vw, 28px)' }}>
           <div style={{ fontFamily: tokens.mono, fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.7 }}>
             Please reply by

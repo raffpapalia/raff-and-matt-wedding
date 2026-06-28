@@ -57,11 +57,6 @@ export default function StickyBar({ coupleNames, rightHref, rightLabel, rightVar
     >
       <div
         style={{
-          fontFamily: tokens.display,
-          fontWeight: 600,
-          fontSize: '1rem',
-          letterSpacing: '0.02em',
-          color: tokens.bone,
           flex: '1 1 auto',
           minWidth: 0,
           overflow: 'hidden',
@@ -69,7 +64,15 @@ export default function StickyBar({ coupleNames, rightHref, rightLabel, rightVar
           whiteSpace: 'nowrap',
         }}
       >
-        {name1} <em style={{ color: tokens.persimmon, fontStyle: 'italic' }}>&amp;</em> {name2}
+        <span style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1rem', letterSpacing: '0.02em' }}>
+          <span style={{ color: tokens.violet }}>{name1.charAt(0).toUpperCase()}</span>
+          <span style={{ color: tokens.bone, opacity: 0.7 }}> &amp; </span>
+          <span style={{ color: tokens.violet }}>{name2.charAt(0).toUpperCase()}</span>
+        </span>
+        <span style={{ color: tokens.muted, margin: '0 7px' }}>·</span>
+        <span style={{ fontFamily: tokens.grotesque, fontWeight: 500, fontSize: '0.78rem', color: tokens.sand }}>
+          ten 7 twenty 7
+        </span>
       </div>
       <div style={{ flexShrink: 0 }}>
         <Button href={rightHref} variant={rightVariant}>

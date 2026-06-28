@@ -3,6 +3,9 @@ import { sectionVariantStyles, type SectionVariant } from '../tokens';
 interface SectionProps {
   variant: SectionVariant;
   id?: string;
+  // Extra class merged onto the outer <section> — e.g. the scoped section-transition
+  // glow classes (.mr-inv-green-glow / .mr-inv-sand-glow) defined in InvitationPhaseV4.
+  className?: string;
   // Optional full-bleed natural-colour background photo, e.g. the hero. Rendered
   // behind the content with a dark gradient toward the variant's background
   // colour, so text laid over it stays readable.
@@ -19,11 +22,12 @@ interface SectionProps {
 
 // Colour-blocked section wrapper. Sets background + text colour from the variant
 // and the mockup's vertical padding rhythm: clamp(72px,12vw,150px) top and bottom.
-export default function Section({ variant, id, backgroundImage, backgroundPosition = 'center', minHeight, contentAlign = 'end', children }: SectionProps) {
+export default function Section({ variant, id, className, backgroundImage, backgroundPosition = 'center', minHeight, contentAlign = 'end', children }: SectionProps) {
   const { background, color } = sectionVariantStyles[variant];
   return (
     <section
       id={id}
+      className={className}
       style={{
         background,
         color,
