@@ -7,6 +7,9 @@ interface SectionProps {
   // behind the content with a dark gradient toward the variant's background
   // colour, so text laid over it stays readable.
   backgroundImage?: string;
+  // CSS object-position for the background photo. Defaults to 'center' (prior
+  // behaviour) — set e.g. 'center 20%' to keep faces in frame on a portrait crop.
+  backgroundPosition?: string;
   minHeight?: string;
   // How content sits within minHeight: 'end' (default, the invitation hero's
   // bottom-aligned copy) or 'center' (the save-the-date hero's centred poster layout).
@@ -16,7 +19,7 @@ interface SectionProps {
 
 // Colour-blocked section wrapper. Sets background + text colour from the variant
 // and the mockup's vertical padding rhythm: clamp(72px,12vw,150px) top and bottom.
-export default function Section({ variant, id, backgroundImage, minHeight, contentAlign = 'end', children }: SectionProps) {
+export default function Section({ variant, id, backgroundImage, backgroundPosition = 'center', minHeight, contentAlign = 'end', children }: SectionProps) {
   const { background, color } = sectionVariantStyles[variant];
   return (
     <section
@@ -40,7 +43,7 @@ export default function Section({ variant, id, backgroundImage, minHeight, conte
             src={backgroundImage}
             alt=""
             aria-hidden="true"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: backgroundPosition }}
           />
           <div
             aria-hidden="true"

@@ -3,7 +3,7 @@
 import RSVPPhase from './RSVPPhase';
 import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Phase, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
 import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
-import { parseIsoDate, formatShortWeekday, formatDayMonthYear, formatDisplayTime, deriveSerial } from '@/lib/date';
+import { parseIsoDate, formatLongDate, formatShortWeekday, formatDayMonthYear, formatDisplayTime, deriveSerial } from '@/lib/date';
 import Section from './v4/components/Section';
 import Reveal from './v4/components/Reveal';
 import Kicker from './v4/components/Kicker';
@@ -27,25 +27,10 @@ interface InvitationPhaseV4Props {
   weddingSchedule: ScheduleItem[];
   sectionOrder: SectionOrderItem[];
   currentPhase: Phase['current_phase'];
+  guestName?: string;
 }
 
-const WEEKDAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTHS_FULL = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
 const ADMIT_WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
-
-// "Sat 10 July 2027" — hero-top eyebrow only; full month name, unlike the ticket's
-// formatShortWeekday (short month). No other phase needs this exact combination,
-// so it stays local rather than living in lib/date.ts.
-function formatHeroEyebrowDate(iso: string): string {
-  const parsed = parseIsoDate(iso);
-  if (!parsed) return iso;
-  const { y, m, d } = parsed;
-  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
-  return `${WEEKDAYS_SHORT[dow]} ${d} ${MONTHS_FULL[m - 1]} ${y}`;
-}
 
 // Splits a schedule time like "3:00 PM" into its value and period parts for RunningOrder.
 function splitScheduleTime(time: string): { value: string; period: string } {
@@ -63,14 +48,6 @@ function formatGuestNames(names: string[]): string {
   return `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`;
 }
 
-const DRESS_SWATCHES = [
-  { label: 'Forest', color: tokens.greenDeep },
-  { label: 'Emerald', color: tokens.greenBright },
-  { label: 'Pine', color: tokens.pine },
-  { label: 'Gold', color: tokens.sand },
-  { label: 'Persimmon', color: tokens.persimmon },
-];
-
 const headingStyle: React.CSSProperties = {
   fontFamily: tokens.display,
   fontWeight: 900,
@@ -79,32 +56,6 @@ const headingStyle: React.CSSProperties = {
   letterSpacing: '-0.01em',
   margin: '16px 0 0',
 };
-
-function BigDate({ iso }: { iso: string }) {
-  const parsed = parseIsoDate(iso);
-  if (!parsed) return null;
-  const { y, m, d } = parsed;
-  const weekday = new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
-  const dotStyle: React.CSSProperties = { color: tokens.persimmon, fontWeight: 900 };
-  return (
-    <div
-      style={{
-        fontFamily: tokens.display,
-        fontWeight: 900,
-        fontSize: 'clamp(2.6rem, 11vw, 6rem)',
-        lineHeight: 0.92,
-        letterSpacing: '-0.015em',
-        marginTop: 20,
-      }}
-    >
-      {weekday} {String(d).padStart(2, '0')}
-      <b style={dotStyle}>·</b>
-      {String(m).padStart(2, '0')}
-      <b style={dotStyle}>·</b>
-      {String(y).slice(-2)}
-    </div>
-  );
-}
 
 function ConciergeCard({
   num,
@@ -163,6 +114,7 @@ export default function InvitationPhaseV4({
   weddingSchedule,
   sectionOrder,
   currentPhase,
+  guestName,
 }: InvitationPhaseV4Props) {
   const [name1, name2] = coupleNames.includes(' & ') ? coupleNames.split(' & ') : [coupleNames, ''];
 
@@ -206,45 +158,39 @@ export default function InvitationPhaseV4({
       <StickyBar coupleNames={coupleNames} rightHref="#pass" rightLabel="RSVP" rightVariant="solid" />
 
       {/* ── HERO ── */}
-      <Section variant="deep" backgroundImage={couplePhotoUrl || undefined} minHeight="100svh">
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            padding: '64px clamp(20px, 5.5vw, 90px) 0',
-            zIndex: 2,
-          }}
-        >
-          <div
+      <Section
+        variant="deep"
+        backgroundImage={couplePhotoUrl || undefined}
+        backgroundPosition="center 20%"
+        minHeight="100svh"
+        contentAlign="center"
+      >
+        <div style={{ paddingTop: 'clamp(120px, 30vh, 240px)' }}>
+          {guestName && (
+            <p
+              style={{
+                fontFamily: tokens.grotesque,
+                fontWeight: 500,
+                fontSize: 'clamp(1.6rem, 4.5vw, 2.3rem)',
+                color: tokens.persimmon,
+                margin: 0,
+              }}
+            >
+              {guestName}
+            </p>
+          )}
+          <p
             style={{
-              fontFamily: tokens.grotesque,
-              fontWeight: 700,
-              fontSize: '0.7rem',
-              letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-              opacity: 0.85,
-            }}
-          >
-            {settings.venue_name} &nbsp;·&nbsp; {formatHeroEyebrowDate(settings.wedding_date)} &nbsp;·&nbsp; One night only
-          </div>
-        </div>
-
-        <div>
-          <div
-            style={{
-              fontFamily: tokens.grotesque,
-              fontWeight: 700,
-              letterSpacing: '0.24em',
-              textTransform: 'uppercase',
-              fontSize: '0.7rem',
+              fontFamily: tokens.display,
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: 'clamp(1.1rem, 3.4vw, 1.5rem)',
               color: tokens.sand,
-              marginBottom: 8,
+              margin: `${guestName ? 4 : 0}px 0 clamp(24px, 4.5vw, 36px)`,
             }}
           >
-            The wedding of
-          </div>
+            You&apos;re invited to the wedding of
+          </p>
           <h1 style={{ fontFamily: tokens.display, fontWeight: 900, lineHeight: 0.82, letterSpacing: '-0.01em', margin: 0 }}>
             <span style={{ display: 'block', fontSize: 'clamp(4.2rem, 19vw, 12rem)' }}>{name1}</span>
             <span style={{ display: 'block', fontSize: 'clamp(4.2rem, 19vw, 12rem)', paddingLeft: '0.6em' }}>
@@ -264,32 +210,13 @@ export default function InvitationPhaseV4({
           >
             {settings.tagline}
           </p>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 12,
-              marginTop: 26,
-              border: '1px dashed rgba(246,238,221,.5)',
-              borderRadius: 6,
-              padding: '9px 16px',
-            }}
-          >
-            <span style={{ fontFamily: tokens.grotesque, fontWeight: 700, fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: tokens.violet }}>
-              Admits
-            </span>
-            <span style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1rem' }}>{household.name}</span>
-          </div>
-          <div style={{ display: 'flex', gap: 12, marginTop: 28, flexWrap: 'wrap' }}>
-            <Button href="#pass" variant="solid">
-              Claim your seats
-            </Button>
-            {showRunningOrder && (
+          {showRunningOrder && (
+            <div style={{ display: 'flex', gap: 12, marginTop: 28, flexWrap: 'wrap' }}>
               <Button href="#order" variant="ghost">
                 The running order ↓
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </Section>
 
@@ -330,59 +257,102 @@ export default function InvitationPhaseV4({
             </p>
           </div>
           {settings.story_photo_url && (
-            <TreatedPhoto
-              src={settings.story_photo_url}
-              alt=""
-              ratio={4 / 5}
-              shape="arch"
-              caption="— a favourite photo of the two of you —"
-            />
+            <TreatedPhoto src={settings.story_photo_url} alt="" ratio={4 / 5} shape="arch" />
           )}
         </div>
       </Section>
 
-      {/* ── THE DETAILS ── */}
-      <Section variant="bone" id="details">
-        <Kicker label="The details" color={tokens.green} />
-        <BigDate iso={settings.wedding_date} />
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(26px, 5vw, 64px)', marginTop: 'clamp(30px, 4vw, 46px)' }}>
-          {[
-            { label: 'From', value: formatDisplayTime(settings.wedding_time) },
-            { label: 'Venue', value: settings.venue_name },
-            { label: 'Where', value: settings.location },
-          ].map(({ label, value }) => (
-            <div key={label}>
-              <div style={{ fontFamily: tokens.mono, fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: tokens.persimmon }}>
-                {label}
-              </div>
-              <div style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1.4rem', marginTop: 6 }}>{value}</div>
-            </div>
-          ))}
+      {/* ── THE DETAILS — Option H spine layout, matching Save the Date ── */}
+      <style>{`
+        #inv-details { background: ${tokens.sand} !important; }
+      `}</style>
+      <Section variant="bone" id="inv-details">
+        <div
+          style={{
+            borderLeft: `5px solid ${tokens.persimmon}`,
+            paddingLeft: 'clamp(18px, 5vw, 30px)',
+            maxWidth: 760,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: tokens.grotesque,
+              fontWeight: 800,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              fontSize: 'clamp(1.1rem, 3.6vw, 1.5rem)',
+              color: tokens.greenDeep,
+            }}
+          >
+            The details
+          </div>
+          <div
+            style={{
+              fontFamily: tokens.display,
+              fontWeight: 600,
+              fontSize: 'clamp(2.2rem, 7vw, 4rem)',
+              lineHeight: 1.05,
+              color: tokens.greenDeep,
+              margin: 'clamp(12px, 3vw, 20px) 0 clamp(10px, 2vw, 14px)',
+            }}
+          >
+            {formatLongDate(settings.wedding_date)}
+          </div>
+          <p style={{ fontFamily: tokens.grotesque, fontWeight: 700, fontSize: 'clamp(1.05rem, 3.4vw, 1.4rem)', color: tokens.greenDeep, margin: 0 }}>
+            {formatDisplayTime(settings.wedding_time)}
+          </p>
+          <p
+            style={{
+              fontFamily: tokens.grotesque,
+              fontWeight: 600,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              fontSize: 'clamp(1rem, 3.2vw, 1.3rem)',
+              lineHeight: 1.4,
+              color: tokens.greenDeep,
+              marginTop: 'clamp(14px, 3vw, 20px)',
+            }}
+          >
+            {settings.venue_name}
+          </p>
+          <p
+            style={{
+              fontFamily: tokens.grotesque,
+              fontWeight: 600,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              fontSize: 'clamp(0.7rem, 2.2vw, 0.85rem)',
+              color: tokens.greenDeep,
+              margin: '4px 0 0',
+            }}
+          >
+            {settings.location}
+          </p>
+        </div>
+        <div style={{ paddingLeft: 'clamp(18px, 5vw, 30px)', marginTop: 'clamp(30px, 6vw, 44px)' }}>
+          <div style={{ display: 'inline-block' }}>
+            <CalendarControl mode="invitation" settings={settings} />
+          </div>
         </div>
       </Section>
 
       {/* ── RUNNING ORDER ── */}
       {showRunningOrder && (
         <Section variant="green" id="order">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
-            <div>
-              <Kicker label="The running order" color={tokens.bone} labelColor="#0a2e20" />
-              <h2
-                style={{
-                  fontFamily: tokens.display,
-                  fontWeight: 900,
-                  fontSize: 'clamp(2rem, 7vw, 3.8rem)',
-                  lineHeight: 1,
-                  letterSpacing: '-0.01em',
-                  marginTop: 14,
-                }}
-              >
-                How the night unfolds
-              </h2>
-            </div>
-            <div style={{ fontFamily: tokens.grotesque, fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.8 }}>
-              Doors {formatDisplayTime(settings.wedding_time)}
-            </div>
+          <div>
+            <Kicker label="The running order" color={tokens.bone} labelColor="#0a2e20" />
+            <h2
+              style={{
+                fontFamily: tokens.display,
+                fontWeight: 900,
+                fontSize: 'clamp(2rem, 7vw, 3.8rem)',
+                lineHeight: 1,
+                letterSpacing: '-0.01em',
+                marginTop: 14,
+              }}
+            >
+              How the day unfolds
+            </h2>
           </div>
           <div style={{ marginTop: 'clamp(36px, 5vw, 60px)' }}>
             <RunningOrder items={runningOrderItems} />
@@ -417,17 +387,7 @@ export default function InvitationPhaseV4({
               )}
               {dressHeadingLast}
             </h2>
-            <div style={{ display: 'flex', gap: 14, margin: '30px 0 24px', flexWrap: 'wrap' }} aria-hidden="true">
-              {DRESS_SWATCHES.map(sw => (
-                <div key={sw.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <i style={{ width: 54, height: 54, borderRadius: '50%', display: 'block', boxShadow: '0 6px 16px rgba(11,33,24,.18)', background: sw.color }} />
-                  <span style={{ fontFamily: tokens.grotesque, fontWeight: 600, fontSize: '0.54rem', letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.6 }}>
-                    {sw.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <p style={{ maxWidth: '44ch', opacity: 0.8, fontSize: '1.04rem', margin: 0, whiteSpace: 'pre-wrap' }}>
+            <p style={{ maxWidth: '44ch', opacity: 0.8, fontSize: '1.04rem', margin: '30px 0 0', whiteSpace: 'pre-wrap' }}>
               {settings.dress_code_description}
             </p>
           </div>
@@ -478,6 +438,14 @@ export default function InvitationPhaseV4({
 
       {/* ── THE PASS ── */}
       <Section variant="bright" id="pass">
+        <div style={{ textAlign: 'center', marginBottom: 'clamp(20px, 3vw, 28px)' }}>
+          <div style={{ fontFamily: tokens.mono, fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.7 }}>
+            Please reply by
+          </div>
+          <div style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1.1rem', marginTop: 4 }}>
+            {formatDayMonthYear(settings.rsvp_cutoff_date)}
+          </div>
+        </div>
         <div style={{ textAlign: 'center', marginBottom: 'clamp(34px, 5vw, 52px)' }}>
           <Kicker label="The reply" labelColor="#0a2e20" />
           <h2
@@ -498,11 +466,8 @@ export default function InvitationPhaseV4({
           admits={admitsWord}
           household={ticketHousehold}
           date={formatShortWeekday(settings.wedding_date)}
-          doors={formatDisplayTime(settings.wedding_time)}
+          time={formatDisplayTime(settings.wedding_time)}
           venue={settings.venue_name}
-          replyBy={formatDayMonthYear(settings.rsvp_cutoff_date)}
-          ctaLabel="Confirm your seats"
-          ctaHref="#rsvp-form"
         />
         <div id="rsvp-form" style={{ marginTop: 'clamp(40px, 6vw, 64px)' }}>
           <RSVPPhase
@@ -517,8 +482,16 @@ export default function InvitationPhaseV4({
         </div>
       </Section>
 
-      {/* ── FOOTER — couple names only, no sunburst ── */}
-      <Section variant="deep">
+      {/* ── FOOTER — couple names only, no sunburst, asymmetric corner glow ── */}
+      <style>{`
+        #inv-footer {
+          background:
+            radial-gradient(70% 80% at 8% 118%, rgba(242,96,60,.42), rgba(242,96,60,0) 60%),
+            radial-gradient(60% 70% at 88% 135%, rgba(142,124,195,.4), rgba(142,124,195,0) 62%),
+            ${tokens.greenDeep} !important;
+        }
+      `}</style>
+      <Section variant="deep" id="inv-footer">
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: tokens.display, fontWeight: 900, fontSize: 'clamp(2rem, 9vw, 4rem)' }}>
             <span style={{ color: tokens.violet }}>{name1}</span>{' '}

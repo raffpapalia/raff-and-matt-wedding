@@ -1,5 +1,4 @@
 import Reveal from './Reveal';
-import Button from './Button';
 import { tokens } from '../tokens';
 
 interface TicketProps {
@@ -7,11 +6,8 @@ interface TicketProps {
   admits: string;
   household: string;
   date: string;
-  doors: string;
+  time: string;
   venue: string;
-  replyBy: string;
-  ctaLabel: string;
-  ctaHref: string;
 }
 
 const metaLabelStyle: React.CSSProperties = {
@@ -29,8 +25,10 @@ const metaValueStyle: React.CSSProperties = {
   marginTop: 4,
 };
 
-// "ADMIT TWO" perforated ticket — the RSVP centrepiece.
-export default function Ticket({ serial, admits, household, date, doors, venue, replyBy, ctaLabel, ctaHref }: TicketProps) {
+// "ADMIT TWO" perforated ticket — the RSVP centrepiece. "Please reply by" and the
+// confirm CTA live outside this card now (InvitationPhaseV4 / RSVPPhase), so the
+// ticket itself only shows the admit/household/date/time/venue facts.
+export default function Ticket({ serial, admits, household, date, time, venue }: TicketProps) {
   return (
     <Reveal className="mr-ticket">
       <div style={{ padding: 'clamp(28px, 5vw, 44px)' }}>
@@ -75,35 +73,14 @@ export default function Ticket({ serial, admits, household, date, doors, venue, 
             <div style={metaValueStyle}>{date}</div>
           </div>
           <div>
-            <div style={metaLabelStyle}>Doors</div>
-            <div style={metaValueStyle}>{doors}</div>
+            <div style={metaLabelStyle}>Time</div>
+            <div style={metaValueStyle}>{time}</div>
           </div>
           <div>
             <div style={metaLabelStyle}>Venue</div>
             <div style={metaValueStyle}>{venue}</div>
           </div>
         </div>
-      </div>
-
-      <div className="mr-perf" />
-
-      <div
-        style={{
-          padding: 'clamp(22px, 4vw, 32px) clamp(28px, 5vw, 44px)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: 18,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div style={{ fontFamily: tokens.mono, fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.muted }}>
-          Please reply by
-          <b style={{ display: 'block', color: tokens.ink, fontSize: '0.8rem', marginTop: 4, letterSpacing: '0.04em' }}>{replyBy}</b>
-        </div>
-        <Button href={ctaHref} variant="solid">
-          {ctaLabel}
-        </Button>
       </div>
     </Reveal>
   );

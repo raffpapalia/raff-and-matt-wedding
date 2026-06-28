@@ -23,7 +23,9 @@ function isPastCutoff(cutoffDate: string): boolean {
 
 interface GuestFormData {
   [guestId: string]: {
-    attending: boolean;
+    // null = no selection yet — guests must actively choose Yes or No, never
+    // defaulted to "No" for them.
+    attending: boolean | null;
     hasDietary: boolean;
     dietary_requirement: string;
     dietary_other: string;
@@ -140,7 +142,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
     guests.reduce((acc, guest) => ({
       ...acc,
       [guest.id]: {
-        attending: guest.rsvp_status === 'attending',
+        attending: guest.rsvp_status === 'attending' ? true : guest.rsvp_status === 'declined' ? false : null,
         hasDietary: guest.dietary_requirement !== 'none' && guest.dietary_requirement !== null,
         dietary_requirement: guest.dietary_requirement || 'none',
         dietary_other: guest.dietary_other || '',
@@ -164,6 +166,11 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
   const [error, setError] = useState<string | null>(null);
   // True on initial load when the household has already submitted responses
   const [showSummary, setShowSummary] = useState(
+    () => guests.some(g => g.rsvp_status === 'attending' || g.rsvp_status === 'declined')
+  );
+  // Gates the inline form behind a "Confirm your seats" button for first-time
+  // guests; returning guests (who already have a saved response) start open.
+  const [isFormOpen, setIsFormOpen] = useState(
     () => guests.some(g => g.rsvp_status === 'attending' || g.rsvp_status === 'declined')
   );
 
@@ -323,10 +330,12 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
             </p>
           )}
           <p className="rv-success-message">{getConfirmationMessage()}</p>
-          <p className="rv-success-message" style={{ opacity: 0.7 }}>
-            More details will be sent your way soon.
-          </p>
-          <button type="button" onClick={() => setSubmitted(false)} className="rv-update-link">
+          <button
+            type="button"
+            onClick={() => { setSubmitted(false); setIsFormOpen(true); }}
+            className="rv-submit"
+            style={{ marginTop: 20 }}
+          >
             Update your RSVP
           </button>
         </div>
@@ -363,8 +372,23 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
           ))}
         </div>
 
-        <button type="button" onClick={() => setShowSummary(false)} className="rv-update-link">
+        <button
+          type="button"
+          onClick={() => { setShowSummary(false); setIsFormOpen(true); }}
+          className="rv-submit"
+          style={{ marginTop: 20 }}
+        >
           Update your RSVP
+        </button>
+      </div>
+    );
+  }
+
+  if (!isFormOpen) {
+    return (
+      <div className="mr-rsvp-v4 mr-v4" style={{ textAlign: 'center' }}>
+        <button type="button" onClick={() => setIsFormOpen(true)} className="rv-submit">
+          Confirm your seats
         </button>
       </div>
     );
@@ -388,14 +412,14 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
                 <button
                   type="button"
                   onClick={() => handleAttendingChange(guest.id, true)}
-                  className={`rv-pill ${formData[guest.id].attending ? 'is-active' : ''}`}
+                  className={`rv-pill ${formData[guest.id].attending === true ? 'is-active' : ''}`}
                 >
                   Yes
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAttendingChange(guest.id, false)}
-                  className={`rv-pill ${!formData[guest.id].attending ? 'is-active' : ''}`}
+                  className={`rv-pill ${formData[guest.id].attending === false ? 'is-active' : ''}`}
                 >
                   No
                 </button>

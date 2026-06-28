@@ -205,6 +205,7 @@ export default async function InvitePage({
         weddingSchedule={settings.wedding_schedule}
         sectionOrder={settings.section_order}
         currentPhase={effectivePhase}
+        guestName={guestName}
       />
     );
   } else if (effectivePhase === 'pre_wedding') {
