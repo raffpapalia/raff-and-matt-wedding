@@ -35,10 +35,20 @@ const HERO_GRAIN_URL =
 
 const ADMIT_WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 
-// Strips a trailing "AM"/"PM" off a schedule time like "3:00 PM" — RunningOrder
-// reads as "{time} · {label}" with no separate period treatment.
-function stripAmPm(time: string): string {
-  return time.trim().replace(/\s*(am|pm)$/i, '');
+// Normalises a schedule time — legacy "H:MM AM/PM" (e.g. "3:00 PM") or already-24h
+// "HH:MM" — to the 24h "HH:MM" string formatDisplayTime expects, so RunningOrder
+// can render it as "3 PM" / "3.30 PM" regardless of which format was typed into
+// the admin schedule field.
+function scheduleTimeTo24h(time: string): string {
+  const trimmed = time.trim();
+  const legacy = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!legacy) return trimmed;
+  let hours = parseInt(legacy[1], 10);
+  const minutes = legacy[2];
+  const meridiem = legacy[3].toUpperCase();
+  if (meridiem === 'PM' && hours !== 12) hours += 12;
+  if (meridiem === 'AM' && hours === 12) hours = 0;
+  return `${String(hours).padStart(2, '0')}:${minutes}`;
 }
 
 function formatGuestNames(names: string[]): string {
@@ -142,7 +152,7 @@ export default function InvitationPhaseV4({
     num: String(i + 1).padStart(2, '0'),
     name: item.label,
     note: item.description,
-    time: stripAmPm(item.time),
+    time: scheduleTimeTo24h(item.time),
   }));
 
   const weddingYear = parseIsoDate(settings.wedding_date)?.y ?? new Date().getFullYear();
@@ -318,7 +328,7 @@ export default function InvitationPhaseV4({
         #inv-details { background: ${tokens.sand} !important; }
       `}</style>
       <Section variant="bone" id="inv-details">
-        <Kicker label="The Details" color={tokens.green} />
+        <Kicker label="The Details" color={tokens.persimmon} />
         <div
           style={{
             borderLeft: `5px solid ${tokens.persimmon}`,

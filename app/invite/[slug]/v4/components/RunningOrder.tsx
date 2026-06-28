@@ -1,4 +1,5 @@
 import Reveal from './Reveal';
+import { formatDisplayTime } from '@/lib/date';
 import { tokens } from '../tokens';
 
 interface RunningOrderItem {
@@ -20,11 +21,10 @@ export default function RunningOrder({ items }: RunningOrderProps) {
     <div>
       {items.map((item, i) => (
         <Reveal key={i} className="mr-act">
-          <div style={{ fontFamily: tokens.mono, fontSize: '0.72rem', color: tokens.violet, letterSpacing: '0.1em', flexShrink: 0, paddingTop: 8 }}>{item.num}</div>
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: tokens.display, fontWeight: 900, fontSize: 'clamp(1.8rem, 6.2vw, 3.2rem)', color: tokens.persimmon, lineHeight: 1, whiteSpace: 'nowrap' }}>
-                {item.time}
+                {formatDisplayTime(item.time)}
               </span>
               <span style={{ fontFamily: tokens.display, fontWeight: 900, fontSize: 'clamp(1.8rem, 6.2vw, 3.2rem)', color: tokens.persimmon, lineHeight: 1 }}>
                 ·
