@@ -66,7 +66,7 @@ export default function StickyBar({ coupleNames, rightHref, rightLabel, rightVar
       >
         <span style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1rem', letterSpacing: '0.02em' }}>
           <span style={{ color: tokens.violet }}>{name1.charAt(0).toUpperCase()}</span>
-          <span style={{ color: tokens.bone, opacity: 0.7 }}> &amp; </span>
+          <span style={{ color: tokens.persimmon }}> &amp; </span>
           <span style={{ color: tokens.violet }}>{name2.charAt(0).toUpperCase()}</span>
         </span>
         <span style={{ color: tokens.muted, margin: '0 7px' }}>·</span>

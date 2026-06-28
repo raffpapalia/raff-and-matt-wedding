@@ -27,21 +27,8 @@ export default function BandQuote({ src, alt, children, className }: BandQuotePr
         alt={alt}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
       />
-      <div
-        aria-hidden="true"
-        // rgba(15,67,49,...) is tokens.greenDeep (#0F4331) decomposed for alpha compositing.
-        style={{ position: 'absolute', inset: 0, background: `linear-gradient(rgba(15,67,49,.35), rgba(15,67,49,.55))` }}
-      />
-      {/* Top/bottom bleed fades — a greenDeep vignette at the photo's own edges,
-          independent of whatever colour the section above/below happens to be. */}
-      <div
-        aria-hidden="true"
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '25%', pointerEvents: 'none', background: `linear-gradient(to bottom, ${tokens.greenDeep} 0%, transparent 35%)` }}
-      />
-      <div
-        aria-hidden="true"
-        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '25%', pointerEvents: 'none', background: `linear-gradient(to bottom, transparent 65%, ${tokens.greenDeep} 100%)` }}
-      />
+      {/* Natural-colour photo: no overlays, no fades, no glow, no duotone. The only
+          treatment is a minimal scrim behind the quote text itself for legibility. */}
       <q
         style={{
           position: 'relative',
@@ -54,7 +41,10 @@ export default function BandQuote({ src, alt, children, className }: BandQuotePr
           maxWidth: '16ch',
           color: tokens.bone,
           quotes: 'none',
-          padding: '0 1.5rem',
+          // rgba(11,46,34,.55) — minimal scrim behind the text only (not the photo).
+          background: 'rgba(11,46,34,.55)',
+          padding: '0.6em 1.5rem',
+          borderRadius: 6,
         }}
       >
         {children}
