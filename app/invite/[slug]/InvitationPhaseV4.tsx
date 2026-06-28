@@ -55,13 +55,13 @@ function formatGuestNames(names: string[]): string {
 }
 
 const headingStyle: React.CSSProperties = {
-  fontFamily: tokens.display,
-  fontWeight: 900,
+  fontFamily: tokens.grotesque,
+  fontWeight: 800,
   fontSize: 'clamp(2.2rem, 8vw, 4.6rem)',
   lineHeight: 1.02,
   letterSpacing: '-0.01em',
   margin: '16px 0 0',
-  color: tokens.bone,
+  color: tokens.sand,
 };
 
 function ConciergeCard({
@@ -82,10 +82,10 @@ function ConciergeCard({
   return (
     <div style={{ background: tokens.greenDeep, color: tokens.bone, padding: '30px 26px' }}>
       <div style={{ fontFamily: tokens.grotesque, fontWeight: 700, textTransform: 'uppercase', fontSize: '0.6rem', letterSpacing: '0.18em', color: tokens.sand }}>
-        {num} / {category}
+        <span style={{ color: tokens.violet }}>{num} /</span> {category}
       </div>
-      <h3 style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1.5rem', margin: '12px 0 8px' }}>{title}</h3>
-      <p style={{ opacity: 0.78, fontSize: '0.95rem', margin: 0 }}>{body}</p>
+      <h3 style={{ fontFamily: tokens.grotesque, fontWeight: 700, fontSize: '1.5rem', margin: '12px 0 8px', color: tokens.sand }}>{title}</h3>
+      <p style={{ fontFamily: tokens.grotesque, fontWeight: 400, color: tokens.sand, opacity: 0.78, fontSize: '0.95rem', margin: 0 }}>{body}</p>
       <a
         href={href}
         target="_blank"
@@ -94,11 +94,11 @@ function ConciergeCard({
           display: 'inline-block',
           marginTop: 14,
           fontFamily: tokens.grotesque,
-          fontWeight: 700,
+          fontWeight: 600,
           fontSize: '0.62rem',
           letterSpacing: '0.16em',
           textTransform: 'uppercase',
-          color: tokens.persimmon,
+          color: tokens.sand,
           textDecoration: 'none',
           borderBottom: `1.5px solid ${tokens.persimmon}`,
           paddingBottom: 3,
@@ -381,13 +381,13 @@ export default function InvitationPhaseV4({
             <Kicker label="The running order" color={tokens.bone} />
             <h2
               style={{
-                fontFamily: tokens.display,
-                fontWeight: 900,
+                fontFamily: tokens.grotesque,
+                fontWeight: 800,
                 fontSize: 'clamp(2rem, 7vw, 3.8rem)',
                 lineHeight: 1,
                 letterSpacing: '-0.01em',
                 marginTop: 14,
-                color: tokens.bone,
+                color: tokens.sand,
               }}
             >
               How the day unfolds
@@ -411,12 +411,12 @@ export default function InvitationPhaseV4({
             <div style={{ marginTop: 'clamp(20px, 3vw, 34px)' }}>
               <h2
                 style={{
-                  fontFamily: tokens.display,
-                  fontWeight: 900,
+                  fontFamily: tokens.grotesque,
+                  fontWeight: 800,
                   fontSize: 'clamp(2.9rem, 11.5vw, 6.1rem)',
                   lineHeight: 0.95,
                   letterSpacing: '-0.01em',
-                  color: tokens.ink,
+                  color: tokens.greenDeep,
                   margin: 0,
                 }}
               >

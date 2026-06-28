@@ -355,11 +355,11 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
           {guests.map(guest => (
             <div key={guest.id} className="rv-summary-row">
               <div>
-                <h3 style={{ fontFamily: 'var(--display)', fontWeight: 600, fontSize: '1.05rem', margin: 0 }}>
+                <h3 style={{ fontFamily: 'var(--grotesque)', fontWeight: 600, fontSize: '1.05rem', margin: 0 }}>
                   {guest.first_name} {guest.last_name}
                 </h3>
                 {guest.rsvp_status === 'attending' && guest.dietary_requirement && guest.dietary_requirement !== 'none' && (
-                  <p style={{ fontFamily: 'var(--body)', fontSize: '0.78rem', opacity: 0.6, margin: '2px 0 0' }}>
+                  <p style={{ fontFamily: 'var(--grotesque)', fontSize: '0.78rem', opacity: 0.6, margin: '2px 0 0' }}>
                     {getDietaryLabel(guest.dietary_requirement, guest.dietary_other, DIETARY_OPTIONS)}
                     {guest.dietary_requirement === 'other' && guest.dietary_other ? ` — ${guest.dietary_other}` : ''}
                   </p>
@@ -484,7 +484,7 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
         {/* Plus One Guests Section */}
         {household.plus_one_allowance > 0 && (
           <div className="rv-divider" style={{ marginBottom: 'clamp(24px, 4vw, 32px)' }}>
-            <p style={{ fontFamily: 'var(--body)', fontSize: '0.92rem', marginBottom: 18 }}>
+            <p style={{ fontFamily: 'var(--grotesque)', fontSize: '0.92rem', marginBottom: 18 }}>
               You&apos;re welcome to bring {household.plus_one_allowance} additional guest{household.plus_one_allowance !== 1 ? 's' : ''}
             </p>
 
