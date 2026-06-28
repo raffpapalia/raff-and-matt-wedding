@@ -159,21 +159,23 @@ export default function InvitationPhaseV4({
 
   return (
     <div style={{ fontFamily: tokens.body, fontWeight: 300, lineHeight: 1.6 }}>
-      <StickyBar coupleNames={coupleNames} rightHref="#pass" rightLabel="RSVP" rightVariant="solid" />
+      <StickyBar coupleNames={coupleNames} rightHref="#pass" rightLabel="RSVP" rightVariant="solid" hideUntilScroll />
 
       {/* ── HERO — Option B bleed: green text panel (left) + couple photo bleed (right);
           stacks photo-on-top on mobile. Mirrors SaveTheDatePhase's glow/grain recipe. ── */}
       <style>{`
-        .mr-inv-hero-inner { display: grid; grid-template-columns: 1fr; }
-        .mr-inv-hero-photo { order: 1; position: relative; overflow: hidden; aspect-ratio: 4 / 3; }
-        .mr-inv-hero-panel { order: 2; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: clamp(56px, 11vw, 90px) clamp(24px, 6vw, 64px); }
+        .mr-inv-hero-inner { display: flex; flex-direction: column; }
+        .mr-inv-hero-photo { order: 1; position: relative; overflow: hidden; aspect-ratio: 4 / 3; flex: 0 0 auto; }
+        .mr-inv-hero-panel { order: 2; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: clamp(56px, 11vw, 90px) clamp(24px, 6vw, 64px); flex: 1 1 auto; }
         .mr-inv-hero-fade { display: none; }
+        .mr-inv-names { padding-left: clamp(26px, 8vw, 46px); }
         @media (min-width: 760px) {
-          .mr-inv-hero-inner { min-height: 100svh; }
+          .mr-inv-hero-inner { display: grid; grid-template-columns: 1fr; min-height: 100svh; }
           .mr-inv-hero-inner--photo { grid-template-columns: 52% 48%; }
           .mr-inv-hero-panel { order: 1; }
           .mr-inv-hero-photo { order: 2; aspect-ratio: auto; }
           .mr-inv-hero-fade { display: block; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(15,67,49,1) 0%, rgba(15,67,49,0) 26%); }
+          .mr-inv-names { padding-left: 0; }
         }
       `}</style>
       <header className={`mr-inv-hero-inner${hasPhoto ? ' mr-inv-hero-inner--photo' : ''}`}>
@@ -230,9 +232,9 @@ export default function InvitationPhaseV4({
               >
                 You&apos;re invited to the wedding of
               </p>
-              <h1 style={{ fontFamily: tokens.display, fontWeight: 900, lineHeight: 0.82, letterSpacing: '-0.01em', margin: 0 }}>
-                <span style={{ display: 'block', fontSize: 'clamp(3.8rem, 17vw, 8rem)', color: tokens.bone }}>{name1}</span>
-                <span style={{ display: 'block', fontSize: 'clamp(3.8rem, 17vw, 8rem)', color: tokens.bone }}>
+              <h1 className="mr-inv-names" style={{ fontFamily: tokens.display, fontWeight: 900, lineHeight: 0.82, letterSpacing: '-0.01em', margin: 0 }}>
+                <span style={{ display: 'block', fontSize: 'clamp(3.8rem, 17vw, 8rem)', color: tokens.violet }}>{name1}</span>
+                <span style={{ display: 'block', fontSize: 'clamp(3.8rem, 17vw, 8rem)', color: tokens.violet }}>
                   <em style={{ fontStyle: 'italic', fontWeight: 600, color: tokens.persimmon }}>&amp;</em> {name2}
                 </span>
               </h1>
