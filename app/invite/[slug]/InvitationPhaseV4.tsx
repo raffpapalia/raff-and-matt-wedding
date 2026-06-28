@@ -61,6 +61,7 @@ const headingStyle: React.CSSProperties = {
   lineHeight: 1.02,
   letterSpacing: '-0.01em',
   margin: '16px 0 0',
+  color: tokens.bone,
 };
 
 function ConciergeCard({
@@ -280,18 +281,18 @@ export default function InvitationPhaseV4({
         <>
           <style>{`#note { background: ${tokens.sand} !important; }`}</style>
           <Section variant="bone" id="note" className="mr-inv-sand-glow">
-            <Kicker label="A note for you" color={tokens.green} />
+            <Kicker label="A note for you" color={tokens.greenDeep} />
             {household.personal_message && household.personal_photo_url && (
               <Reveal className="mr-note-grid">
                 <TreatedPhoto src={household.personal_photo_url} alt="" ratio={3 / 4} shape="rect" />
                 <div className="mr-note-message">
-                  <p style={{ whiteSpace: 'pre-line' }}>{household.personal_message}</p>
+                  <p style={{ whiteSpace: 'pre-line', color: tokens.ink, opacity: 0.85 }}>{household.personal_message}</p>
                 </div>
               </Reveal>
             )}
             {household.personal_message && !household.personal_photo_url && (
               <Reveal className="mr-note-solo">
-                <p style={{ whiteSpace: 'pre-line' }}>{household.personal_message}</p>
+                <p style={{ whiteSpace: 'pre-line', color: tokens.ink, opacity: 0.85 }}>{household.personal_message}</p>
                 <p className="mr-note-sign">— {coupleNames}</p>
               </Reveal>
             )}
@@ -310,7 +311,7 @@ export default function InvitationPhaseV4({
         <div className={`mr-story-grid${settings.story_photo_url ? '' : ' mr-story-grid--solo'}`}>
           <div>
             <h2 style={headingStyle}>{settings.story_heading}</h2>
-            <p style={{ marginTop: 22, maxWidth: '46ch', opacity: 0.85, fontSize: '1.05rem', whiteSpace: 'pre-wrap' }}>
+            <p style={{ marginTop: 22, maxWidth: '46ch', color: tokens.bone, opacity: 0.85, fontSize: '1.05rem', whiteSpace: 'pre-wrap' }}>
               {settings.story_body}
             </p>
           </div>
@@ -370,9 +371,9 @@ export default function InvitationPhaseV4({
 
       {/* ── RUNNING ORDER ── */}
       {showRunningOrder && (
-        <Section variant="green" id="order" className="mr-inv-green-glow">
+        <Section variant="deep" id="order" className="mr-inv-green-glow">
           <div>
-            <Kicker label="The running order" color={tokens.bone} labelColor="#0a2e20" />
+            <Kicker label="The running order" color={tokens.bone} />
             <h2
               style={{
                 fontFamily: tokens.display,
@@ -381,6 +382,7 @@ export default function InvitationPhaseV4({
                 lineHeight: 1,
                 letterSpacing: '-0.01em',
                 marginTop: 14,
+                color: tokens.bone,
               }}
             >
               How the day unfolds
@@ -400,7 +402,7 @@ export default function InvitationPhaseV4({
         <>
           <style>{`#dress { background: ${tokens.sand} !important; }`}</style>
           <Section variant="bone" id="dress" className="mr-inv-sand-glow">
-            <Kicker label="Dress code" color={tokens.green} />
+            <Kicker label="Dress code" color={tokens.greenDeep} />
             <div style={{ marginTop: 'clamp(20px, 3vw, 34px)' }}>
               <h2
                 style={{
@@ -409,7 +411,7 @@ export default function InvitationPhaseV4({
                   fontSize: 'clamp(2.6rem, 11vw, 5.8rem)',
                   lineHeight: 0.95,
                   letterSpacing: '-0.01em',
-                  color: tokens.green,
+                  color: tokens.ink,
                   margin: 0,
                 }}
               >
@@ -421,7 +423,7 @@ export default function InvitationPhaseV4({
                 )}
                 {dressHeadingLast}
               </h2>
-              <p style={{ maxWidth: '44ch', opacity: 0.8, fontSize: '1.04rem', margin: '30px 0 0', whiteSpace: 'pre-wrap' }}>
+              <p style={{ maxWidth: '44ch', color: tokens.ink, opacity: 0.85, fontSize: '1.04rem', margin: '30px 0 0', whiteSpace: 'pre-wrap' }}>
                 {settings.dress_code_description}
               </p>
             </div>
@@ -479,17 +481,17 @@ export default function InvitationPhaseV4({
       )}
 
       {/* ── THE PASS ── */}
-      <Section variant="bright" id="pass" className="mr-inv-green-glow">
+      <Section variant="deep" id="pass" className="mr-inv-green-glow">
         <div style={{ textAlign: 'center', marginBottom: 'clamp(20px, 3vw, 28px)' }}>
-          <div style={{ fontFamily: tokens.mono, fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.7 }}>
+          <div style={{ fontFamily: tokens.mono, fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: tokens.sand, opacity: 0.85 }}>
             Please reply by
           </div>
-          <div style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1.1rem', marginTop: 4 }}>
+          <div style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1.1rem', marginTop: 4, color: tokens.sand }}>
             {formatDayMonthYear(settings.rsvp_cutoff_date)}
           </div>
         </div>
         <div style={{ textAlign: 'center', marginBottom: 'clamp(34px, 5vw, 52px)' }}>
-          <Kicker label="The reply" labelColor="#0a2e20" />
+          <Kicker label="The reply" />
           <h2
             style={{
               fontFamily: tokens.display,

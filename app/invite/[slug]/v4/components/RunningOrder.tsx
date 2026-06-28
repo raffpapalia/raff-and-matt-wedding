@@ -29,7 +29,7 @@ export default function RunningOrder({ items }: RunningOrderProps) {
               <span style={{ fontFamily: tokens.display, fontWeight: 900, fontSize: 'clamp(1.8rem, 6.2vw, 3.2rem)', color: tokens.persimmon, lineHeight: 1 }}>
                 ·
               </span>
-              <span style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: 'clamp(1.5rem, 5.4vw, 2.8rem)', lineHeight: 1 }}>
+              <span style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: 'clamp(1.5rem, 5.4vw, 2.8rem)', lineHeight: 1, color: tokens.bone }}>
                 {item.name}
               </span>
             </div>
@@ -40,7 +40,8 @@ export default function RunningOrder({ items }: RunningOrderProps) {
                   fontFamily: tokens.body,
                   fontWeight: 300,
                   fontSize: '0.82rem',
-                  opacity: 0.6,
+                  color: tokens.bone,
+                  opacity: 0.7,
                   marginTop: 6,
                   maxWidth: '34ch',
                 }}
