@@ -3,9 +3,9 @@ import { sectionVariantStyles, type SectionVariant } from '../tokens';
 interface SectionProps {
   variant: SectionVariant;
   id?: string;
-  // Optional full-bleed treated (duotone) background photo, e.g. the hero. Rendered
-  // behind the content with the shared mr-duotone filter plus a gradient toward the
-  // variant's background colour, so text laid over it stays readable.
+  // Optional full-bleed natural-colour background photo, e.g. the hero. Rendered
+  // behind the content with a dark gradient toward the variant's background
+  // colour, so text laid over it stays readable.
   backgroundImage?: string;
   minHeight?: string;
   // How content sits within minHeight: 'end' (default, the invitation hero's
@@ -40,10 +40,8 @@ export default function Section({ variant, id, backgroundImage, minHeight, conte
             src={backgroundImage}
             alt=""
             aria-hidden="true"
-            className="mr-duotone-img"
-            style={{ position: 'absolute', inset: 0 }}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
           />
-          <div className="mr-duotone-glow" aria-hidden="true" />
           <div
             aria-hidden="true"
             style={{

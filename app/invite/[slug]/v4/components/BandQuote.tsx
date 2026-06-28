@@ -6,7 +6,7 @@ interface BandQuoteProps {
   children: React.ReactNode;
 }
 
-// Full-bleed treated photo with a centred italic quote — the mockup's ".band" moment.
+// Full-bleed natural-colour photo with a centred italic quote — the mockup's ".band" moment.
 export default function BandQuote({ src, alt, children }: BandQuoteProps) {
   return (
     <div
@@ -23,10 +23,8 @@ export default function BandQuote({ src, alt, children }: BandQuoteProps) {
       <img
         src={src}
         alt={alt}
-        className="mr-duotone-img"
-        style={{ position: 'absolute', inset: 0 }}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
       />
-      <div className="mr-duotone-glow" aria-hidden="true" />
       <div
         aria-hidden="true"
         style={{ position: 'absolute', inset: 0, background: `linear-gradient(rgba(11,46,34,.35), rgba(11,46,34,.55))` }}

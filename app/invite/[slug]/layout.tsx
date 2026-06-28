@@ -47,17 +47,6 @@ export default function InviteLayout({
       className={`${fraunces.variable} ${bricolage.variable} ${dmMono.variable} mr-v4`}
       style={{ backgroundColor: '#0A1F14', minHeight: '100vh' }}
     >
-      {/* Shared duotone filter for v4 TreatedPhoto — defined once, referenced via filter:url(#mr-duotone) */}
-      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
-        <filter id="mr-duotone">
-          <feColorMatrix type="saturate" values="0" />
-          <feComponentTransfer>
-            <feFuncR tableValues="0.043 0.965" />
-            <feFuncG tableValues="0.180 0.933" />
-            <feFuncB tableValues="0.133 0.867" />
-          </feComponentTransfer>
-        </filter>
-      </svg>
       {children}
     </div>
   );

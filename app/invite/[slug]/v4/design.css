@@ -207,41 +207,6 @@
   right: calc(-1 * clamp(28px, 5vw, 44px) - 14px);
 }
 
-/* Shared duotone treatment — #mr-duotone filter + warm persimmon glow overlay.
-   Used by TreatedPhoto (inline content photos), Section's backgroundImage (hero
-   photos) and BandQuote (the full-bleed quote photo), so every photo surface gets
-   the same finish. .mr-duotone-img is the filtered <img> itself; .mr-duotone-glow
-   is a sibling overlay element painting the glow. Callers position both inside a
-   position:relative/overflow:hidden ancestor. */
-.mr-v4 .mr-duotone-img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: url(#mr-duotone);
-}
-.mr-v4 .mr-duotone-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at 50% 40%, var(--persimmon) 0%, transparent 65%);
-  opacity: 0.18;
-  mix-blend-mode: screen;
-}
-
-.mr-v4 .mr-treated-photo {
-  position: relative;
-  overflow: hidden;
-}
-.mr-v4 .mr-treated-photo.mr-shape-arch .mr-duotone-img,
-.mr-v4 .mr-treated-photo.mr-shape-arch .mr-duotone-glow {
-  border-radius: 300px 300px 12px 12px;
-}
-.mr-v4 .mr-treated-photo.mr-shape-rect .mr-duotone-img,
-.mr-v4 .mr-treated-photo.mr-shape-rect .mr-duotone-glow {
-  border-radius: 12px;
-}
-
 /* ───────────────────────────────────────────────────────────────────────────
    RSVP form ("the Pass") — bone card under the ticket on the bright section.
    Mirrors .ticket's card treatment (bone bg, ink text, radius 16px, soft
