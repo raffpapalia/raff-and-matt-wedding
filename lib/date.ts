@@ -63,6 +63,26 @@ export function formatDotted(iso: string, opts: { year?: '2' | '4'; spaced?: boo
   return `${String(d).padStart(2, '0')}${sep}${String(m).padStart(2, '0')}${sep}${yStr}`;
 }
 
+/**
+ * Formats a stored wedding time for guest-facing display.
+ * Input: "HH:MM" 24h (the native <input type="time"> format, e.g. "15:00", "15:30").
+ * Output: "3 PM" (on-the-hour drops minutes) or "3.30 PM" (otherwise, dot-separated).
+ * Anything else — including a legacy "H:MM AM/PM" value stored before the time
+ * picker migration — is returned unchanged rather than reformatted wrong. Never throws.
+ */
+export function formatDisplayTime(time: string): string {
+  const match = time.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return time;
+
+  const hours24 = parseInt(match[1], 10);
+  const minutes = match[2];
+  if (hours24 < 0 || hours24 > 23 || parseInt(minutes, 10) > 59) return time;
+
+  const meridiem = hours24 >= 12 ? 'PM' : 'AM';
+  const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+  return minutes === '00' ? `${hours12} ${meridiem}` : `${hours12}.${minutes} ${meridiem}`;
+}
+
 // settings.location is a full street address ("133 Russell St, Melbourne, Victoria,
 // 3000"); callers that only want the city drop a trailing postcode if present, then
 // take the segment before the state.

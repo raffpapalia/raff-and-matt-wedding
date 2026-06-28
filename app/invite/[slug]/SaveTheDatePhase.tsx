@@ -1,7 +1,7 @@
 'use client';
 
 import type { Settings } from '@/lib/supabase';
-import { formatLongDate } from '@/lib/date';
+import { formatLongDate, formatDisplayTime } from '@/lib/date';
 import Section from './v4/components/Section';
 import Reveal from './v4/components/Reveal';
 import CalendarControl from './v4/components/CalendarControl';
@@ -14,13 +14,14 @@ import { tokens } from './v4/tokens';
 const HERO_GRAIN_URL =
   "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='heroGrain'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23heroGrain)' opacity='0.5'/></svg>\")";
 
-// Matt's colour scheme for the Save the Date page only — page-scoped, does not
-// touch the shared v4 tokens (persimmon is the one colour reused from there).
+// Local alias for the shared v4 tokens this page uses — Save the Date now reads
+// its full palette (green/violet/sand/persimmon/bone/ink) from the shared tokens,
+// which were promoted to this finalised palette as the single source of truth.
 const stdColors = {
   persimmon: tokens.persimmon,
-  violet: '#8E7CC3',
-  sand: '#A88C60',
-  green: '#0F4331',
+  violet: tokens.violet,
+  sand: tokens.sand,
+  green: tokens.greenDeep,
   bone: tokens.bone,
   ink: tokens.ink,
 };
@@ -285,7 +286,7 @@ export default function SaveTheDatePhase({
                   margin: 0,
                 }}
               >
-                {settings ? `${settings.wedding_time} · ${formatLongDate(weddingDate)}` : formatLongDate(weddingDate)}
+                {settings ? `${formatDisplayTime(settings.wedding_time)} · ${formatLongDate(weddingDate)}` : formatLongDate(weddingDate)}
               </p>
             )}
             {settings && (

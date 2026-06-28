@@ -394,11 +394,11 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
             </Field>
             <Field label="Wedding time" helper="The ceremony start time shown to guests.">
               <input
-                type="text"
+                type="time"
                 value={settings.wedding_time}
                 onChange={e => update('wedding_time', e.target.value)}
-                placeholder="6:00 PM"
                 className={INPUT_CLASS}
+                style={{ colorScheme: 'dark' }}
               />
             </Field>
           </div>

@@ -224,7 +224,7 @@ export type Settings = {
 
 export const DEFAULT_SETTINGS: Settings = {
   wedding_date: '2027-07-10',
-  wedding_time: '3:00 PM',
+  wedding_time: '15:00',
   venue_name: 'QT Hotel Melbourne',
   location: '133 Russell St, Melbourne, Victoria, 3000',
   couple_names: 'Matt & Raff',

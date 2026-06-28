@@ -24,17 +24,32 @@ function nextDayCompact(iso: string): string {
   ].join('');
 }
 
+// Primary format is "HH:MM" 24h, produced natively by the admin's <input type="time">
+// (e.g. "15:00"). "H:MM AM/PM" (e.g. "3:00 PM") is kept as a fallback for any
+// wedding_time value stored before the time-picker migration.
 function parseWeddingTime(timeStr: string): { hours: number; minutes: number } {
-  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (!match) {
-    throw new Error(`Invalid wedding_time format: ${timeStr}`);
+  const trimmed = timeStr.trim();
+
+  const time24 = trimmed.match(/^(\d{1,2}):(\d{2})$/);
+  if (time24) {
+    const hours = parseInt(time24[1], 10);
+    const minutes = parseInt(time24[2], 10);
+    if (hours >= 0 && hours <= 23 && minutes <= 59) {
+      return { hours, minutes };
+    }
   }
-  let hours = parseInt(match[1], 10);
-  const minutes = parseInt(match[2], 10);
-  const meridiem = match[3].toUpperCase();
-  if (meridiem === 'PM' && hours !== 12) hours += 12;
-  if (meridiem === 'AM' && hours === 12) hours = 0;
-  return { hours, minutes };
+
+  const legacy = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (legacy) {
+    let hours = parseInt(legacy[1], 10);
+    const minutes = parseInt(legacy[2], 10);
+    const meridiem = legacy[3].toUpperCase();
+    if (meridiem === 'PM' && hours !== 12) hours += 12;
+    if (meridiem === 'AM' && hours === 12) hours = 0;
+    return { hours, minutes };
+  }
+
+  throw new Error(`Invalid wedding_time format: ${timeStr}`);
 }
 
 // Converts a Melbourne wall-clock date + time (e.g. "2027-07-10", "3:00 PM") into the

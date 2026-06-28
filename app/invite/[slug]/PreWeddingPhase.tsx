@@ -2,7 +2,7 @@
 
 import type { Household, Guest, Settings, Faq, Phase, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
 import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
-import { parseIsoDate, formatShortWeekday, formatDotted, deriveSerial } from '@/lib/date';
+import { parseIsoDate, formatShortWeekday, formatDotted, formatDisplayTime, deriveSerial } from '@/lib/date';
 import StickyBar from './v4/components/StickyBar';
 import Section from './v4/components/Section';
 import Reveal from './v4/components/Reveal';
@@ -261,7 +261,7 @@ export default function PreWeddingPhase({
               coupleNames={coupleNames}
               admitting={admitting}
               date={formatShortWeekday(settings.wedding_date)}
-              doors={settings.wedding_time}
+              doors={formatDisplayTime(settings.wedding_time)}
               venue={settings.venue_name}
               hashtag={settings.hashtag}
               stampLine={settings.pass_stamp_line}

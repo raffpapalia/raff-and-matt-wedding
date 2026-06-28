@@ -1,6 +1,8 @@
-import { supabase, supabaseServer, getSettings, type Household, type Guest, type Phase, type CustomQuestion, type CustomAnswer, type Faq } from '@/lib/supabase';
+import { supabase, supabaseServer, getSettings, type Household, type Guest, type Phase, type PhaseName, type CustomQuestion, type CustomAnswer, type Faq } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { isAdminAuthenticated } from '@/lib/adminAuth';
+import PreviewBanner from './PreviewBanner';
 
 const SaveTheDatePhase = dynamic(() => import('./SaveTheDatePhase'));
 const InvitationPhaseV4 = dynamic(() => import('./InvitationPhaseV4'));
@@ -8,6 +10,25 @@ const PreWeddingPhase = dynamic(() => import('./PreWeddingPhase'));
 const ThankYouPhase = dynamic(() => import('./ThankYouPhase'));
 
 export const revalidate = 0; // ISR with on-demand revalidation
+
+const PREVIEWABLE_PHASES: readonly PhaseName[] = ['save_the_date', 'invitation', 'pre_wedding', 'thank_you'];
+
+// Admin-only, read-only override: lets an admin force ?preview=<phase> on a real
+// household's invite URL to see how any phase renders for that household, without
+// touching the phases table or affecting what the guest themselves sees. Returns
+// null (real phase wins) unless the request is admin-authenticated AND the param
+// is one of the four known phase values — guests passing this param are always
+// ignored, since isAdminAuthenticated() reads the same httpOnly admin cookie the
+// /admin routes already gate on.
+async function resolvePreviewPhase(rawPreview: string | undefined): Promise<PhaseName | null> {
+  if (!rawPreview || !PREVIEWABLE_PHASES.includes(rawPreview as PhaseName)) {
+    return null;
+  }
+  if (!(await isAdminAuthenticated())) {
+    return null;
+  }
+  return rawPreview as PhaseName;
+}
 
 async function getInviteData(slug: string) {
   try {
@@ -134,10 +155,13 @@ function formatGuestName(guests: Guest[]): string {
 
 export default async function InvitePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ preview?: string }>;
 }) {
   const { slug } = await params;
+  const { preview: rawPreview } = (await searchParams) ?? {};
 
   const data = await getInviteData(slug);
 
@@ -149,8 +173,15 @@ export default async function InvitePage({
 
   const guestName = formatGuestName(guests) || household.name;
 
-  if (phase.current_phase === 'save_the_date') {
-    return (
+  // Read-only for this response only: never written back to `phase` or the
+  // phases table, so it can't affect getCurrentPhase or any other request/guest.
+  const previewPhase = await resolvePreviewPhase(rawPreview);
+  const effectivePhase: PhaseName = previewPhase ?? phase.current_phase;
+
+  let phaseContent: React.ReactNode;
+
+  if (effectivePhase === 'save_the_date') {
+    phaseContent = (
       <SaveTheDatePhase
         coupleNames={settings.couple_names}
         tagline={settings.tagline}
@@ -161,10 +192,8 @@ export default async function InvitePage({
         settings={settings}
       />
     );
-  }
-
-  if (phase.current_phase === 'invitation') {
-    return (
+  } else if (effectivePhase === 'invitation') {
+    phaseContent = (
       <InvitationPhaseV4
         household={household}
         guests={guests}
@@ -175,13 +204,11 @@ export default async function InvitePage({
         couplePhotoUrl={settings.couple_photo_url || ''}
         weddingSchedule={settings.wedding_schedule}
         sectionOrder={settings.section_order}
-        currentPhase={phase.current_phase}
+        currentPhase={effectivePhase}
       />
     );
-  }
-
-  if (phase.current_phase === 'pre_wedding') {
-    return (
+  } else if (effectivePhase === 'pre_wedding') {
+    phaseContent = (
       <PreWeddingPhase
         household={household}
         guests={guests}
@@ -191,25 +218,30 @@ export default async function InvitePage({
         faqs={faqs}
         weddingSchedule={settings.wedding_schedule}
         sectionOrder={settings.section_order}
-        currentPhase={phase.current_phase}
+        currentPhase={effectivePhase}
       />
     );
-  }
-
-  if (phase.current_phase === 'thank_you') {
-    return (
+  } else if (effectivePhase === 'thank_you') {
+    phaseContent = (
       <ThankYouPhase
         household={household}
         guests={guests}
         settings={settings}
       />
     );
+  } else {
+    // Placeholder for other phases
+    phaseContent = (
+      <div className="flex items-center justify-center h-screen bg-black">
+        <p className="text-white">Phase: {effectivePhase}</p>
+      </div>
+    );
   }
 
-  // Placeholder for other phases
   return (
-    <div className="flex items-center justify-center h-screen bg-black">
-      <p className="text-white">Phase: {phase.current_phase}</p>
-    </div>
+    <>
+      {previewPhase && <PreviewBanner phase={previewPhase} />}
+      {phaseContent}
+    </>
   );
 }

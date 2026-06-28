@@ -3,7 +3,7 @@
 import RSVPPhase from './RSVPPhase';
 import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Phase, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
 import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
-import { parseIsoDate, formatShortWeekday, formatDayMonthYear, deriveSerial } from '@/lib/date';
+import { parseIsoDate, formatShortWeekday, formatDayMonthYear, formatDisplayTime, deriveSerial } from '@/lib/date';
 import Section from './v4/components/Section';
 import Reveal from './v4/components/Reveal';
 import Kicker from './v4/components/Kicker';
@@ -347,7 +347,7 @@ export default function InvitationPhaseV4({
         <BigDate iso={settings.wedding_date} />
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(26px, 5vw, 64px)', marginTop: 'clamp(30px, 4vw, 46px)' }}>
           {[
-            { label: 'From', value: settings.wedding_time },
+            { label: 'From', value: formatDisplayTime(settings.wedding_time) },
             { label: 'Venue', value: settings.venue_name },
             { label: 'Where', value: settings.location },
           ].map(({ label, value }) => (
@@ -381,7 +381,7 @@ export default function InvitationPhaseV4({
               </h2>
             </div>
             <div style={{ fontFamily: tokens.mono, fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.8 }}>
-              Doors {settings.wedding_time}
+              Doors {formatDisplayTime(settings.wedding_time)}
             </div>
           </div>
           <div style={{ marginTop: 'clamp(36px, 5vw, 60px)' }}>
@@ -498,7 +498,7 @@ export default function InvitationPhaseV4({
           admits={admitsWord}
           household={ticketHousehold}
           date={formatShortWeekday(settings.wedding_date)}
-          doors={settings.wedding_time}
+          doors={formatDisplayTime(settings.wedding_time)}
           venue={settings.venue_name}
           replyBy={formatDayMonthYear(settings.rsvp_cutoff_date)}
           ctaLabel="Confirm your seats"
