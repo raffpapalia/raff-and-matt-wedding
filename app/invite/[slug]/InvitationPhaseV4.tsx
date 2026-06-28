@@ -7,7 +7,6 @@ import { parseIsoDate, formatLongDate, formatShortWeekday, formatDayMonthYear, f
 import Section from './v4/components/Section';
 import Reveal from './v4/components/Reveal';
 import Kicker from './v4/components/Kicker';
-import Button from './v4/components/Button';
 import StickyBar from './v4/components/StickyBar';
 import Ticket from './v4/components/Ticket';
 import RunningOrder from './v4/components/RunningOrder';
@@ -29,6 +28,10 @@ interface InvitationPhaseV4Props {
   currentPhase: Phase['current_phase'];
   guestName?: string;
 }
+
+// Film-grain texture for the hero panel — same recipe as SaveTheDatePhase's hero grain.
+const HERO_GRAIN_URL =
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='heroGrain'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23heroGrain)' opacity='0.5'/></svg>\")";
 
 const ADMIT_WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 
@@ -117,6 +120,7 @@ export default function InvitationPhaseV4({
   guestName,
 }: InvitationPhaseV4Props) {
   const [name1, name2] = coupleNames.includes(' & ') ? coupleNames.split(' & ') : [coupleNames, ''];
+  const hasPhoto = Boolean(couplePhotoUrl);
 
   const orderList = sectionOrder.length > 0 ? sectionOrder : DEFAULT_SECTION_ORDER;
   const isVisible = (id: string) => {
@@ -157,68 +161,111 @@ export default function InvitationPhaseV4({
     <div style={{ fontFamily: tokens.body, fontWeight: 300, lineHeight: 1.6 }}>
       <StickyBar coupleNames={coupleNames} rightHref="#pass" rightLabel="RSVP" rightVariant="solid" />
 
-      {/* ── HERO ── */}
-      <Section
-        variant="deep"
-        backgroundImage={couplePhotoUrl || undefined}
-        backgroundPosition="center 20%"
-        minHeight="100svh"
-        contentAlign="center"
-      >
-        <div style={{ paddingTop: 'clamp(120px, 30vh, 240px)' }}>
-          {guestName && (
-            <p
-              style={{
-                fontFamily: tokens.grotesque,
-                fontWeight: 500,
-                fontSize: 'clamp(1.6rem, 4.5vw, 2.3rem)',
-                color: tokens.persimmon,
-                margin: 0,
-              }}
-            >
-              {guestName}
-            </p>
-          )}
-          <p
+      {/* ── HERO — Option B bleed: green text panel (left) + couple photo bleed (right);
+          stacks photo-on-top on mobile. Mirrors SaveTheDatePhase's glow/grain recipe. ── */}
+      <style>{`
+        .mr-inv-hero-inner { display: grid; grid-template-columns: 1fr; }
+        .mr-inv-hero-photo { order: 1; position: relative; overflow: hidden; aspect-ratio: 4 / 3; }
+        .mr-inv-hero-panel { order: 2; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: clamp(56px, 11vw, 90px) clamp(24px, 6vw, 64px); }
+        .mr-inv-hero-fade { display: none; }
+        @media (min-width: 760px) {
+          .mr-inv-hero-inner { min-height: 100svh; }
+          .mr-inv-hero-inner--photo { grid-template-columns: 52% 48%; }
+          .mr-inv-hero-panel { order: 1; }
+          .mr-inv-hero-photo { order: 2; aspect-ratio: auto; }
+          .mr-inv-hero-fade { display: block; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(15,67,49,1) 0%, rgba(15,67,49,0) 26%); }
+        }
+      `}</style>
+      <header className={`mr-inv-hero-inner${hasPhoto ? ' mr-inv-hero-inner--photo' : ''}`}>
+        <div
+          className="mr-inv-hero-panel"
+          style={{
+            color: tokens.bone,
+            background: [
+              'linear-gradient(180deg, rgba(11,33,24,.32), rgba(11,33,24,0) 45%)',
+              'radial-gradient(60% 55% at 88% 10%, rgba(242,96,60,.5), rgba(242,96,60,0) 72%)',
+              'radial-gradient(68% 62% at 8% 8%, rgba(142,124,195,.4), rgba(142,124,195,0) 75%)',
+              'radial-gradient(55% 50% at 92% 90%, rgba(168,140,96,.25), rgba(168,140,96,0) 72%)',
+              tokens.greenDeep,
+            ].join(', '),
+          }}
+        >
+          <div
+            aria-hidden="true"
             style={{
-              fontFamily: tokens.display,
-              fontStyle: 'italic',
-              fontWeight: 400,
-              fontSize: 'clamp(1.1rem, 3.4vw, 1.5rem)',
-              color: tokens.sand,
-              margin: `${guestName ? 4 : 0}px 0 clamp(24px, 4.5vw, 36px)`,
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              opacity: 0.08,
+              mixBlendMode: 'overlay',
+              backgroundImage: HERO_GRAIN_URL,
+              backgroundRepeat: 'repeat',
+              backgroundSize: '180px 180px',
             }}
-          >
-            You&apos;re invited to the wedding of
-          </p>
-          <h1 style={{ fontFamily: tokens.display, fontWeight: 900, lineHeight: 0.82, letterSpacing: '-0.01em', margin: 0 }}>
-            <span style={{ display: 'block', fontSize: 'clamp(4.2rem, 19vw, 12rem)' }}>{name1}</span>
-            <span style={{ display: 'block', fontSize: 'clamp(4.2rem, 19vw, 12rem)', paddingLeft: '0.6em' }}>
-              <em style={{ fontStyle: 'italic', fontWeight: 600, color: tokens.persimmon }}>&amp;</em> {name2}
-            </span>
-          </h1>
-          <p
-            style={{
-              fontFamily: tokens.display,
-              fontStyle: 'italic',
-              fontWeight: 400,
-              fontSize: 'clamp(1.15rem, 3.6vw, 1.9rem)',
-              marginTop: 22,
-              maxWidth: '20ch',
-              color: tokens.bone,
-            }}
-          >
-            {settings.tagline}
-          </p>
-          {showRunningOrder && (
-            <div style={{ display: 'flex', gap: 12, marginTop: 28, flexWrap: 'wrap' }}>
-              <Button href="#order" variant="ghost">
-                The running order ↓
-              </Button>
+          />
+          <Reveal style={{ position: 'relative', zIndex: 2 }}>
+            <div>
+              {guestName && (
+                <p
+                  style={{
+                    fontFamily: tokens.grotesque,
+                    fontWeight: 500,
+                    fontSize: 'clamp(1.6rem, 4.5vw, 2.3rem)',
+                    color: tokens.persimmon,
+                    margin: 0,
+                  }}
+                >
+                  {guestName}
+                </p>
+              )}
+              <p
+                style={{
+                  fontFamily: tokens.display,
+                  fontStyle: 'italic',
+                  fontWeight: 400,
+                  fontSize: 'clamp(1.1rem, 3.4vw, 1.5rem)',
+                  color: tokens.sand,
+                  margin: `${guestName ? 4 : 0}px 0 clamp(34px, 8vw, 52px)`,
+                }}
+              >
+                You&apos;re invited to the wedding of
+              </p>
+              <h1 style={{ fontFamily: tokens.display, fontWeight: 900, lineHeight: 0.82, letterSpacing: '-0.01em', margin: 0 }}>
+                <span style={{ display: 'block', fontSize: 'clamp(3.8rem, 17vw, 8rem)', color: tokens.bone }}>{name1}</span>
+                <span style={{ display: 'block', fontSize: 'clamp(3.8rem, 17vw, 8rem)', color: tokens.bone }}>
+                  <em style={{ fontStyle: 'italic', fontWeight: 600, color: tokens.persimmon }}>&amp;</em> {name2}
+                </span>
+              </h1>
+              <p
+                style={{
+                  fontFamily: tokens.display,
+                  fontStyle: 'italic',
+                  fontWeight: 400,
+                  fontSize: 'clamp(1.05rem, 3vw, 1.45rem)',
+                  marginTop: 22,
+                  maxWidth: '20ch',
+                  color: tokens.bone,
+                  opacity: 0.85,
+                }}
+              >
+                {settings.tagline}
+              </p>
             </div>
-          )}
+          </Reveal>
         </div>
-      </Section>
+
+        {hasPhoto && (
+          <div className="mr-inv-hero-photo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={couplePhotoUrl}
+              alt=""
+              style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}
+            />
+            <div className="mr-inv-hero-fade" aria-hidden="true" />
+          </div>
+        )}
+      </header>
 
       {/* ── A NOTE FOR YOU — household-driven, optional ── */}
       {(household.personal_message || household.personal_photo_url) && (
@@ -262,71 +309,45 @@ export default function InvitationPhaseV4({
         </div>
       </Section>
 
-      {/* ── THE DETAILS — Option H spine layout, matching Save the Date ── */}
+      {/* ── THE DETAILS — Kicker header + persimmon spine, matching Save the Date ── */}
       <style>{`
         #inv-details { background: ${tokens.sand} !important; }
       `}</style>
       <Section variant="bone" id="inv-details">
+        <Kicker label="The Details" color={tokens.green} />
         <div
           style={{
             borderLeft: `5px solid ${tokens.persimmon}`,
             paddingLeft: 'clamp(18px, 5vw, 30px)',
             maxWidth: 760,
+            marginTop: 'clamp(20px, 4vw, 30px)',
           }}
         >
           <div
             style={{
-              fontFamily: tokens.grotesque,
-              fontWeight: 800,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              fontSize: 'clamp(1.1rem, 3.6vw, 1.5rem)',
-              color: tokens.greenDeep,
-            }}
-          >
-            The details
-          </div>
-          <div
-            style={{
               fontFamily: tokens.display,
-              fontWeight: 600,
-              fontSize: 'clamp(2.2rem, 7vw, 4rem)',
-              lineHeight: 1.05,
+              fontWeight: 850,
+              fontSize: 'clamp(2.2rem, 10vw, 5.2rem)',
+              lineHeight: 0.9,
               color: tokens.greenDeep,
-              margin: 'clamp(12px, 3vw, 20px) 0 clamp(10px, 2vw, 14px)',
             }}
           >
-            {formatLongDate(settings.wedding_date)}
+            ten 7 twenty 7
           </div>
-          <p style={{ fontFamily: tokens.grotesque, fontWeight: 700, fontSize: 'clamp(1.05rem, 3.4vw, 1.4rem)', color: tokens.greenDeep, margin: 0 }}>
-            {formatDisplayTime(settings.wedding_time)}
+          <p style={{ fontFamily: tokens.grotesque, fontWeight: 700, fontSize: 'clamp(1rem, 3vw, 1.35rem)', color: tokens.greenDeep, margin: 0 }}>
+            {formatDisplayTime(settings.wedding_time)} · {formatLongDate(settings.wedding_date)}
           </p>
           <p
             style={{
               fontFamily: tokens.grotesque,
               fontWeight: 600,
-              letterSpacing: '0.14em',
               textTransform: 'uppercase',
-              fontSize: 'clamp(1rem, 3.2vw, 1.3rem)',
-              lineHeight: 1.4,
+              fontSize: 'clamp(.9rem, 2.6vw, 1.15rem)',
               color: tokens.greenDeep,
               marginTop: 'clamp(14px, 3vw, 20px)',
             }}
           >
             {settings.venue_name}
-          </p>
-          <p
-            style={{
-              fontFamily: tokens.grotesque,
-              fontWeight: 600,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              fontSize: 'clamp(0.7rem, 2.2vw, 0.85rem)',
-              color: tokens.greenDeep,
-              margin: '4px 0 0',
-            }}
-          >
-            {settings.location}
           </p>
         </div>
         <div style={{ paddingLeft: 'clamp(18px, 5vw, 30px)', marginTop: 'clamp(30px, 6vw, 44px)' }}>
