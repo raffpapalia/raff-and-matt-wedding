@@ -43,7 +43,8 @@ export default function TreatedPhoto({ src, alt, ratio, shape = 'rect', caption 
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
               color: 'rgba(246,238,221,.7)',
-              background: 'linear-gradient(transparent, rgba(11,46,34,.55))',
+              // rgba(15,67,49,...) is tokens.greenDeep (#0F4331) decomposed for alpha compositing.
+              background: 'linear-gradient(transparent, rgba(15,67,49,.55))',
             }}
           >
             {caption}

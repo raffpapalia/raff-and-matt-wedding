@@ -12,7 +12,6 @@ import StickyBar from './v4/components/StickyBar';
 import Ticket from './v4/components/Ticket';
 import RunningOrder from './v4/components/RunningOrder';
 import CalendarControl from './v4/components/CalendarControl';
-import Sunburst from './v4/components/Sunburst';
 import BandQuote from './v4/components/BandQuote';
 import TreatedPhoto from './v4/components/TreatedPhoto';
 import { tokens } from './v4/tokens';
@@ -68,7 +67,7 @@ const DRESS_SWATCHES = [
   { label: 'Forest', color: tokens.greenDeep },
   { label: 'Emerald', color: tokens.greenBright },
   { label: 'Pine', color: tokens.pine },
-  { label: 'Gold', color: tokens.gold },
+  { label: 'Gold', color: tokens.sand },
   { label: 'Persimmon', color: tokens.persimmon },
 ];
 
@@ -124,7 +123,7 @@ function ConciergeCard({
 }) {
   return (
     <div style={{ background: tokens.greenDeep, padding: '30px 26px' }}>
-      <div style={{ fontFamily: tokens.mono, fontSize: '0.6rem', letterSpacing: '0.18em', color: tokens.gold }}>
+      <div style={{ fontFamily: tokens.grotesque, fontWeight: 700, textTransform: 'uppercase', fontSize: '0.6rem', letterSpacing: '0.18em', color: tokens.sand }}>
         {num} / {category}
       </div>
       <h3 style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1.5rem', margin: '12px 0 8px' }}>{title}</h3>
@@ -220,9 +219,10 @@ export default function InvitationPhaseV4({
         >
           <div
             style={{
-              fontFamily: tokens.mono,
+              fontFamily: tokens.grotesque,
+              fontWeight: 700,
               fontSize: '0.7rem',
-              letterSpacing: '0.18em',
+              letterSpacing: '0.16em',
               textTransform: 'uppercase',
               opacity: 0.85,
             }}
@@ -239,7 +239,7 @@ export default function InvitationPhaseV4({
               letterSpacing: '0.24em',
               textTransform: 'uppercase',
               fontSize: '0.7rem',
-              color: tokens.gold,
+              color: tokens.sand,
               marginBottom: 8,
             }}
           >
@@ -275,7 +275,7 @@ export default function InvitationPhaseV4({
               padding: '9px 16px',
             }}
           >
-            <span style={{ fontFamily: tokens.mono, fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: tokens.gold }}>
+            <span style={{ fontFamily: tokens.grotesque, fontWeight: 700, fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: tokens.violet }}>
               Admits
             </span>
             <span style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1rem' }}>{household.name}</span>
@@ -380,7 +380,7 @@ export default function InvitationPhaseV4({
                 How the night unfolds
               </h2>
             </div>
-            <div style={{ fontFamily: tokens.mono, fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.8 }}>
+            <div style={{ fontFamily: tokens.grotesque, fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.8 }}>
               Doors {formatDisplayTime(settings.wedding_time)}
             </div>
           </div>
@@ -421,7 +421,7 @@ export default function InvitationPhaseV4({
               {DRESS_SWATCHES.map(sw => (
                 <div key={sw.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                   <i style={{ width: 54, height: 54, borderRadius: '50%', display: 'block', boxShadow: '0 6px 16px rgba(11,33,24,.18)', background: sw.color }} />
-                  <span style={{ fontFamily: tokens.mono, fontSize: '0.54rem', letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.6 }}>
+                  <span style={{ fontFamily: tokens.grotesque, fontWeight: 600, fontSize: '0.54rem', letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.6 }}>
                     {sw.label}
                   </span>
                 </div>
@@ -517,12 +517,13 @@ export default function InvitationPhaseV4({
         </div>
       </Section>
 
-      {/* ── FOOTER ── */}
+      {/* ── FOOTER — couple names only, no sunburst ── */}
       <Section variant="deep">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' }}>
-          <Sunburst />
+        <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: tokens.display, fontWeight: 900, fontSize: 'clamp(2rem, 9vw, 4rem)' }}>
-            {name1} <em style={{ fontStyle: 'italic', color: tokens.persimmon }}>&amp;</em> {name2}
+            <span style={{ color: tokens.violet }}>{name1}</span>{' '}
+            <em style={{ fontStyle: 'italic', color: tokens.persimmon }}>&amp;</em>{' '}
+            <span style={{ color: tokens.violet }}>{name2}</span>
           </div>
         </div>
       </Section>

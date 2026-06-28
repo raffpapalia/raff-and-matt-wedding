@@ -27,7 +27,8 @@ export default function BandQuote({ src, alt, children }: BandQuoteProps) {
       />
       <div
         aria-hidden="true"
-        style={{ position: 'absolute', inset: 0, background: `linear-gradient(rgba(11,46,34,.35), rgba(11,46,34,.55))` }}
+        // rgba(15,67,49,...) is tokens.greenDeep (#0F4331) decomposed for alpha compositing.
+        style={{ position: 'absolute', inset: 0, background: `linear-gradient(rgba(15,67,49,.35), rgba(15,67,49,.55))` }}
       />
       <q
         style={{

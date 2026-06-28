@@ -169,7 +169,10 @@
 }
 @media (min-width: 780px) {
   .mr-v4 .mr-conc {
-    grid-template-columns: repeat(3, 1fr);
+    /* auto-fit instead of a fixed 3-column track — so 1 or 2 cards fill the
+       row instead of leaving empty trailing cells, while 3 cards still lay
+       out as 3 columns at this width. */
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   }
 }
 
@@ -311,7 +314,7 @@
 }
 .mr-v4 .mr-rsvp-v4 .rv-field:focus {
   border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(226, 178, 60, 0.25);
+  box-shadow: 0 0 0 3px rgba(142, 124, 195, 0.25);
 }
 .mr-v4 .mr-rsvp-v4 .rv-field-sm {
   padding: 9px 12px;
@@ -449,7 +452,7 @@
   white-space: nowrap;
 }
 .mr-v4 .mr-rsvp-v4 .rv-badge.is-attending {
-  background: rgba(226, 178, 60, 0.18);
+  background: rgba(142, 124, 195, 0.18);
   border-color: var(--gold);
   color: var(--on-gold-badge);
 }

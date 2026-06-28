@@ -47,7 +47,7 @@ export default function CalendarControl({ mode, settings }: CalendarControlProps
             href={`/api/calendar?mode=${mode}`}
             download="matt-raff-wedding.ics"
             style={optionStyle}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = tokens.gold)}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = tokens.violet)}
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(11,33,24,.3)')}
           >
             Apple
@@ -57,7 +57,7 @@ export default function CalendarControl({ mode, settings }: CalendarControlProps
             target="_blank"
             rel="noopener noreferrer"
             style={optionStyle}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = tokens.gold)}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = tokens.violet)}
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(11,33,24,.3)')}
           >
             Google
@@ -67,7 +67,7 @@ export default function CalendarControl({ mode, settings }: CalendarControlProps
             target="_blank"
             rel="noopener noreferrer"
             style={optionStyle}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = tokens.gold)}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = tokens.violet)}
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(11,33,24,.3)')}
           >
             Outlook

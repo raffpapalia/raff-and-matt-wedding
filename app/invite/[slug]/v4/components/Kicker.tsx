@@ -36,7 +36,7 @@ export default function Kicker({ label, color, labelColor, variant = 'rule', sty
   }
 
   return (
-    <Reveal className="mr-rule" style={{ color: color || tokens.gold, ...style }}>
+    <Reveal className="mr-rule" style={{ color: color || tokens.violet, ...style }}>
       <span
         className="mr-dot"
         style={{ width: 7, height: 7, background: tokens.persimmon, transform: 'rotate(45deg)', flex: '0 0 auto' }}

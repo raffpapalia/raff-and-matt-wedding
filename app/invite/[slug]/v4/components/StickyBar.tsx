@@ -40,7 +40,8 @@ export default function StickyBar({ coupleNames, rightHref, rightLabel, rightVar
         alignItems: 'center',
         gap: 10,
         padding: '12px clamp(20px, 5.5vw, 90px)',
-        background: solid ? 'rgba(11,46,34,.92)' : `linear-gradient(${tokens.greenDeep}, rgba(11,46,34,0))`,
+        // rgba(15,67,49,...) is tokens.greenDeep (#0F4331) decomposed for alpha compositing.
+        background: solid ? 'rgba(15,67,49,.92)' : `linear-gradient(${tokens.greenDeep}, rgba(15,67,49,0))`,
         backdropFilter: solid ? 'blur(10px)' : undefined,
         boxShadow: solid ? '0 1px 0 rgba(226,178,60,.18)' : undefined,
         transition: 'background-color 0.3s, backdrop-filter 0.3s',
@@ -60,7 +61,7 @@ export default function StickyBar({ coupleNames, rightHref, rightLabel, rightVar
           whiteSpace: 'nowrap',
         }}
       >
-        {name1} <em style={{ color: tokens.gold, fontStyle: 'italic' }}>&amp;</em> {name2}
+        {name1} <em style={{ color: tokens.persimmon, fontStyle: 'italic' }}>&amp;</em> {name2}
       </div>
       <div style={{ flexShrink: 0 }}>
         <Button href={rightHref} variant={rightVariant}>

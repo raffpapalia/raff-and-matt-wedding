@@ -47,7 +47,8 @@ export default function Section({ variant, id, backgroundImage, minHeight, conte
             style={{
               position: 'absolute',
               inset: 0,
-              background: `linear-gradient(rgba(11,46,34,.15), rgba(11,46,34,.55) 70%, ${background})`,
+              // rgba(15,67,49,...) is tokens.greenDeep (#0F4331) decomposed for alpha compositing.
+              background: `linear-gradient(rgba(15,67,49,.15), rgba(15,67,49,.55) 70%, ${background})`,
             }}
           />
         </>
