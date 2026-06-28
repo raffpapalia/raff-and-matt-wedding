@@ -1,7 +1,7 @@
 'use client';
 
 import RSVPPhase from './RSVPPhase';
-import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Phase, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
+import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Faq, Phase, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
 import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
 import { parseIsoDate, formatLongDate, formatShortWeekday, formatDayMonthYear, formatDisplayTime, deriveSerial } from '@/lib/date';
 import Section from './v4/components/Section';
@@ -21,6 +21,7 @@ interface InvitationPhaseV4Props {
   settings: Settings;
   questions: CustomQuestion[];
   existingAnswers: CustomAnswer[];
+  faqs: Faq[];
   coupleNames: string;
   couplePhotoUrl?: string;
   weddingSchedule: ScheduleItem[];
@@ -116,6 +117,7 @@ export default function InvitationPhaseV4({
   settings,
   questions,
   existingAnswers,
+  faqs,
   coupleNames,
   couplePhotoUrl,
   weddingSchedule,
@@ -138,6 +140,9 @@ export default function InvitationPhaseV4({
   // Same idea — don't render an empty .mr-conc grid when every link is unset.
   const hasGoodToKnowContent = Boolean(settings.accommodation_url || settings.photos_upload_url || settings.registry_url);
   const showGoodToKnow = isVisible('practicalities') && hasGoodToKnowContent;
+  // Gated on data too — an empty faqs table renders nothing on the guest-facing invite
+  // (no "coming soon" placeholder, unlike PreWeddingPhase).
+  const showFaqs = isVisible('faqs') && faqs.length > 0;
 
   const headingLastSpace = settings.dress_code_heading.lastIndexOf(' ');
   const dressHeadingFirst =
@@ -481,6 +486,64 @@ export default function InvitationPhaseV4({
                 />
               )}
             </div>
+          </Section>
+        </>
+      )}
+
+      {/* ── FAQs — sand section, pill-only heading, plain stacked Q&A (no accordion) ── */}
+      {showFaqs && (
+        <>
+          <style>{`#faqs { background: ${tokens.sand} !important; }`}</style>
+          <Section variant="bone" id="faqs">
+            <Reveal>
+              <span
+                style={{
+                  display: 'inline-block',
+                  fontFamily: tokens.mono,
+                  fontSize: 10,
+                  letterSpacing: '2px',
+                  textTransform: 'uppercase',
+                  color: tokens.bone,
+                  background: tokens.persimmon,
+                  borderRadius: 20,
+                  padding: '6px 14px',
+                }}
+              >
+                05 · FAQs
+              </span>
+            </Reveal>
+            <dl style={{ margin: 'clamp(28px, 4vw, 44px) 0 0' }}>
+              {faqs.map((f, i) => (
+                <div
+                  key={f.id}
+                  style={{
+                    padding: 'clamp(18px, 2.6vw, 26px) 0',
+                    borderTop: i === 0 ? undefined : '1px solid rgba(15,67,49,0.22)',
+                  }}
+                >
+                  <dt
+                    style={{
+                      fontFamily: tokens.display,
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: tokens.greenDeep,
+                    }}
+                  >
+                    {f.question}
+                  </dt>
+                  <dd
+                    style={{
+                      margin: '8px 0 0',
+                      fontFamily: tokens.body,
+                      fontSize: 14,
+                      color: tokens.ink,
+                    }}
+                  >
+                    {f.answer}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </Section>
         </>
       )}

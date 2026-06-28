@@ -200,6 +200,7 @@ export default async function InvitePage({
         settings={settings}
         questions={questions}
         existingAnswers={existingAnswers}
+        faqs={faqs}
         coupleNames={settings.couple_names}
         couplePhotoUrl={settings.couple_photo_url || ''}
         weddingSchedule={settings.wedding_schedule}
