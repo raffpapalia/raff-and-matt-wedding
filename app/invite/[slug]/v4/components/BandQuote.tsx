@@ -30,6 +30,17 @@ export default function BandQuote({ src, alt, children }: BandQuoteProps) {
         // rgba(15,67,49,...) is tokens.greenDeep (#0F4331) decomposed for alpha compositing.
         style={{ position: 'absolute', inset: 0, background: `linear-gradient(rgba(15,67,49,.35), rgba(15,67,49,.55))` }}
       />
+      {/* Top/bottom bleed fades — the sections immediately above/below are both
+          variant "deep" (tokens.greenDeep), so the band photo dissolves into
+          them rather than cutting hard at the edges. */}
+      <div
+        aria-hidden="true"
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '25%', pointerEvents: 'none', background: `linear-gradient(to bottom, ${tokens.greenDeep} 0%, transparent 35%)` }}
+      />
+      <div
+        aria-hidden="true"
+        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '25%', pointerEvents: 'none', background: `linear-gradient(to bottom, transparent 65%, ${tokens.greenDeep} 100%)` }}
+      />
       <q
         style={{
           position: 'relative',

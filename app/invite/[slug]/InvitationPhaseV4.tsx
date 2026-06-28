@@ -35,13 +35,10 @@ const HERO_GRAIN_URL =
 
 const ADMIT_WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 
-// Splits a schedule time like "3:00 PM" into its value and period parts for RunningOrder.
-function splitScheduleTime(time: string): { value: string; period: string } {
-  const match = time.trim().match(/^(.*?)\s*(am|pm)$/i);
-  if (match) {
-    return { value: match[1].trim(), period: match[2].toUpperCase() };
-  }
-  return { value: time.trim(), period: '' };
+// Strips a trailing "AM"/"PM" off a schedule time like "3:00 PM" — RunningOrder
+// reads as "{time} · {label}" with no separate period treatment.
+function stripAmPm(time: string): string {
+  return time.trim().replace(/\s*(am|pm)$/i, '');
 }
 
 function formatGuestNames(names: string[]): string {
@@ -141,10 +138,12 @@ export default function InvitationPhaseV4({
   const dressHeadingLast =
     headingLastSpace === -1 ? settings.dress_code_heading : settings.dress_code_heading.slice(headingLastSpace + 1);
 
-  const runningOrderItems = weddingSchedule.map((item, i) => {
-    const { value, period } = splitScheduleTime(item.time);
-    return { num: String(i + 1).padStart(2, '0'), name: item.label, note: item.description, time: value, period };
-  });
+  const runningOrderItems = weddingSchedule.map((item, i) => ({
+    num: String(i + 1).padStart(2, '0'),
+    name: item.label,
+    note: item.description,
+    time: stripAmPm(item.time),
+  }));
 
   const weddingYear = parseIsoDate(settings.wedding_date)?.y ?? new Date().getFullYear();
   // ADMIT_WORDS[0] ('Zero') is intentionally unused — a 0-guest household renders the
@@ -168,6 +167,7 @@ export default function InvitationPhaseV4({
         .mr-inv-hero-photo { order: 1; position: relative; overflow: hidden; aspect-ratio: 4 / 3; flex: 0 0 auto; }
         .mr-inv-hero-panel { order: 2; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: clamp(56px, 11vw, 90px) clamp(24px, 6vw, 64px); flex: 1 1 auto; }
         .mr-inv-hero-fade { display: none; }
+        .mr-inv-hero-fade-bottom { display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 120px; pointer-events: none; background: linear-gradient(to bottom, transparent 40%, ${tokens.greenDeep}); }
         .mr-inv-names { padding-left: clamp(26px, 8vw, 46px); }
         @media (min-width: 760px) {
           .mr-inv-hero-inner { display: grid; grid-template-columns: 1fr; min-height: 100svh; }
@@ -175,6 +175,7 @@ export default function InvitationPhaseV4({
           .mr-inv-hero-panel { order: 1; }
           .mr-inv-hero-photo { order: 2; aspect-ratio: auto; }
           .mr-inv-hero-fade { display: block; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(15,67,49,1) 0%, rgba(15,67,49,0) 26%); }
+          .mr-inv-hero-fade-bottom { display: none; }
           .mr-inv-names { padding-left: 0; }
         }
       `}</style>
@@ -243,10 +244,10 @@ export default function InvitationPhaseV4({
                   fontFamily: tokens.display,
                   fontStyle: 'italic',
                   fontWeight: 400,
-                  fontSize: 'clamp(1.05rem, 3vw, 1.45rem)',
+                  fontSize: 'clamp(0.95rem, 2.6vw, 1.45rem)',
                   marginTop: 22,
-                  maxWidth: '20ch',
-                  color: tokens.bone,
+                  maxWidth: '32ch',
+                  color: tokens.sand,
                   opacity: 0.85,
                 }}
               >
@@ -265,6 +266,7 @@ export default function InvitationPhaseV4({
               style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}
             />
             <div className="mr-inv-hero-fade" aria-hidden="true" />
+            <div className="mr-inv-hero-fade-bottom" aria-hidden="true" />
           </div>
         )}
       </header>
