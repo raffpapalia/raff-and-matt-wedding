@@ -60,8 +60,10 @@ function formatGuestNames(names: string[]): string {
 const headlineBase: React.CSSProperties = {
   fontFamily: tokens.display,
   fontWeight: 700,
-  fontSize: 'clamp(1.9rem, 4.8vw, 2.4rem)',
-  lineHeight: 1.02,
+  // opsz pinned high so these read as the same display cut as the hero names.
+  fontVariationSettings: '"opsz" 144',
+  fontSize: 'clamp(2.2rem, 5.5vw, 2.875rem)',
+  lineHeight: 1.0,
   letterSpacing: '-0.005em',
   margin: '14px 0 0',
 };
@@ -78,19 +80,77 @@ function SectionPill({ num, label }: { num?: string; label: string }) {
         style={{
           display: 'inline-block',
           fontFamily: tokens.mono,
-          fontSize: 10,
-          letterSpacing: '2px',
+          fontSize: 13,
+          letterSpacing: '2.5px',
           textTransform: 'uppercase',
           color: tokens.bone,
           background: tokens.persimmon,
-          borderRadius: 20,
-          padding: '5px 11px',
+          borderRadius: 24,
+          padding: '8px 16px',
         }}
       >
         {num && <span style={{ opacity: 0.6 }}>{num}&nbsp;&nbsp;</span>}
         {label}
       </span>
     </Reveal>
+  );
+}
+
+// Collapsible FAQ row — answer hidden by default, toggled by the question button.
+// The persimmon "+" rotates 45° into an "×" when open. Accessible via a real
+// <button> with aria-expanded.
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ borderTop: '1px solid rgba(15,67,49,0.22)' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 16,
+          padding: 'clamp(16px, 2.4vw, 22px) 0',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+        }}
+      >
+        <span style={{ fontFamily: tokens.display, fontSize: 18, fontWeight: 600, color: tokens.greenDeep }}>
+          {question}
+        </span>
+        <span
+          aria-hidden="true"
+          style={{
+            flex: '0 0 auto',
+            fontSize: 24,
+            lineHeight: 1,
+            color: tokens.persimmon,
+            transform: open ? 'rotate(45deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s ease',
+          }}
+        >
+          +
+        </span>
+      </button>
+      {open && (
+        <p
+          style={{
+            margin: '0 0 clamp(16px, 2.4vw, 22px)',
+            paddingRight: 40,
+            fontFamily: tokens.body,
+            fontSize: 14,
+            color: tokens.ink,
+          }}
+        >
+          {answer}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -513,44 +573,17 @@ export default function InvitationPhaseV4({
         </Section>
       )}
 
-      {/* ── FAQs — sand section, pill-only heading, plain stacked Q&A (no accordion) ── */}
+      {/* ── FAQs — sand section, pill-only heading, collapsible accordion (all collapsed) ── */}
       {showFaqs && (
         <>
           <style>{`#faqs { background: ${tokens.sand} !important; }`}</style>
           <Section variant="bone" id="faqs" className="mr-inv-sand-glow">
             <SectionPill num={faqsNum} label="FAQs" />
-            <dl style={{ margin: 'clamp(28px, 4vw, 44px) 0 0' }}>
-              {faqs.map((f, i) => (
-                <div
-                  key={f.id}
-                  style={{
-                    padding: 'clamp(18px, 2.6vw, 26px) 0',
-                    borderTop: i === 0 ? undefined : '1px solid rgba(15,67,49,0.22)',
-                  }}
-                >
-                  <dt
-                    style={{
-                      fontFamily: tokens.display,
-                      fontSize: 18,
-                      fontWeight: 600,
-                      color: tokens.greenDeep,
-                    }}
-                  >
-                    {f.question}
-                  </dt>
-                  <dd
-                    style={{
-                      margin: '8px 0 0',
-                      fontFamily: tokens.body,
-                      fontSize: 14,
-                      color: tokens.ink,
-                    }}
-                  >
-                    {f.answer}
-                  </dd>
-                </div>
+            <div style={{ margin: 'clamp(28px, 4vw, 44px) 0 0', borderBottom: '1px solid rgba(15,67,49,0.22)' }}>
+              {faqs.map(f => (
+                <FaqItem key={f.id} question={f.question} answer={f.answer} />
               ))}
-            </dl>
+            </div>
           </Section>
         </>
       )}

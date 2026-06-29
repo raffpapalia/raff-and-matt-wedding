@@ -64,9 +64,22 @@ export default function StickyBar({ coupleNames, rightHref, rightLabel, rightVar
           whiteSpace: 'nowrap',
         }}
       >
-        <span style={{ fontFamily: tokens.display, fontWeight: 700, fontSize: '1rem', letterSpacing: '0.02em' }}>
+        {/* Pin opsz to 144 (Fraunces display cut) and match the hero's weight 900 so the
+            small-size bar initials read as the same dramatic letters as the hero/footer
+            "Matt & Raff" — not the plainer text optical cut Fraunces auto-selects at 1rem.
+            The "&" mirrors the hero's italic weight-600 treatment so it resolves to the
+            true Fraunces italic swash ampersand. */}
+        <span
+          style={{
+            fontFamily: tokens.display,
+            fontWeight: 900,
+            fontVariationSettings: '"opsz" 144',
+            fontSize: '1rem',
+            letterSpacing: '0.02em',
+          }}
+        >
           <span style={{ color: tokens.violet }}>{name1.charAt(0).toUpperCase()}</span>
-          <span style={{ fontStyle: 'italic', fontWeight: 600, color: tokens.persimmon }}> &amp; </span>
+          <span style={{ fontStyle: 'italic', fontWeight: 600, fontVariationSettings: '"opsz" 144', color: tokens.persimmon }}> &amp; </span>
           <span style={{ color: tokens.violet }}>{name2.charAt(0).toUpperCase()}</span>
         </span>
         <span style={{ color: tokens.muted, margin: '0 7px' }}>·</span>
