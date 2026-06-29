@@ -6,7 +6,6 @@ import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
 import { parseIsoDate, formatLongDate, formatShortWeekday, formatDayMonthYear, formatDisplayTime, deriveSerial } from '@/lib/date';
 import Section from './v4/components/Section';
 import Reveal from './v4/components/Reveal';
-import Kicker from './v4/components/Kicker';
 import StickyBar from './v4/components/StickyBar';
 import Ticket from './v4/components/Ticket';
 import RunningOrder from './v4/components/RunningOrder';
@@ -55,15 +54,44 @@ function formatGuestNames(names: string[]): string {
   return `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`;
 }
 
-const headingStyle: React.CSSProperties = {
-  fontFamily: tokens.grotesque,
-  fontWeight: 800,
-  fontSize: 'clamp(2.2rem, 8vw, 4.6rem)',
+// Unified section-headline system (item 2): Fraunces 700, ~38px, lh 1.02, colour
+// adapts to the section background — bone on green sections, ink on sand sections.
+const headlineBase: React.CSSProperties = {
+  fontFamily: tokens.display,
+  fontWeight: 700,
+  fontSize: 'clamp(1.9rem, 4.8vw, 2.4rem)',
   lineHeight: 1.02,
-  letterSpacing: '-0.01em',
-  margin: '16px 0 0',
-  color: tokens.sand,
+  letterSpacing: '-0.005em',
+  margin: '14px 0 0',
 };
+const headlineOnGreen: React.CSSProperties = { ...headlineBase, color: tokens.bone };
+const headlineOnSand: React.CSSProperties = { ...headlineBase, color: tokens.ink };
+
+// Shared section heading — the persimmon pill used on every content section.
+// `num` (the zero-padded section number) renders at lower opacity ahead of the
+// label; omit it for unnumbered sections (e.g. the personal note).
+function SectionPill({ num, label }: { num?: string; label: string }) {
+  return (
+    <Reveal>
+      <span
+        style={{
+          display: 'inline-block',
+          fontFamily: tokens.mono,
+          fontSize: 10,
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          color: tokens.bone,
+          background: tokens.persimmon,
+          borderRadius: 20,
+          padding: '5px 11px',
+        }}
+      >
+        {num && <span style={{ opacity: 0.6 }}>{num}&nbsp;&nbsp;</span>}
+        {label}
+      </span>
+    </Reveal>
+  );
+}
 
 function ConciergeCard({
   num,
@@ -144,6 +172,20 @@ export default function InvitationPhaseV4({
   // (no "coming soon" placeholder, unlike PreWeddingPhase).
   const showFaqs = isVisible('faqs') && faqs.length > 0;
 
+  // Sequential pill numbers, computed in render order so optional/hidden sections
+  // leave no gaps. The personal "note" gets a pill but no number (per request), so
+  // numbering starts at "How we got here". Each `next()` is only called when the
+  // section actually renders, keeping the sequence contiguous for this household.
+  let sectionCounter = 0;
+  const next = () => String(++sectionCounter).padStart(2, '0');
+  const storyNum = next();
+  const detailsNum = next();
+  const orderNum = showRunningOrder ? next() : '';
+  const dressNum = showDressCode ? next() : '';
+  const goodToKnowNum = showGoodToKnow ? next() : '';
+  const faqsNum = showFaqs ? next() : '';
+  const replyNum = next();
+
   const headingLastSpace = settings.dress_code_heading.lastIndexOf(' ');
   const dressHeadingFirst =
     headingLastSpace === -1 ? '' : settings.dress_code_heading.slice(0, headingLastSpace);
@@ -208,11 +250,6 @@ export default function InvitationPhaseV4({
             radial-gradient(90% 100% at 20% -20%, rgba(242,96,60,.22), rgba(242,96,60,0) 65%),
             radial-gradient(70% 90% at 80% -10%, rgba(142,124,195,.18), rgba(142,124,195,0) 60%);
         }
-
-        /* Larger/bolder kicker labels for persimmon-on-sand legibility — scoped to the
-           sand sections only via the .mr-kicker-lg wrapper; green-section kickers keep
-           the shared Kicker default (0.72rem / 700). Shared Kicker.tsx is untouched. */
-        .mr-kicker-lg .mr-rule > span:last-child { font-size: 0.85rem; font-weight: 800; }
       `}</style>
       <header className={`mr-inv-hero-inner${hasPhoto ? ' mr-inv-hero-inner--photo' : ''}`}>
         <div
@@ -291,7 +328,7 @@ export default function InvitationPhaseV4({
         <>
           <style>{`#note { background: ${tokens.sand} !important; }`}</style>
           <Section variant="bone" id="note" className="mr-inv-sand-glow">
-            <div className="mr-kicker-lg"><Kicker label="A note for you" color={tokens.greenDeep} /></div>
+            <SectionPill label="A note for you" />
             {household.personal_message && household.personal_photo_url && (
               <Reveal className="mr-note-grid">
                 <TreatedPhoto src={household.personal_photo_url} alt="" ratio={3 / 4} shape="rect" />
@@ -317,10 +354,10 @@ export default function InvitationPhaseV4({
 
       {/* ── HOW WE GOT HERE ── */}
       <Section variant="deep" className="mr-inv-green-glow">
-        <Kicker label="How we got here" />
+        <SectionPill num={storyNum} label="How we got here" />
         <div className={`mr-story-grid${settings.story_photo_url ? '' : ' mr-story-grid--solo'}`}>
           <div>
-            <h2 style={headingStyle}>{settings.story_heading}</h2>
+            <h2 style={headlineOnGreen}>{settings.story_heading}</h2>
             <p style={{ fontFamily: tokens.grotesque, marginTop: 22, maxWidth: '46ch', color: tokens.sand, opacity: 0.85, fontSize: '1.05rem', whiteSpace: 'pre-wrap' }}>
               {settings.story_body}
             </p>
@@ -336,7 +373,7 @@ export default function InvitationPhaseV4({
         #inv-details { background: ${tokens.sand} !important; }
       `}</style>
       <Section variant="bone" id="inv-details" className="mr-inv-sand-glow">
-        <div className="mr-kicker-lg"><Kicker label="The Details" color={tokens.persimmon} /></div>
+        <SectionPill num={detailsNum} label="The Details" />
         <div
           style={{
             borderLeft: `5px solid ${tokens.persimmon}`,
@@ -351,7 +388,7 @@ export default function InvitationPhaseV4({
               fontWeight: 850,
               fontSize: 'clamp(2.2rem, 10vw, 5.2rem)',
               lineHeight: 0.9,
-              color: tokens.greenDeep,
+              color: tokens.ink,
             }}
           >
             ten 7 twenty 7
@@ -383,26 +420,11 @@ export default function InvitationPhaseV4({
       {showRunningOrder && (
         <Section variant="deep" id="order" className="mr-inv-green-glow">
           <div>
-            <Kicker label="The running order" color={tokens.bone} />
-            <h2
-              style={{
-                fontFamily: tokens.grotesque,
-                fontWeight: 800,
-                fontSize: 'clamp(2rem, 7vw, 3.8rem)',
-                lineHeight: 1,
-                letterSpacing: '-0.01em',
-                marginTop: 14,
-                color: tokens.sand,
-              }}
-            >
-              How the day unfolds
-            </h2>
+            <SectionPill num={orderNum} label="The running order" />
+            <h2 style={headlineOnGreen}>How the day unfolds</h2>
           </div>
           <div style={{ marginTop: 'clamp(36px, 5vw, 60px)' }}>
             <RunningOrder items={runningOrderItems} />
-          </div>
-          <div style={{ marginTop: 38, textAlign: 'center' }}>
-            <CalendarControl mode="invitation" settings={settings} />
           </div>
         </Section>
       )}
@@ -412,19 +434,9 @@ export default function InvitationPhaseV4({
         <>
           <style>{`#dress { background: ${tokens.sand} !important; }`}</style>
           <Section variant="bone" id="dress" className="mr-inv-sand-glow">
-            <div className="mr-kicker-lg"><Kicker label="Dress code" color={tokens.greenDeep} /></div>
+            <SectionPill num={dressNum} label="Dress code" />
             <div style={{ marginTop: 'clamp(20px, 3vw, 34px)' }}>
-              <h2
-                style={{
-                  fontFamily: tokens.grotesque,
-                  fontWeight: 800,
-                  fontSize: 'clamp(2.9rem, 11.5vw, 6.1rem)',
-                  lineHeight: 0.95,
-                  letterSpacing: '-0.01em',
-                  color: tokens.greenDeep,
-                  margin: 0,
-                }}
-              >
+              <h2 style={{ ...headlineOnSand, margin: 0 }}>
                 {dressHeadingFirst && (
                   <>
                     {dressHeadingFirst}
@@ -450,11 +462,9 @@ export default function InvitationPhaseV4({
 
       {/* ── GOOD TO KNOW ── */}
       {showGoodToKnow && (
-        <>
-          <style>{`#good-to-know { background: ${tokens.sand} !important; }`}</style>
-          <Section variant="bone" id="good-to-know" className="mr-inv-sand-glow">
-            <div className="mr-kicker-lg"><Kicker label="Good to know" /></div>
-            <div className="mr-conc">
+        <Section variant="deep" id="good-to-know" className="mr-inv-green-glow">
+          <SectionPill num={goodToKnowNum} label="Good to know" />
+          <div className="mr-conc">
               {settings.accommodation_url && (
                 <ConciergeCard
                   num="01"
@@ -485,33 +495,16 @@ export default function InvitationPhaseV4({
                   href={settings.registry_url}
                 />
               )}
-            </div>
-          </Section>
-        </>
+          </div>
+        </Section>
       )}
 
       {/* ── FAQs — sand section, pill-only heading, plain stacked Q&A (no accordion) ── */}
       {showFaqs && (
         <>
           <style>{`#faqs { background: ${tokens.sand} !important; }`}</style>
-          <Section variant="bone" id="faqs">
-            <Reveal>
-              <span
-                style={{
-                  display: 'inline-block',
-                  fontFamily: tokens.mono,
-                  fontSize: 10,
-                  letterSpacing: '2px',
-                  textTransform: 'uppercase',
-                  color: tokens.bone,
-                  background: tokens.persimmon,
-                  borderRadius: 20,
-                  padding: '6px 14px',
-                }}
-              >
-                05 · FAQs
-              </span>
-            </Reveal>
+          <Section variant="bone" id="faqs" className="mr-inv-sand-glow">
+            <SectionPill num={faqsNum} label="FAQs" />
             <dl style={{ margin: 'clamp(28px, 4vw, 44px) 0 0' }}>
               {faqs.map((f, i) => (
                 <div
@@ -551,22 +544,20 @@ export default function InvitationPhaseV4({
       {/* ── THE PASS ── */}
       <Section variant="deep" id="pass" className="mr-inv-green-glow">
         <div style={{ textAlign: 'center', marginBottom: 'clamp(34px, 5vw, 52px)' }}>
-          <Kicker label="The reply" />
-          <div style={{ fontFamily: tokens.grotesque, fontWeight: 700, fontSize: 'clamp(1rem, 3vw, 1.4rem)', color: tokens.sand, marginTop: 12 }}>
-            Please reply by {formatDayMonthYear(settings.rsvp_cutoff_date)}
-          </div>
-          <h2
+          <SectionPill num={replyNum} label="The reply" />
+          <h2 style={{ ...headlineOnGreen, marginTop: 14 }}>Will you join us?</h2>
+          <div
             style={{
-              fontFamily: tokens.display,
-              fontWeight: 900,
-              fontSize: 'clamp(2.4rem, 8vw, 4.6rem)',
-              lineHeight: 1,
-              marginTop: 12,
+              fontFamily: tokens.mono,
+              fontSize: '0.7rem',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
               color: tokens.sand,
+              marginTop: 14,
             }}
           >
-            Will you join us?
-          </h2>
+            Please reply by {formatDayMonthYear(settings.rsvp_cutoff_date)}
+          </div>
         </div>
         <Ticket
           serial={deriveSerial(household.id, weddingYear)}

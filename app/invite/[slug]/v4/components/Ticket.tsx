@@ -25,9 +25,11 @@ const metaValueStyle: React.CSSProperties = {
   marginTop: 4,
 };
 
-// "ADMIT TWO" perforated ticket — the RSVP centrepiece. "Please reply by" and the
-// confirm CTA live outside this card now (InvitationPhaseV4 / RSVPPhase), so the
-// ticket itself only shows the admit/household/date/time/venue facts.
+// "ADMIT TWO" perforated ticket — the RSVP centrepiece. The body holds the
+// admit/household/date/time/venue facts; below a perforation row sits the stub,
+// whose only content is the full-width "Confirm your seats" CTA (the standard
+// persimmon button) that jumps to the RSVP form. "Please reply by" lives outside
+// this card (InvitationPhaseV4).
 export default function Ticket({ serial, admits, household, date, time, venue }: TicketProps) {
   return (
     <Reveal className="mr-ticket">
@@ -81,6 +83,16 @@ export default function Ticket({ serial, admits, household, date, time, venue }:
             <div style={metaValueStyle}>{venue}</div>
           </div>
         </div>
+      </div>
+      <div className="mr-perf" aria-hidden="true" />
+      <div style={{ padding: 'clamp(20px, 4vw, 28px)' }}>
+        <a
+          href="#rsvp-form"
+          className="mr-btn mr-btn-solid"
+          style={{ display: 'block', width: '100%', textAlign: 'center', boxSizing: 'border-box' }}
+        >
+          Confirm your seats
+        </a>
       </div>
     </Reveal>
   );

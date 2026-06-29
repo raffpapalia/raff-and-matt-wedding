@@ -200,7 +200,9 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--green-bright);
+  /* Matches the greenDeep "Pass" section behind the ticket, so the notches read
+     as holes cut out of the card edge. */
+  background: var(--green-deep);
 }
 .mr-v4 .mr-ticket .mr-perf::before {
   left: calc(-1 * clamp(28px, 5vw, 44px) - 14px);

@@ -64,13 +64,13 @@ export default function StickyBar({ coupleNames, rightHref, rightLabel, rightVar
           whiteSpace: 'nowrap',
         }}
       >
-        <span style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1rem', letterSpacing: '0.02em' }}>
+        <span style={{ fontFamily: tokens.display, fontWeight: 700, fontSize: '1rem', letterSpacing: '0.02em' }}>
           <span style={{ color: tokens.violet }}>{name1.charAt(0).toUpperCase()}</span>
-          <span style={{ color: tokens.persimmon }}> &amp; </span>
+          <span style={{ fontStyle: 'italic', fontWeight: 600, color: tokens.persimmon }}> &amp; </span>
           <span style={{ color: tokens.violet }}>{name2.charAt(0).toUpperCase()}</span>
         </span>
         <span style={{ color: tokens.muted, margin: '0 7px' }}>·</span>
-        <span style={{ fontFamily: tokens.grotesque, fontWeight: 500, fontSize: '0.78rem', color: tokens.sand }}>
+        <span style={{ fontFamily: tokens.display, fontWeight: 400, fontSize: '0.78rem', color: tokens.sand }}>
           ten 7 twenty 7
         </span>
       </div>
