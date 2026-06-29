@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import RSVPPhase from './RSVPPhase';
 import type { Household, Guest, Settings, CustomQuestion, CustomAnswer, Faq, Phase, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
 import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
@@ -186,6 +187,19 @@ export default function InvitationPhaseV4({
   const faqsNum = showFaqs ? next() : '';
   const replyNum = next();
 
+  // RSVP form is revealed by the ticket-stub CTA, not shown by default. The stub
+  // label and the status summary below the ticket both key off whether anyone in
+  // the household has already responded.
+  const hasResponded = guests.some(g => g.rsvp_status === 'attending' || g.rsvp_status === 'declined');
+  const [rsvpOpen, setRsvpOpen] = useState(false);
+  const openRsvp = () => {
+    setRsvpOpen(true);
+    // Defer the scroll until the form has mounted into #rsvp-form.
+    requestAnimationFrame(() =>
+      document.getElementById('rsvp-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    );
+  };
+
   const headingLastSpace = settings.dress_code_heading.lastIndexOf(' ');
   const dressHeadingFirst =
     headingLastSpace === -1 ? '' : settings.dress_code_heading.slice(0, headingLastSpace);
@@ -331,7 +345,7 @@ export default function InvitationPhaseV4({
             <SectionPill label="A note for you" />
             {household.personal_message && household.personal_photo_url && (
               <Reveal className="mr-note-grid">
-                <TreatedPhoto src={household.personal_photo_url} alt="" ratio={3 / 4} shape="rect" />
+                <TreatedPhoto src={household.personal_photo_url} alt="" ratio={3 / 4} shape="rect" frameColor={tokens.greenDeep} />
                 <div className="mr-note-message">
                   <p style={{ whiteSpace: 'pre-line', color: tokens.ink, opacity: 0.85 }}>{household.personal_message}</p>
                 </div>
@@ -345,7 +359,7 @@ export default function InvitationPhaseV4({
             )}
             {!household.personal_message && household.personal_photo_url && (
               <Reveal className="mr-note-photo-solo">
-                <TreatedPhoto src={household.personal_photo_url} alt="" ratio={3 / 4} shape="rect" />
+                <TreatedPhoto src={household.personal_photo_url} alt="" ratio={3 / 4} shape="rect" frameColor={tokens.greenDeep} />
               </Reveal>
             )}
           </Section>
@@ -543,7 +557,7 @@ export default function InvitationPhaseV4({
 
       {/* ── THE PASS ── */}
       <Section variant="deep" id="pass" className="mr-inv-green-glow">
-        <div style={{ textAlign: 'center', marginBottom: 'clamp(34px, 5vw, 52px)' }}>
+        <div style={{ marginBottom: 'clamp(34px, 5vw, 52px)' }}>
           <SectionPill num={replyNum} label="The reply" />
           <h2 style={{ ...headlineOnGreen, marginTop: 14 }}>Will you join us?</h2>
           <div
@@ -566,17 +580,73 @@ export default function InvitationPhaseV4({
           date={formatShortWeekday(settings.wedding_date)}
           time={formatDisplayTime(settings.wedding_time)}
           venue={settings.venue_name}
+          ctaLabel={hasResponded ? 'Update RSVP' : 'Confirm your seats'}
+          onCta={openRsvp}
         />
-        <div id="rsvp-form" style={{ marginTop: 'clamp(40px, 6vw, 64px)' }}>
-          <RSVPPhase
-            household={household}
-            guests={guests}
-            questions={questions}
-            existingAnswers={existingAnswers}
-            dietaryOptions={settings.dietary_options}
-            rsvpCutoffDate={settings.rsvp_cutoff_date}
-            weddingDate={settings.wedding_date}
-          />
+        {/* Compact response summary — only for households who've already replied,
+            shown until they open the form to edit. Sits directly on the green
+            section (bone text); attending = green dot (bone ring for contrast on
+            the green ground), declined = muted sand. */}
+        {hasResponded && !rsvpOpen && (
+          <div style={{ maxWidth: 560, margin: 'clamp(28px, 4vw, 40px) auto 0' }}>
+            {guests.map(g => {
+              const attending = g.rsvp_status === 'attending';
+              return (
+                <div
+                  key={g.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '10px 0',
+                    borderTop: `1px solid rgba(246,238,221,0.14)`,
+                    color: tokens.bone,
+                    fontFamily: tokens.body,
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 9,
+                      height: 9,
+                      borderRadius: '50%',
+                      flex: '0 0 auto',
+                      background: attending ? tokens.greenDeep : tokens.sand,
+                      border: attending ? `1.5px solid ${tokens.bone}` : 'none',
+                    }}
+                  />
+                  <span style={{ fontWeight: 400 }}>{g.first_name}</span>
+                  <span
+                    style={{
+                      marginLeft: 'auto',
+                      fontFamily: tokens.mono,
+                      fontSize: '0.66rem',
+                      letterSpacing: '1.5px',
+                      textTransform: 'uppercase',
+                      color: attending ? tokens.bone : tokens.sand,
+                    }}
+                  >
+                    {attending ? 'Attending' : "Can't make it"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div id="rsvp-form">
+          {rsvpOpen && (
+            <div style={{ marginTop: 'clamp(40px, 6vw, 64px)' }}>
+              <RSVPPhase
+                household={household}
+                guests={guests}
+                questions={questions}
+                existingAnswers={existingAnswers}
+                dietaryOptions={settings.dietary_options}
+                rsvpCutoffDate={settings.rsvp_cutoff_date}
+                weddingDate={settings.wedding_date}
+              />
+            </div>
+          )}
         </div>
       </Section>
 

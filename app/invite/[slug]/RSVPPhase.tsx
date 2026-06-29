@@ -54,16 +54,6 @@ function buildDietaryOptions(labels: string[]) {
   ];
 }
 
-function getDietaryLabel(
-  requirement: string,
-  other: string | null,
-  options: { value: string; label: string }[],
-): string {
-  const opt = options.find(o => o.value === requirement);
-  if (opt) return opt.label;
-  return requirement.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-
 function parseSongAnswer(raw: string): { artist: string; song: string } {
   try {
     const parsed = JSON.parse(raw);
@@ -164,15 +154,10 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
   const [submittedCounts, setSubmittedCounts] = useState({ attending: 0, total: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // True on initial load when the household has already submitted responses
-  const [showSummary, setShowSummary] = useState(
-    () => guests.some(g => g.rsvp_status === 'attending' || g.rsvp_status === 'declined')
-  );
-  // Gates the inline form behind a "Confirm your seats" button for first-time
-  // guests; returning guests (who already have a saved response) start open.
-  const [isFormOpen, setIsFormOpen] = useState(
-    () => guests.some(g => g.rsvp_status === 'attending' || g.rsvp_status === 'declined')
-  );
+  // Form visibility is owned by the parent (InvitationPhaseV4): this component is
+  // only mounted once the ticket-stub CTA is pressed, so it always renders the
+  // form straight away (pre-filled from any saved response). The pre-edit
+  // status summary lives on the green section, above this card.
 
   const handleAttendingChange = (guestId: string, attending: boolean) => {
     setFormData(prev => ({
@@ -332,64 +317,13 @@ export default function RSVPPhase({ household, guests, questions, existingAnswer
           <p className="rv-success-message">{getConfirmationMessage()}</p>
           <button
             type="button"
-            onClick={() => { setSubmitted(false); setIsFormOpen(true); }}
+            onClick={() => setSubmitted(false)}
             className="rv-submit"
             style={{ marginTop: 20 }}
           >
             Update your RSVP
           </button>
         </div>
-      </div>
-    );
-  }
-
-  if (showSummary) {
-    return (
-      <div className="mr-rsvp-v4 mr-v4">
-        <div style={{ marginBottom: 24 }}>
-          <p className="rv-guest-name" style={{ marginBottom: 4 }}>You&apos;re all set!</p>
-          <p className="rv-label" style={{ marginBottom: 0 }}>Here&apos;s what we have for you</p>
-        </div>
-
-        <div>
-          {guests.map(guest => (
-            <div key={guest.id} className="rv-summary-row">
-              <div>
-                <h3 style={{ fontFamily: 'var(--grotesque)', fontWeight: 600, fontSize: '1.05rem', margin: 0 }}>
-                  {guest.first_name} {guest.last_name}
-                </h3>
-                {guest.rsvp_status === 'attending' && guest.dietary_requirement && guest.dietary_requirement !== 'none' && (
-                  <p style={{ fontFamily: 'var(--grotesque)', fontSize: '0.78rem', opacity: 0.6, margin: '2px 0 0' }}>
-                    {getDietaryLabel(guest.dietary_requirement, guest.dietary_other, DIETARY_OPTIONS)}
-                    {guest.dietary_requirement === 'other' && guest.dietary_other ? ` — ${guest.dietary_other}` : ''}
-                  </p>
-                )}
-              </div>
-              <span className={`rv-badge ${guest.rsvp_status === 'attending' ? 'is-attending' : ''}`}>
-                {guest.rsvp_status === 'attending' ? 'Attending' : 'Not attending'}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => { setShowSummary(false); setIsFormOpen(true); }}
-          className="rv-submit"
-          style={{ marginTop: 20 }}
-        >
-          Update your RSVP
-        </button>
-      </div>
-    );
-  }
-
-  if (!isFormOpen) {
-    return (
-      <div className="mr-rsvp-v4 mr-v4" style={{ textAlign: 'center' }}>
-        <button type="button" onClick={() => setIsFormOpen(true)} className="rv-submit">
-          Confirm your seats
-        </button>
       </div>
     );
   }

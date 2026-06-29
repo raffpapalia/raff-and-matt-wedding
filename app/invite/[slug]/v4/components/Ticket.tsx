@@ -8,6 +8,11 @@ interface TicketProps {
   date: string;
   time: string;
   venue: string;
+  // Stub CTA — label and handler are owned by the parent so it can read the
+  // household's response status ("Confirm your seats" vs "Update RSVP") and
+  // reveal/scroll to the RSVP form.
+  ctaLabel: string;
+  onCta: () => void;
 }
 
 const metaLabelStyle: React.CSSProperties = {
@@ -30,7 +35,7 @@ const metaValueStyle: React.CSSProperties = {
 // whose only content is the full-width "Confirm your seats" CTA (the standard
 // persimmon button) that jumps to the RSVP form. "Please reply by" lives outside
 // this card (InvitationPhaseV4).
-export default function Ticket({ serial, admits, household, date, time, venue }: TicketProps) {
+export default function Ticket({ serial, admits, household, date, time, venue, ctaLabel, onCta }: TicketProps) {
   return (
     <Reveal className="mr-ticket">
       <div style={{ padding: 'clamp(28px, 5vw, 44px)' }}>
@@ -86,13 +91,14 @@ export default function Ticket({ serial, admits, household, date, time, venue }:
       </div>
       <div className="mr-perf" aria-hidden="true" />
       <div style={{ padding: 'clamp(20px, 4vw, 28px)' }}>
-        <a
-          href="#rsvp-form"
+        <button
+          type="button"
+          onClick={onCta}
           className="mr-btn mr-btn-solid"
-          style={{ display: 'block', width: '100%', textAlign: 'center', boxSizing: 'border-box' }}
+          style={{ display: 'block', width: '100%', textAlign: 'center', boxSizing: 'border-box', cursor: 'pointer' }}
         >
-          Confirm your seats
-        </a>
+          {ctaLabel}
+        </button>
       </div>
     </Reveal>
   );
