@@ -6,11 +6,11 @@ import type { CustomQuestion, QuestionType } from '@/lib/supabase';
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const TYPE_META: Record<QuestionType, { label: string; colorClass: string }> = {
-  text:     { label: 'Short text',    colorClass: 'bg-slate-400/10 text-slate-300 border-slate-400/20' },
-  textarea: { label: 'Long text',     colorClass: 'bg-blue-400/10 text-blue-300 border-blue-400/20' },
-  yes_no:   { label: 'Yes / No',      colorClass: 'bg-emerald-400/10 text-emerald-300 border-emerald-400/20' },
-  dropdown: { label: 'Dropdown',      colorClass: 'bg-amber-400/10 text-amber-300 border-amber-400/20' },
-  song:     { label: 'Song request',  colorClass: 'bg-violet-400/10 text-violet-300 border-violet-400/20' },
+  text:     { label: 'Short text',    colorClass: 'bg-admin-ink/10 text-admin-ink/70 border-admin-ink/20' },
+  textarea: { label: 'Long text',     colorClass: 'bg-admin-green/10 text-admin-green border-admin-green/20' },
+  yes_no:   { label: 'Yes / No',      colorClass: 'bg-admin-sand/25 text-admin-ink/80 border-admin-sand/40' },
+  dropdown: { label: 'Dropdown',      colorClass: 'bg-admin-warning-bg text-admin-warning border-admin-warning/30' },
+  song:     { label: 'Song request',  colorClass: 'bg-admin-violet/25 text-admin-ink/80 border-admin-violet/40' },
 };
 
 interface FormState {
@@ -32,7 +32,7 @@ const EMPTY_FORM: FormState = {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function TypeBadge({ type }: { type: QuestionType }) {
-  const meta = TYPE_META[type] ?? { label: type, colorClass: 'bg-slate-400/10 text-slate-300 border-slate-400/20' };
+  const meta = TYPE_META[type] ?? { label: type, colorClass: 'bg-admin-ink/10 text-admin-ink/70 border-admin-ink/20' };
   return (
     <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${meta.colorClass}`}>
       {meta.label}
@@ -222,11 +222,11 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
   return (
     <>
       {/* Question list */}
-      <div className="rounded-3xl border border-white/10 bg-white/5 shadow-lg shadow-slate-950/20 backdrop-blur-xl overflow-hidden">
+      <div className="rounded-3xl border border-admin-sand/20 bg-white overflow-hidden">
         {questions.length === 0 ? (
           <div className="px-8 py-16 text-center">
-            <p className="text-slate-400">No questions yet.</p>
-            <p className="mt-1 text-sm text-slate-500">Add your first question below to get started.</p>
+            <p className="text-admin-ink/60">No questions yet.</p>
+            <p className="mt-1 text-sm text-admin-ink/50">Add your first question below to get started.</p>
           </div>
         ) : (
           <ul>
@@ -237,24 +237,24 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
                 onDragStart={e => handleDragStart(e, index)}
                 onDragOver={handleDragOver}
                 onDrop={e => handleDrop(e, index)}
-                className="flex items-start gap-4 border-b border-white/5 px-6 py-5 last:border-b-0 transition hover:bg-white/[0.03] cursor-default"
+                className="flex items-start gap-4 border-b border-admin-sand/10 px-6 py-5 last:border-b-0 transition hover:bg-admin-bone/40 cursor-default"
               >
                 {/* Drag handle */}
-                <div className="cursor-move select-none pt-0.5 text-slate-500 text-lg leading-none shrink-0">
+                <div className="cursor-move select-none pt-0.5 text-admin-ink/50 text-lg leading-none shrink-0">
                   ⠿
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-white leading-snug">{q.question_text}</p>
+                  <p className="text-admin-ink leading-snug">{q.question_text}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <TypeBadge type={q.question_type} />
                     {q.target_tags && q.target_tags.length > 0 ? (
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-admin-ink/60">
                         {q.target_tags.join(', ')}
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-600">All households</span>
+                      <span className="text-xs text-admin-ink/40">All households</span>
                     )}
                   </div>
                 </div>
@@ -266,8 +266,8 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
                     onClick={() => handleToggleActive(q.id, q.is_active)}
                     className={`text-xs uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border transition ${
                       q.is_active
-                        ? 'bg-emerald-400/10 text-emerald-300 border-emerald-400/20 hover:bg-emerald-400/20'
-                        : 'bg-white/5 text-slate-500 border-white/10 hover:text-slate-300 hover:bg-white/10'
+                        ? 'bg-admin-green/10 text-admin-green border-admin-green/20 hover:bg-admin-green/20'
+                        : 'bg-admin-ink/5 text-admin-ink/40 border-admin-ink/10 hover:text-admin-ink/60 hover:bg-admin-ink/10'
                     }`}
                   >
                     {q.is_active ? 'Active' : 'Inactive'}
@@ -275,7 +275,7 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
                   <button
                     type="button"
                     onClick={() => openEdit(q)}
-                    className="text-sm text-slate-300 hover:text-white transition px-3 py-1.5 rounded-2xl border border-white/10 hover:border-white/20 hover:bg-white/5"
+                    className="text-sm text-admin-ink/70 hover:text-admin-ink transition px-3 py-1.5 rounded-2xl border border-admin-ink/10 hover:border-admin-ink/20 hover:bg-admin-ink/5"
                   >
                     Edit
                   </button>
@@ -283,7 +283,7 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
                     type="button"
                     onClick={() => handleDelete(q.id)}
                     disabled={deleting === q.id}
-                    className="text-sm text-rose-400 hover:text-rose-200 transition px-3 py-1.5 rounded-2xl border border-rose-500/20 hover:border-rose-500/40 hover:bg-rose-500/10 disabled:opacity-40"
+                    className="text-sm text-admin-persimmon hover:text-admin-persimmon/70 transition px-3 py-1.5 rounded-2xl border border-admin-persimmon/20 hover:border-admin-persimmon/40 hover:bg-admin-persimmon/10 disabled:opacity-40"
                   >
                     {deleting === q.id ? '…' : 'Delete'}
                   </button>
@@ -299,7 +299,7 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
         <button
           type="button"
           onClick={openAdd}
-          className="rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200"
+          className="rounded-full bg-admin-green px-5 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90"
         >
           + Add question
         </button>
@@ -310,23 +310,23 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={closeForm}
           />
 
           {/* Panel */}
-          <div className="relative w-full max-w-lg rounded-[2rem] border border-white/10 bg-[#06120B] p-8 shadow-2xl shadow-slate-950/60 max-h-[90vh] overflow-y-auto">
-            <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">
+          <div className="relative w-full max-w-lg rounded-[2rem] border border-white/10 bg-admin-ink p-8 shadow-2xl shadow-black/60 max-h-[90vh] overflow-y-auto">
+            <p className="text-sm uppercase tracking-[0.3em] text-admin-sand">
               {editingId ? 'Edit question' : 'New question'}
             </p>
-            <h2 className="mt-2 mb-7 text-2xl font-semibold text-white">
+            <h2 className="mt-2 mb-7 text-2xl font-semibold text-admin-bone">
               {editingId ? 'Update this question' : 'Add a custom question'}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Question text */}
               <label className="block">
-                <span className="text-xs uppercase tracking-[0.25em] text-slate-400 block mb-2">
+                <span className="text-xs uppercase tracking-[0.25em] text-admin-bone/60 block mb-2">
                   Question text
                 </span>
                 <textarea
@@ -335,13 +335,13 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
                   rows={3}
                   required
                   placeholder="e.g. Any songs you'd love to hear on the night?"
-                  className="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white placeholder-slate-600 outline-none transition focus:border-emerald-400 resize-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-admin-bone placeholder-admin-bone/30 outline-none transition focus:border-admin-green resize-none"
                 />
               </label>
 
               {/* Question type */}
               <div>
-                <span className="text-xs uppercase tracking-[0.25em] text-slate-400 block mb-3">
+                <span className="text-xs uppercase tracking-[0.25em] text-admin-bone/60 block mb-3">
                   Question type
                 </span>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -352,8 +352,8 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
                       onClick={() => setField('question_type', type)}
                       className={`px-4 py-3 rounded-2xl text-sm text-left transition border ${
                         form.question_type === type
-                          ? 'border-emerald-400 bg-emerald-400/10 text-emerald-200'
-                          : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:bg-white/10'
+                          ? 'border-admin-green bg-admin-green/15 text-admin-bone'
+                          : 'border-white/10 bg-white/5 text-admin-bone/70 hover:border-white/20 hover:bg-white/10'
                       }`}
                     >
                       {TYPE_META[type].label}
@@ -365,7 +365,7 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
               {/* Dropdown options */}
               {form.question_type === 'dropdown' && (
                 <div>
-                  <span className="text-xs uppercase tracking-[0.25em] text-slate-400 block mb-3">
+                  <span className="text-xs uppercase tracking-[0.25em] text-admin-bone/60 block mb-3">
                     Options
                   </span>
                   <div className="space-y-2">
@@ -375,12 +375,12 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
                           value={opt}
                           onChange={e => updateOption(i, e.target.value)}
                           placeholder={`Option ${i + 1}`}
-                          className="flex-1 rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-2 text-white text-sm placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                          className="flex-1 rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-admin-bone text-sm placeholder-admin-bone/30 outline-none transition focus:border-admin-green"
                         />
                         <button
                           type="button"
                           onClick={() => removeOption(i)}
-                          className="px-3 text-slate-500 hover:text-rose-400 transition text-lg leading-none"
+                          className="px-3 text-admin-bone/50 hover:text-admin-persimmon transition text-lg leading-none"
                           aria-label="Remove option"
                         >
                           ×
@@ -391,7 +391,7 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
                   <button
                     type="button"
                     onClick={addOption}
-                    className="mt-3 text-sm text-emerald-400 hover:text-emerald-200 transition"
+                    className="mt-3 text-sm text-admin-green hover:text-admin-green/70 transition"
                   >
                     + Add option
                   </button>
@@ -400,14 +400,14 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
 
               {/* Target tags */}
               <div>
-                <span className="text-xs uppercase tracking-[0.25em] text-slate-400 block mb-1">
+                <span className="text-xs uppercase tracking-[0.25em] text-admin-bone/60 block mb-1">
                   Target households
                 </span>
-                <p className="text-xs text-slate-600 mb-3">
+                <p className="text-xs text-admin-bone/40 mb-3">
                   Leave all unchecked to show to every household.
                 </p>
                 {availableTags.length === 0 ? (
-                  <p className="text-sm text-slate-500">No tags found. Add tags to households first.</p>
+                  <p className="text-sm text-admin-bone/50">No tags found. Add tags to households first.</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {availableTags.map(tag => {
@@ -419,8 +419,8 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
                           onClick={() => toggleTag(tag)}
                           className={`px-4 py-2 rounded-full text-sm border transition ${
                             checked
-                              ? 'bg-amber-300/10 text-amber-200 border-amber-300/30 hover:bg-amber-300/20'
-                              : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/20 hover:text-slate-300'
+                              ? 'bg-admin-green/15 text-admin-bone border-admin-green/50 hover:bg-admin-green/25'
+                              : 'bg-white/5 text-admin-bone/60 border-white/10 hover:border-white/20 hover:text-admin-bone/80'
                           }`}
                         >
                           {tag}
@@ -434,14 +434,14 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
               {/* Active toggle */}
               <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
                 <div>
-                  <p className="text-sm text-white">Active</p>
-                  <p className="text-xs text-slate-500">Inactive questions are hidden from guests</p>
+                  <p className="text-sm text-admin-bone">Active</p>
+                  <p className="text-xs text-admin-bone/50">Inactive questions are hidden from guests</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setField('is_active', !form.is_active)}
                   className={`relative h-6 w-11 rounded-full transition-colors shrink-0 ${
-                    form.is_active ? 'bg-emerald-500' : 'bg-slate-700'
+                    form.is_active ? 'bg-admin-green' : 'bg-admin-bone/20'
                   }`}
                   aria-label="Toggle active"
                 >
@@ -455,7 +455,7 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
 
               {/* Error */}
               {formError && (
-                <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                <div className="rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">
                   {formError}
                 </div>
               )}
@@ -465,14 +465,14 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 rounded-3xl bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+                  className="flex-1 rounded-3xl bg-admin-green px-5 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
                 >
                   {saving ? 'Saving…' : editingId ? 'Update question' : 'Add question'}
                 </button>
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="rounded-3xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-white transition hover:bg-white/10"
+                  className="rounded-3xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-admin-bone transition hover:bg-white/10"
                 >
                   Cancel
                 </button>

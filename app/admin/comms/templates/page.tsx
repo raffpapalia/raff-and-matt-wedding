@@ -48,19 +48,19 @@ export default async function TemplatesPage() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-3xl border border-cream/10 bg-dark-green p-8 shadow-lg shadow-black/30">
+      <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="font-dm-sans text-sm uppercase tracking-[0.3em] text-accent-gold/80">Communications</p>
-            <h1 className="mt-2 font-bebas-neue text-4xl tracking-wide text-cream sm:text-5xl">Templates</h1>
-            <p className="mt-2 max-w-xl font-dm-sans text-sm text-cream/60">
+            <p className="font-dm-sans text-sm uppercase tracking-[0.3em] text-admin-green">Communications</p>
+            <h1 className="mt-2 font-bebas-neue text-4xl tracking-wide text-admin-ink sm:text-5xl">Templates</h1>
+            <p className="mt-2 max-w-xl font-dm-sans text-sm text-admin-ink/60">
               Edit what actually sends — email and SMS together. These are the live templates guests receive —
               changes here take effect immediately.
             </p>
           </div>
           <a
             href="/admin/comms"
-            className="rounded-full border border-cream/15 px-4 py-2 font-dm-sans text-sm text-cream/80 transition hover:border-accent-gold/50 hover:text-accent-gold"
+            className="rounded-full border border-admin-sand/40 px-4 py-2 font-dm-sans text-sm text-admin-ink/80 transition hover:border-admin-green/50 hover:text-admin-green"
           >
             ← Comms
           </a>

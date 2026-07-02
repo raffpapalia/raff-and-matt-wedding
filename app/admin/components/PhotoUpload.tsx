@@ -3,10 +3,6 @@
 import Cropper from 'react-easy-crop';
 import { Spinner, UploadIcon, usePhotoCropper } from '@/lib/photo/useCropUpload';
 
-const DARK_GREEN = '#0A1F14';
-const GOLD = '#D4A83A';
-const CREAM = '#F2E8D0';
-
 interface PhotoUploadProps {
   value: string | null;
   onChange: (url: string | null) => void;
@@ -47,7 +43,7 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
   };
 
   return (
-    <div className="space-y-3 text-sm" style={{ color: CREAM }}>
+    <div className="space-y-3 text-sm text-admin-ink">
       <p>{label}</p>
 
       {value ? (
@@ -59,15 +55,12 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') cropper.fileInputRef.current?.click();
             }}
-            className="group relative w-full max-w-md cursor-pointer overflow-hidden rounded-2xl border"
-            style={{ aspectRatio, borderColor: 'rgba(242,232,208,0.15)', backgroundColor: DARK_GREEN }}
+            className="group relative w-full max-w-md cursor-pointer overflow-hidden rounded-2xl border border-admin-sand/30 bg-admin-ink/5"
+            style={{ aspectRatio }}
           >
             <img src={value} alt={label} className="h-full w-full object-cover" />
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/50 group-hover:opacity-100 group-active:bg-black/50 group-active:opacity-100">
-              <span
-                className="rounded-full px-4 py-2 text-sm font-semibold"
-                style={{ backgroundColor: GOLD, color: DARK_GREEN }}
-              >
+              <span className="rounded-full bg-admin-green px-4 py-2 text-sm font-semibold text-admin-bone">
                 Change photo
               </span>
             </div>
@@ -75,8 +68,7 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="text-xs underline transition hover:opacity-80"
-            style={{ color: CREAM, opacity: 0.6 }}
+            className="text-xs text-admin-ink/60 underline transition hover:opacity-80"
           >
             Remove
           </button>
@@ -89,8 +81,8 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') cropper.fileInputRef.current?.click();
           }}
-          className="flex w-full max-w-md cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed transition hover:border-[#D4A83A]/60"
-          style={{ aspectRatio, borderColor: 'rgba(242,232,208,0.25)', color: 'rgba(242,232,208,0.6)' }}
+          className="flex w-full max-w-md cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-admin-ink/25 text-admin-ink/60 transition hover:border-admin-green/60"
+          style={{ aspectRatio }}
         >
           <UploadIcon />
           <span className="text-sm">Upload photo</span>
@@ -98,7 +90,7 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
       )}
 
       {error && !imageSrc ? (
-        <p className="text-xs text-red-400">{error}</p>
+        <p className="text-xs text-admin-persimmon">{error}</p>
       ) : null}
 
       <input
@@ -110,9 +102,10 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
       />
 
       {imageSrc ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}>
-          <div className="w-full max-w-lg rounded-2xl p-6" style={{ backgroundColor: DARK_GREEN, border: '1px solid rgba(242,232,208,0.1)' }}>
-            <p className="mb-4 text-sm font-semibold" style={{ color: CREAM }}>Crop {label.toLowerCase()}</p>
+        /* Crop modal deliberately stays dark — focused editing surface. */
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-admin-ink p-6">
+            <p className="mb-4 text-sm font-semibold text-admin-bone">Crop {label.toLowerCase()}</p>
             <div className="relative h-80 w-full overflow-hidden rounded-xl bg-black">
               <Cropper
                 image={imageSrc}
@@ -125,7 +118,7 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
               />
             </div>
             <div className="mt-4 flex items-center gap-3">
-              <span className="text-xs uppercase tracking-[0.25em]" style={{ color: 'rgba(242,232,208,0.5)' }}>Zoom</span>
+              <span className="text-xs uppercase tracking-[0.25em] text-admin-bone/50">Zoom</span>
               <input
                 type="range"
                 min={1}
@@ -133,20 +126,18 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
                 step={0.01}
                 value={zoom}
                 onChange={(e) => setZoom(Number(e.target.value))}
-                className="flex-1"
-                style={{ accentColor: GOLD }}
+                className="flex-1 accent-admin-green"
               />
             </div>
             {error ? (
-              <div className="mt-4 rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</div>
+              <div className="mt-4 rounded-xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">{error}</div>
             ) : null}
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
                 onClick={handleConfirmCrop}
                 disabled={uploading}
-                className="flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70"
-                style={{ backgroundColor: GOLD, color: DARK_GREEN }}
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-admin-green px-5 py-3 text-sm font-semibold text-admin-bone transition disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {uploading ? (
                   <>
@@ -161,8 +152,7 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
                 type="button"
                 onClick={cropper.closeCropModal}
                 disabled={uploading}
-                className="rounded-full border px-5 py-3 text-sm transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-70"
-                style={{ borderColor: 'rgba(242,232,208,0.3)', color: CREAM }}
+                className="rounded-full border border-admin-bone/30 px-5 py-3 text-sm text-admin-bone transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 Cancel
               </button>

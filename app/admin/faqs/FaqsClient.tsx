@@ -150,11 +150,11 @@ export default function FaqsClient({ faqs: initial }: { faqs: Faq[] }) {
 
   return (
     <>
-      <div className="rounded-3xl border border-white/10 bg-white/5 shadow-lg shadow-slate-950/20 backdrop-blur-xl overflow-hidden">
+      <div className="rounded-3xl border border-admin-sand/20 bg-white overflow-hidden">
         {faqs.length === 0 ? (
           <div className="px-8 py-16 text-center">
-            <p className="text-slate-400">No FAQs yet.</p>
-            <p className="mt-1 text-sm text-slate-500">Add your first FAQ below.</p>
+            <p className="text-admin-ink/60">No FAQs yet.</p>
+            <p className="mt-1 text-sm text-admin-ink/50">Add your first FAQ below.</p>
           </div>
         ) : (
           <ul>
@@ -165,15 +165,15 @@ export default function FaqsClient({ faqs: initial }: { faqs: Faq[] }) {
                 onDragStart={e => handleDragStart(e, index)}
                 onDragOver={handleDragOver}
                 onDrop={e => handleDrop(e, index)}
-                className="flex items-start gap-4 border-b border-white/5 px-6 py-5 last:border-b-0 transition hover:bg-white/[0.03] cursor-default"
+                className="flex items-start gap-4 border-b border-admin-sand/10 px-6 py-5 last:border-b-0 transition hover:bg-admin-bone/40 cursor-default"
               >
-                <div className="cursor-move select-none pt-0.5 text-slate-500 text-lg leading-none shrink-0">
+                <div className="cursor-move select-none pt-0.5 text-admin-ink/50 text-lg leading-none shrink-0">
                   ⠿
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-white leading-snug font-medium">{faq.question}</p>
-                  <p className="mt-1 text-sm text-slate-400 leading-relaxed line-clamp-2">{faq.answer}</p>
+                  <p className="text-admin-ink leading-snug font-medium">{faq.question}</p>
+                  <p className="mt-1 text-sm text-admin-ink/60 leading-relaxed line-clamp-2">{faq.answer}</p>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
@@ -182,8 +182,8 @@ export default function FaqsClient({ faqs: initial }: { faqs: Faq[] }) {
                     onClick={() => handleToggleActive(faq.id, faq.is_active)}
                     className={`text-xs uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border transition ${
                       faq.is_active
-                        ? 'bg-emerald-400/10 text-emerald-300 border-emerald-400/20 hover:bg-emerald-400/20'
-                        : 'bg-white/5 text-slate-500 border-white/10 hover:text-slate-300 hover:bg-white/10'
+                        ? 'bg-admin-green/10 text-admin-green border-admin-green/20 hover:bg-admin-green/20'
+                        : 'bg-admin-ink/5 text-admin-ink/40 border-admin-ink/10 hover:text-admin-ink/60 hover:bg-admin-ink/10'
                     }`}
                   >
                     {faq.is_active ? 'Active' : 'Inactive'}
@@ -191,7 +191,7 @@ export default function FaqsClient({ faqs: initial }: { faqs: Faq[] }) {
                   <button
                     type="button"
                     onClick={() => openEdit(faq)}
-                    className="text-sm text-slate-300 hover:text-white transition px-3 py-1.5 rounded-2xl border border-white/10 hover:border-white/20 hover:bg-white/5"
+                    className="text-sm text-admin-ink/70 hover:text-admin-ink transition px-3 py-1.5 rounded-2xl border border-admin-ink/10 hover:border-admin-ink/20 hover:bg-admin-ink/5"
                   >
                     Edit
                   </button>
@@ -199,7 +199,7 @@ export default function FaqsClient({ faqs: initial }: { faqs: Faq[] }) {
                     type="button"
                     onClick={() => handleDelete(faq.id)}
                     disabled={deleting === faq.id}
-                    className="text-sm text-rose-400 hover:text-rose-200 transition px-3 py-1.5 rounded-2xl border border-rose-500/20 hover:border-rose-500/40 hover:bg-rose-500/10 disabled:opacity-40"
+                    className="text-sm text-admin-persimmon hover:text-admin-persimmon/70 transition px-3 py-1.5 rounded-2xl border border-admin-persimmon/20 hover:border-admin-persimmon/40 hover:bg-admin-persimmon/10 disabled:opacity-40"
                   >
                     {deleting === faq.id ? '…' : 'Delete'}
                   </button>
@@ -214,7 +214,7 @@ export default function FaqsClient({ faqs: initial }: { faqs: Faq[] }) {
         <button
           type="button"
           onClick={openAdd}
-          className="rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200"
+          className="rounded-full bg-admin-green px-5 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90"
         >
           + Add FAQ
         </button>
@@ -222,49 +222,49 @@ export default function FaqsClient({ faqs: initial }: { faqs: Faq[] }) {
 
       {formOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={closeForm} />
-          <div className="relative w-full max-w-lg rounded-[2rem] border border-white/10 bg-[#06120B] p-8 shadow-2xl shadow-slate-950/60 max-h-[90vh] overflow-y-auto">
-            <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeForm} />
+          <div className="relative w-full max-w-lg rounded-[2rem] border border-white/10 bg-admin-ink p-8 shadow-2xl shadow-black/60 max-h-[90vh] overflow-y-auto">
+            <p className="text-sm uppercase tracking-[0.3em] text-admin-sand">
               {editingId ? 'Edit FAQ' : 'New FAQ'}
             </p>
-            <h2 className="mt-2 mb-7 text-2xl font-semibold text-white">
+            <h2 className="mt-2 mb-7 text-2xl font-semibold text-admin-bone">
               {editingId ? 'Update this FAQ' : 'Add a FAQ'}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <label className="block">
-                <span className="text-xs uppercase tracking-[0.25em] text-slate-400 block mb-2">Question</span>
+                <span className="text-xs uppercase tracking-[0.25em] text-admin-bone/60 block mb-2">Question</span>
                 <input
                   value={form.question}
                   onChange={e => setField('question', e.target.value)}
                   required
                   placeholder="e.g. Is there parking at the venue?"
-                  className="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-admin-bone placeholder-admin-bone/30 outline-none transition focus:border-admin-green"
                 />
               </label>
 
               <label className="block">
-                <span className="text-xs uppercase tracking-[0.25em] text-slate-400 block mb-2">Answer</span>
+                <span className="text-xs uppercase tracking-[0.25em] text-admin-bone/60 block mb-2">Answer</span>
                 <textarea
                   value={form.answer}
                   onChange={e => setField('answer', e.target.value)}
                   rows={4}
                   required
                   placeholder="e.g. Yes, there is free parking available on site."
-                  className="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white placeholder-slate-600 outline-none transition focus:border-emerald-400 resize-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-admin-bone placeholder-admin-bone/30 outline-none transition focus:border-admin-green resize-none"
                 />
               </label>
 
               <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
                 <div>
-                  <p className="text-sm text-white">Active</p>
-                  <p className="text-xs text-slate-500">Inactive FAQs are hidden from guests</p>
+                  <p className="text-sm text-admin-bone">Active</p>
+                  <p className="text-xs text-admin-bone/50">Inactive FAQs are hidden from guests</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setField('is_active', !form.is_active)}
                   className={`relative h-6 w-11 rounded-full transition-colors shrink-0 ${
-                    form.is_active ? 'bg-emerald-500' : 'bg-slate-700'
+                    form.is_active ? 'bg-admin-green' : 'bg-admin-bone/20'
                   }`}
                   aria-label="Toggle active"
                 >
@@ -277,7 +277,7 @@ export default function FaqsClient({ faqs: initial }: { faqs: Faq[] }) {
               </div>
 
               {formError && (
-                <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                <div className="rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">
                   {formError}
                 </div>
               )}
@@ -286,14 +286,14 @@ export default function FaqsClient({ faqs: initial }: { faqs: Faq[] }) {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 rounded-3xl bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+                  className="flex-1 rounded-3xl bg-admin-green px-5 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
                 >
                   {saving ? 'Saving…' : editingId ? 'Update FAQ' : 'Add FAQ'}
                 </button>
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="rounded-3xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-white transition hover:bg-white/10"
+                  className="rounded-3xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-admin-bone transition hover:bg-white/10"
                 >
                   Cancel
                 </button>

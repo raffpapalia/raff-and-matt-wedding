@@ -32,14 +32,14 @@ function relativeTime(dateStr: string): string {
 
 function RsvpBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    attending: 'bg-emerald-400/10 text-emerald-300',
-    declined: 'bg-rose-500/10 text-rose-300',
-    pending: 'bg-amber-400/10 text-amber-300',
+    attending: 'bg-admin-green/10 text-admin-green',
+    declined: 'bg-admin-persimmon/10 text-admin-persimmon',
+    pending: 'bg-admin-warning-bg text-admin-warning',
   };
   return (
     <span
       className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.2em] ${
-        colors[status] ?? 'bg-slate-800 text-slate-400'
+        colors[status] ?? 'bg-admin-ink/5 text-admin-ink/40'
       }`}
     >
       {status}
@@ -379,21 +379,21 @@ export default function CommsDetailClient({
       )}
 
       {feedback && (
-        <div className="rounded-2xl bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
+        <div className="rounded-2xl bg-admin-green/10 px-4 py-3 text-sm text-admin-green">
           {feedback}
         </div>
       )}
       {sendError && (
-        <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{sendError}</div>
+        <div className="rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">{sendError}</div>
       )}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
         {/* Guests panel */}
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
+        <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Guests</p>
-              <h2 className="mt-1 text-xl font-semibold text-white">
+              <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Guests</p>
+              <h2 className="mt-1 text-xl font-semibold text-admin-ink">
                 {guests.length} guest{guests.length !== 1 ? 's' : ''}
               </h2>
             </div>
@@ -402,7 +402,7 @@ export default function CommsDetailClient({
                 type="button"
                 onClick={() => { setSendError(null); setChooserOpen('sms'); }}
                 disabled={previewLoading}
-                className="rounded-full border border-violet-300/20 bg-violet-400/10 px-4 py-2 text-sm text-violet-200 transition hover:bg-violet-400/20 disabled:opacity-50"
+                className="rounded-full border border-admin-violet/40 bg-admin-violet/15 px-4 py-2 text-sm text-admin-ink/80 transition hover:bg-admin-violet/25 disabled:opacity-50"
               >
                 {previewLoading ? 'Checking…' : 'Send SMS'}
               </button>
@@ -410,7 +410,7 @@ export default function CommsDetailClient({
                 type="button"
                 onClick={() => { setSendError(null); setChooserOpen('email'); }}
                 disabled={previewLoading}
-                className="rounded-full border border-sky-300/20 bg-sky-400/10 px-4 py-2 text-sm text-sky-200 transition hover:bg-sky-400/20 disabled:opacity-50"
+                className="rounded-full border border-admin-sand/50 bg-admin-sand/15 px-4 py-2 text-sm text-admin-ink/80 transition hover:bg-admin-sand/25 disabled:opacity-50"
               >
                 {previewLoading ? 'Checking…' : 'Send Email'}
               </button>
@@ -418,7 +418,7 @@ export default function CommsDetailClient({
                 type="button"
                 onClick={() => { setSendError(null); setBothChooserOpen(true); }}
                 disabled={previewLoading || bothSending}
-                className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-50"
+                className="rounded-full bg-admin-green px-4 py-2 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-50"
               >
                 Send Both
               </button>
@@ -427,13 +427,13 @@ export default function CommsDetailClient({
 
           <div className="mt-6 space-y-4">
             {guests.length === 0 ? (
-              <p className="text-sm text-slate-400">No guests in this household.</p>
+              <p className="text-sm text-admin-ink/60">No guests in this household.</p>
             ) : (
               guests.map((guest) => (
-                <div key={guest.id} className="rounded-2xl border border-white/5 bg-slate-900/60 p-5">
+                <div key={guest.id} className="rounded-2xl border border-admin-sand/20 bg-admin-bone/40 p-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-white">
+                      <p className="font-semibold text-admin-ink">
                         {guest.first_name} {guest.last_name}
                       </p>
                       <div className="mt-1.5">
@@ -443,14 +443,14 @@ export default function CommsDetailClient({
                     <div className="flex flex-wrap gap-2">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${
-                          guest.comms_sms ? 'bg-violet-400/10 text-violet-300' : 'bg-slate-800 text-slate-500'
+                          guest.comms_sms ? 'bg-admin-violet/25 text-admin-ink/80' : 'bg-admin-ink/5 text-admin-ink/40'
                         }`}
                       >
                         SMS {guest.comms_sms ? 'on' : 'off'}
                       </span>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${
-                          guest.comms_email ? 'bg-sky-400/10 text-sky-300' : 'bg-slate-800 text-slate-500'
+                          guest.comms_email ? 'bg-admin-sand/25 text-admin-ink/80' : 'bg-admin-ink/5 text-admin-ink/40'
                         }`}
                       >
                         Email {guest.comms_email ? 'on' : 'off'}
@@ -461,18 +461,18 @@ export default function CommsDetailClient({
                   <div className="mt-3 space-y-1 text-sm">
                     {guest.email && (
                       <div className="flex items-center gap-3">
-                        <span className="w-14 text-xs uppercase tracking-[0.2em] text-slate-500">Email</span>
-                        <span className="text-slate-200">{guest.email}</span>
+                        <span className="w-14 text-xs uppercase tracking-[0.2em] text-admin-ink/50">Email</span>
+                        <span className="text-admin-ink/80">{guest.email}</span>
                       </div>
                     )}
                     {guest.mobile && (
                       <div className="flex items-center gap-3">
-                        <span className="w-14 text-xs uppercase tracking-[0.2em] text-slate-500">Mobile</span>
-                        <span className="text-slate-200">{guest.mobile}</span>
+                        <span className="w-14 text-xs uppercase tracking-[0.2em] text-admin-ink/50">Mobile</span>
+                        <span className="text-admin-ink/80">{guest.mobile}</span>
                       </div>
                     )}
                     {!guest.email && !guest.mobile && (
-                      <p className="text-xs italic text-slate-500">No contact details on record</p>
+                      <p className="text-xs italic text-admin-ink/50">No contact details on record</p>
                     )}
                   </div>
 
@@ -484,7 +484,7 @@ export default function CommsDetailClient({
                           type="button"
                           onClick={() => sendGuestSmsDirect(guest.id, `${guest.first_name} ${guest.last_name}`)}
                           disabled={guestSendingId === `${guest.id}-sms`}
-                          className="min-h-[44px] rounded-xl border border-violet-400/20 bg-violet-400/5 px-3 py-1 text-xs font-medium text-violet-300 transition hover:bg-violet-400/15 disabled:opacity-50"
+                          className="min-h-[44px] rounded-xl border border-admin-violet/40 bg-admin-violet/10 px-3 py-1 text-xs font-medium text-admin-ink/80 transition hover:bg-admin-violet/20 disabled:opacity-50"
                         >
                           {guestSendingId === `${guest.id}-sms` ? '…' : 'SMS'}
                         </button>
@@ -496,7 +496,7 @@ export default function CommsDetailClient({
                             sendGuestEmailDirect(guest.id, `${guest.first_name} ${guest.last_name}`)
                           }
                           disabled={guestSendingId === `${guest.id}-email`}
-                          className="min-h-[44px] rounded-xl border border-sky-400/20 bg-sky-400/5 px-3 py-1 text-xs font-medium text-sky-300 transition hover:bg-sky-400/15 disabled:opacity-50"
+                          className="min-h-[44px] rounded-xl border border-admin-sand/50 bg-admin-sand/10 px-3 py-1 text-xs font-medium text-admin-ink/80 transition hover:bg-admin-sand/20 disabled:opacity-50"
                         >
                           {guestSendingId === `${guest.id}-email` ? '…' : 'Email'}
                         </button>
@@ -508,11 +508,11 @@ export default function CommsDetailClient({
             )}
           </div>
 
-          <p className="mt-6 text-xs text-slate-500">
+          <p className="mt-6 text-xs text-admin-ink/50">
             To change comms preferences,{' '}
             <a
               href={`/admin/guests/${householdId}/edit`}
-              className="text-emerald-400 underline transition hover:text-emerald-300"
+              className="text-admin-green underline transition hover:text-admin-green/80"
             >
               edit the household
             </a>
@@ -521,14 +521,14 @@ export default function CommsDetailClient({
         </div>
 
         {/* Send history */}
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
-          <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Send history</p>
-          <h2 className="mt-1 mb-6 text-xl font-semibold text-white">
+        <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
+          <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Send history</p>
+          <h2 className="mt-1 mb-6 text-xl font-semibold text-admin-ink">
             {comms.length} record{comms.length !== 1 ? 's' : ''}
           </h2>
 
           {comms.length === 0 ? (
-            <p className="text-sm text-slate-400">No communications sent yet.</p>
+            <p className="text-sm text-admin-ink/60">No communications sent yet.</p>
           ) : (
             <div className="space-y-3">
               {comms.map((comm) => {
@@ -539,11 +539,11 @@ export default function CommsDetailClient({
                     : 'Guest no longer on file'
                   : 'Whole household (sent before per-guest tracking)';
                 return (
-                <div key={comm.id} className="rounded-2xl border border-white/5 bg-slate-900/60 p-4">
+                <div key={comm.id} className="rounded-2xl border border-admin-sand/20 bg-admin-bone/40 p-4">
                   <div className="flex items-center justify-between gap-2">
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] ${
-                        comm.type === 'sms' ? 'bg-violet-400/10 text-violet-300' : 'bg-sky-400/10 text-sky-300'
+                        comm.type === 'sms' ? 'bg-admin-violet/25 text-admin-ink/80' : 'bg-admin-sand/25 text-admin-ink/80'
                       }`}
                     >
                       {comm.type.toUpperCase()}
@@ -551,10 +551,10 @@ export default function CommsDetailClient({
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] ${
                         comm.status === 'sent'
-                          ? 'bg-emerald-400/10 text-emerald-300'
+                          ? 'bg-admin-green/10 text-admin-green'
                           : comm.status === 'failed'
-                          ? 'bg-rose-500/10 text-rose-300'
-                          : 'bg-slate-800 text-slate-400'
+                          ? 'bg-admin-persimmon/10 text-admin-persimmon'
+                          : 'bg-admin-ink/5 text-admin-ink/40'
                       }`}
                     >
                       {comm.status}
@@ -562,21 +562,21 @@ export default function CommsDetailClient({
                   </div>
                   <p
                     className={`mt-2 text-sm font-medium ${
-                      comm.guest_id && recipient ? 'text-white' : 'text-amber-300'
+                      comm.guest_id && recipient ? 'text-admin-ink' : 'text-admin-warning'
                     }`}
                   >
                     To: {recipientLabel}
                   </p>
-                  <p className="mt-1 text-xs text-slate-400" title={new Date(comm.sent_at).toLocaleString()}>
+                  <p className="mt-1 text-xs text-admin-ink/60" title={new Date(comm.sent_at).toLocaleString()}>
                     {relativeTime(comm.sent_at)} · {new Date(comm.sent_at).toLocaleTimeString()}
                   </p>
-                  <p className="mt-2 line-clamp-3 text-sm text-slate-300">{comm.message}</p>
+                  <p className="mt-2 line-clamp-3 text-sm text-admin-ink/70">{comm.message}</p>
                   {comm.guest_id ? (
                     <button
                       type="button"
                       onClick={() => resendComm(comm)}
                       disabled={resendingId === comm.id}
-                      className="mt-3 min-h-[44px] rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300 transition hover:bg-white/10 disabled:opacity-50"
+                      className="mt-3 min-h-[44px] rounded-xl border border-admin-sand/40 bg-white px-3 py-1 text-xs font-medium text-admin-ink/70 transition hover:border-admin-green/40 hover:text-admin-green disabled:opacity-50"
                     >
                       {resendingId === comm.id ? 'Resending…' : 'Resend'}
                     </button>
@@ -585,7 +585,7 @@ export default function CommsDetailClient({
                       type="button"
                       disabled
                       title="Original recipient unknown — cannot resend"
-                      className="mt-3 min-h-[44px] rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300 opacity-50 cursor-not-allowed"
+                      className="mt-3 min-h-[44px] rounded-xl border border-admin-sand/40 bg-white px-3 py-1 text-xs font-medium text-admin-ink/70 opacity-50 cursor-not-allowed"
                     >
                       Resend
                     </button>

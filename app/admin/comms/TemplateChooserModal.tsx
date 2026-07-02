@@ -43,26 +43,26 @@ export default function TemplateChooserModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[2rem] border border-white/10 bg-slate-950 p-8 shadow-2xl">
-        <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Choose template</p>
-        <h2 className="mt-2 text-2xl font-semibold text-white">{heading}</h2>
-        <div className="mt-3 text-sm text-slate-400">{recipientSummary}</div>
+      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[2rem] border border-white/10 bg-admin-ink p-8 shadow-2xl">
+        <p className="text-sm uppercase tracking-[0.3em] text-admin-sand">Choose template</p>
+        <h2 className="mt-2 text-2xl font-semibold text-admin-bone">{heading}</h2>
+        <div className="mt-3 text-sm text-admin-bone/60">{recipientSummary}</div>
 
         {activeTemplates.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+          <div className="mt-6 rounded-2xl border border-admin-warning/30 bg-admin-warning-bg px-4 py-3 text-sm text-admin-warning">
             {emptyMessage}
           </div>
         ) : (
           <>
             <div className="mt-6">
-              <label className="mb-2 block text-xs uppercase tracking-[0.25em] text-slate-400" htmlFor="chooser-template">
+              <label className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-bone/60" htmlFor="chooser-template">
                 Template
               </label>
               <select
                 id="chooser-template"
                 value={selected}
                 onChange={(e) => setSelected(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-slate-900/90 px-4 py-2.5 text-sm text-white outline-none transition focus:border-emerald-400"
+                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-admin-bone outline-none transition focus:border-admin-green"
               >
                 {activeTemplates.map((t) => (
                   <option key={t.id} value={t.key}>
@@ -70,9 +70,9 @@ export default function TemplateChooserModal({
                   </option>
                 ))}
               </select>
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-admin-bone/50">
                 Templates are edited on the{' '}
-                <a href="/admin/comms/templates" className="underline transition hover:text-slate-300">
+                <a href="/admin/comms/templates" className="underline transition hover:text-admin-bone/80">
                   Templates page
                 </a>
                 .
@@ -81,12 +81,12 @@ export default function TemplateChooserModal({
 
             {selectedTemplate && (
               <div className="mt-4">
-                <p className="mb-2 text-xs uppercase tracking-[0.25em] text-slate-400">Preview</p>
-                <div className="rounded-2xl border border-white/5 bg-slate-900/60 px-4 py-3 text-sm text-slate-200">
+                <p className="mb-2 text-xs uppercase tracking-[0.25em] text-admin-bone/60">Preview</p>
+                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-admin-bone/80">
                   {selectedTemplate.subject && (
-                    <p className="font-medium text-white">{selectedTemplate.subject}</p>
+                    <p className="font-medium text-admin-bone">{selectedTemplate.subject}</p>
                   )}
-                  <p className="mt-2 whitespace-pre-wrap text-slate-300">{selectedTemplate.body}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-admin-bone/70">{selectedTemplate.body}</p>
                 </div>
               </div>
             )}
@@ -98,7 +98,7 @@ export default function TemplateChooserModal({
             type="button"
             onClick={onCancel}
             disabled={confirming}
-            className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white transition hover:bg-white/10 disabled:opacity-50"
+            className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-admin-bone transition hover:bg-white/10 disabled:opacity-50"
           >
             Cancel
           </button>
@@ -106,7 +106,7 @@ export default function TemplateChooserModal({
             type="button"
             onClick={() => selectedTemplate && onConfirm(selectedTemplate.key as EmailTemplateKey)}
             disabled={confirming || !selectedTemplate}
-            className="flex-1 rounded-2xl bg-amber-300 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-50"
+            className="flex-1 rounded-2xl bg-admin-green px-4 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-50"
           >
             {confirming ? 'Checking…' : 'Continue'}
           </button>

@@ -40,28 +40,28 @@ function AnswerDisplay({ type, text }: { type: string; text: string }) {
       const hasArtist = artist?.trim();
       const hasSong = song?.trim();
       return (
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-admin-ink/70">
           🎵{' '}
-          {hasArtist && <span className="font-medium text-white">{artist}</span>}
-          {hasArtist && hasSong && <span className="text-slate-500"> — </span>}
+          {hasArtist && <span className="font-medium text-admin-ink">{artist}</span>}
+          {hasArtist && hasSong && <span className="text-admin-ink/50"> — </span>}
           {hasSong && <span>{song}</span>}
-          {!hasArtist && !hasSong && <span className="italic text-slate-500">No answer</span>}
+          {!hasArtist && !hasSong && <span className="italic text-admin-ink/50">No answer</span>}
         </p>
       );
     } catch {
-      return <p className="text-sm text-slate-300">{text}</p>;
+      return <p className="text-sm text-admin-ink/70">{text}</p>;
     }
   }
 
   if (type === 'textarea') {
     return (
-      <blockquote className="border-l-2 border-[#D4A83A]/40 pl-4 text-sm text-slate-300 italic leading-relaxed">
+      <blockquote className="border-l-2 border-admin-sand/60 pl-4 text-sm text-admin-ink/70 italic leading-relaxed">
         {text}
       </blockquote>
     );
   }
 
-  return <p className="text-sm text-slate-300">{text}</p>;
+  return <p className="text-sm text-admin-ink/70">{text}</p>;
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -111,25 +111,25 @@ export default async function AdminResponsesPage() {
   return (
     <div className="space-y-8">
       {/* Page header */}
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
+      <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Responses</p>
-            <h1 className="mt-2 text-3xl font-semibold text-white">Custom question responses</h1>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Responses</p>
+            <h1 className="mt-2 text-3xl font-semibold text-admin-ink">Custom question responses</h1>
+            <p className="mt-2 text-sm text-admin-ink/60">
               Answers grouped by question, newest first.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <a
               href="/admin/api/responses/export"
-              className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200"
+              className="rounded-full bg-admin-green px-4 py-2 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90"
             >
               Export CSV
             </a>
             <a
               href="/admin"
-              className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10"
+              className="rounded-full border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green"
             >
               ← Dashboard
             </a>
@@ -139,21 +139,21 @@ export default async function AdminResponsesPage() {
 
       {/* Stats bar */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
-          <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Total answers</p>
-          <p className="mt-4 text-4xl font-semibold text-white">{totalAnswers}</p>
+        <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
+          <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Total answers</p>
+          <p className="mt-4 text-4xl font-semibold text-admin-ink">{totalAnswers}</p>
         </div>
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
-          <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Households responded</p>
-          <p className="mt-4 text-4xl font-semibold text-white">{respondedHouseholdIds.size}</p>
+        <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
+          <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Households responded</p>
+          <p className="mt-4 text-4xl font-semibold text-admin-ink">{respondedHouseholdIds.size}</p>
         </div>
       </div>
 
       {/* Questions with their answers */}
       {questions.length === 0 ? (
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center text-slate-400">
+        <div className="rounded-3xl border border-admin-sand/20 bg-white p-8 text-center text-admin-ink/60">
           No active questions found. Add questions at{' '}
-          <a href="/admin/questions" className="underline hover:text-white transition">
+          <a href="/admin/questions" className="underline hover:text-admin-ink transition">
             /admin/questions
           </a>
           .
@@ -165,16 +165,16 @@ export default async function AdminResponsesPage() {
             return (
               <div
                 key={q.id}
-                className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg shadow-slate-950/20 backdrop-blur-xl"
+                className="overflow-hidden rounded-3xl border border-admin-sand/20 bg-white"
               >
                 {/* Question header */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 px-8 py-5">
-                  <h2 className="text-base font-semibold text-white">{q.question_text}</h2>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-admin-sand/10 px-8 py-5">
+                  <h2 className="text-base font-semibold text-admin-ink">{q.question_text}</h2>
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-medium ${
                       qAnswers.length > 0
-                        ? 'bg-emerald-400/10 text-emerald-300'
-                        : 'bg-white/5 text-slate-500'
+                        ? 'bg-admin-green/10 text-admin-green'
+                        : 'bg-admin-ink/5 text-admin-ink/40'
                     }`}
                   >
                     {qAnswers.length} {qAnswers.length === 1 ? 'response' : 'responses'}
@@ -183,20 +183,20 @@ export default async function AdminResponsesPage() {
 
                 {/* Answers list */}
                 {qAnswers.length === 0 ? (
-                  <p className="px-8 py-6 text-sm text-slate-500 italic">No responses yet.</p>
+                  <p className="px-8 py-6 text-sm text-admin-ink/50 italic">No responses yet.</p>
                 ) : (
-                  <ul className="divide-y divide-white/5">
+                  <ul className="divide-y divide-admin-sand/10">
                     {qAnswers.map(answer => {
                       const guest = guestMap.get(answer.guest_id);
                       const household = guest ? householdMap.get(guest.household_id) : undefined;
                       return (
                         <li key={answer.id} className="px-8 py-5">
                           <p className="mb-2 text-sm">
-                            <span className="font-medium text-white">
+                            <span className="font-medium text-admin-ink">
                               {household?.name ?? '—'}
                             </span>
-                            <span className="mx-1.5 text-slate-600">·</span>
-                            <span className="text-slate-400">
+                            <span className="mx-1.5 text-admin-ink/40">·</span>
+                            <span className="text-admin-ink/60">
                               {guest ? `${guest.first_name} ${guest.last_name}` : '—'}
                             </span>
                           </p>

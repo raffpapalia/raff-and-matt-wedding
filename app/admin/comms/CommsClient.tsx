@@ -38,10 +38,10 @@ const STATUS_LABELS: Record<CommsStatus, string> = {
 };
 
 const STATUS_COLORS: Record<CommsStatus, string> = {
-  not_sent: 'bg-slate-800 text-slate-400',
-  sent: 'bg-emerald-400/10 text-emerald-300',
-  failed: 'bg-rose-500/10 text-rose-300',
-  partial: 'bg-amber-400/10 text-amber-300',
+  not_sent: 'bg-admin-ink/5 text-admin-ink/40',
+  sent: 'bg-admin-green/10 text-admin-green',
+  failed: 'bg-admin-persimmon/10 text-admin-persimmon',
+  partial: 'bg-admin-warning-bg text-admin-warning',
 };
 
 function StatusBadge({ status }: { status: CommsStatus }) {
@@ -495,34 +495,34 @@ export default function CommsClient({
         />
       )}
 
-      <div className="space-y-6 rounded-[2rem] border border-white/10 bg-slate-950/80 p-6 shadow-xl shadow-slate-950/20">
+      <div className="space-y-6 rounded-[2rem] border border-admin-sand/20 bg-white p-6">
         {feedback && (
-          <div className="rounded-2xl bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
+          <div className="rounded-2xl bg-admin-green/10 px-4 py-3 text-sm text-admin-green">
             {feedback}
           </div>
         )}
         {sendError && (
-          <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{sendError}</div>
+          <div className="rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">{sendError}</div>
         )}
 
         {/* Header row */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.35em] text-emerald-200/70">Household roster</p>
-            <h2 className="mt-3 text-2xl font-semibold text-white">All households</h2>
+            <p className="text-sm uppercase tracking-[0.35em] text-admin-green">Household roster</p>
+            <h2 className="mt-3 text-2xl font-semibold text-admin-ink">All households</h2>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <input
               value={query}
               onChange={(e) => { setQuery(e.target.value); setPage(0); }}
               placeholder="Search households…"
-              className="w-56 rounded-3xl border border-white/10 bg-slate-900/95 px-4 py-2 text-sm text-white outline-none transition focus:border-emerald-400"
+              className="w-56 rounded-3xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink outline-none transition focus:border-admin-green"
             />
             {allTags.length > 0 && (
               <select
                 value={tagFilter}
                 onChange={(e) => { setTagFilter(e.target.value); setPage(0); }}
-                className="rounded-3xl border border-white/10 bg-slate-900/95 px-4 py-2 text-sm text-white outline-none"
+                className="rounded-3xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink outline-none"
               >
                 <option value="">All tags</option>
                 {allTags.map((t) => (
@@ -542,8 +542,8 @@ export default function CommsClient({
               onClick={() => { setTab(key); setPage(0); }}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                 tab === key
-                  ? 'border-emerald-400 bg-emerald-400/10 text-emerald-100'
-                  : 'border-white/10 bg-white/5 text-slate-200 hover:border-emerald-300/30 hover:bg-white/10'
+                  ? 'border-admin-green bg-admin-green/10 text-admin-green'
+                  : 'border-admin-sand/30 bg-admin-bone/40 text-admin-ink/70 hover:border-admin-green/40 hover:text-admin-green'
               }`}
             >
               {tabLabels[key]} ({tabCounts[key]})
@@ -553,8 +553,8 @@ export default function CommsClient({
 
         {/* Bulk actions */}
         {selectedIds.size > 0 && (
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-300/20 bg-amber-300/5 px-5 py-4">
-            <span className="text-sm text-amber-200">{selectedIds.size} selected</span>
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-admin-warning/30 bg-admin-warning-bg px-5 py-4">
+            <span className="text-sm text-admin-warning">{selectedIds.size} selected</span>
             <button
               type="button"
               onClick={() =>
@@ -567,7 +567,7 @@ export default function CommsClient({
                 )
               }
               disabled={previewLoadingId === 'bulk-selected-sms' || sending}
-              className="rounded-full border border-violet-300/20 bg-violet-400/10 px-4 py-2 text-sm text-violet-200 transition hover:bg-violet-400/20 disabled:opacity-50"
+              className="rounded-full border border-admin-violet/40 bg-admin-violet/15 px-4 py-2 text-sm text-admin-ink/80 transition hover:bg-admin-violet/25 disabled:opacity-50"
             >
               {previewLoadingId === 'bulk-selected-sms' ? 'Checking…' : 'Send SMS'}
             </button>
@@ -583,7 +583,7 @@ export default function CommsClient({
                 )
               }
               disabled={previewLoadingId === 'bulk-selected' || sending}
-              className="rounded-full border border-sky-300/20 bg-sky-400/10 px-4 py-2 text-sm text-sky-200 transition hover:bg-sky-400/20 disabled:opacity-50"
+              className="rounded-full border border-admin-sand/50 bg-admin-sand/15 px-4 py-2 text-sm text-admin-ink/80 transition hover:bg-admin-sand/25 disabled:opacity-50"
             >
               {previewLoadingId === 'bulk-selected' ? 'Checking…' : 'Send Email'}
             </button>
@@ -597,14 +597,14 @@ export default function CommsClient({
                 )
               }
               disabled={previewLoadingId === 'bulk-selected-both' || bothSending}
-              className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-50"
+              className="rounded-full bg-admin-green px-4 py-2 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-50"
             >
               {previewLoadingId === 'bulk-selected-both' ? 'Checking…' : 'Send Both'}
             </button>
             <button
               type="button"
               onClick={() => setSelectedIds(new Set())}
-              className="ml-auto text-sm text-slate-400 transition hover:text-white"
+              className="ml-auto text-sm text-admin-ink/60 transition hover:text-admin-ink"
             >
               Clear
             </button>
@@ -625,7 +625,7 @@ export default function CommsClient({
               )
             }
             disabled={previewLoadingId === 'bulk-all' || sending || rows.length === 0}
-            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10 disabled:opacity-50"
+            className="rounded-full border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green disabled:opacity-50"
           >
             {previewLoadingId === 'bulk-all' ? 'Checking…' : `Email all (${rows.length})`}
           </button>
@@ -641,7 +641,7 @@ export default function CommsClient({
               )
             }
             disabled={previewLoadingId === 'bulk-unsent' || sending || unsentIds.length === 0}
-            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10 disabled:opacity-50"
+            className="rounded-full border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green disabled:opacity-50"
           >
             {previewLoadingId === 'bulk-unsent' ? 'Checking…' : `Email unsent only (${tabCounts.not_sent})`}
           </button>
@@ -651,13 +651,13 @@ export default function CommsClient({
         <div className="overflow-x-auto">
           <table className="min-w-full border-separate border-spacing-0 text-sm">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-[0.35em] text-slate-400">
+              <tr className="text-left text-xs uppercase tracking-[0.35em] text-admin-ink/50">
                 <th className="px-4 py-3">
                   <input
                     type="checkbox"
                     checked={pageRows.length > 0 && selectedIds.size === pageRows.length}
                     onChange={toggleAll}
-                    className="h-4 w-4 rounded border-slate-600 bg-slate-900 accent-emerald-400"
+                    className="h-4 w-4 rounded border-admin-sand/60 bg-white accent-admin-green"
                   />
                 </th>
                 <th className="px-4 py-3">Household</th>
@@ -671,29 +671,29 @@ export default function CommsClient({
             <tbody>
               {pageRows.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-sm text-slate-400">
+                  <td colSpan={7} className="px-4 py-8 text-center text-sm text-admin-ink/60">
                     No households match this filter.
                   </td>
                 </tr>
               ) : (
                 pageRows.map((row) => (
-                  <tr key={row.id} className="border-t border-white/10 hover:bg-white/5">
+                  <tr key={row.id} className="border-t border-admin-sand/10 hover:bg-admin-bone/40">
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(row.id)}
                         onChange={() => toggleSelect(row.id)}
-                        className="h-4 w-4 rounded border-slate-600 bg-slate-900 accent-emerald-400"
+                        className="h-4 w-4 rounded border-admin-sand/60 bg-white accent-admin-green"
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-medium text-white">{row.name}</div>
+                      <div className="font-medium text-admin-ink">{row.name}</div>
                       {row.tags.length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1.5">
                           {row.tags.slice(0, 3).map((tag) => (
                             <span
                               key={tag}
-                              className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-slate-300"
+                              className="rounded-full bg-admin-ink/5 px-2 py-0.5 text-[10px] text-admin-ink/70"
                             >
                               {tag}
                             </span>
@@ -701,9 +701,9 @@ export default function CommsClient({
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-300">
+                    <td className="px-4 py-3 text-admin-ink/70">
                       <div>{row.guestCount} total</div>
-                      <div className="text-[11px] text-slate-500">
+                      <div className="text-[11px] text-admin-ink/50">
                         {row.smsReadyCount} SMS · {row.emailReadyCount} email
                       </div>
                     </td>
@@ -713,11 +713,11 @@ export default function CommsClient({
                     <td className="px-4 py-3">
                       <StatusBadge status={row.emailStatus} />
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">
+                    <td className="px-4 py-3 text-xs text-admin-ink/60">
                       {row.lastContacted ? (
                         relativeTime(row.lastContacted)
                       ) : (
-                        <span className="text-slate-600">Never</span>
+                        <span className="text-admin-ink/40">Never</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -725,7 +725,7 @@ export default function CommsClient({
                         <button
                           type="button"
                           onClick={() => router.push(`/admin/comms/${row.id}`)}
-                          className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-100 transition hover:border-emerald-300/40 hover:bg-emerald-300/10"
+                          className="rounded-2xl border border-admin-sand/40 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-admin-ink/80 transition hover:border-admin-green/40 hover:bg-admin-green/10"
                         >
                           View
                         </button>
@@ -733,7 +733,7 @@ export default function CommsClient({
                           type="button"
                           onClick={() => openChooser([row.id], row.name, `${row.id}-sms`, 'all', 'sms')}
                           disabled={previewLoadingId === `${row.id}-sms` || sending}
-                          className="rounded-2xl border border-violet-400/20 bg-violet-400/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-violet-200 transition hover:bg-violet-400/20 disabled:opacity-50"
+                          className="rounded-2xl border border-admin-violet/40 bg-admin-violet/15 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-admin-ink/80 transition hover:bg-admin-violet/25 disabled:opacity-50"
                         >
                           {previewLoadingId === `${row.id}-sms` ? '…' : 'SMS'}
                         </button>
@@ -741,7 +741,7 @@ export default function CommsClient({
                           type="button"
                           onClick={() => openChooser([row.id], row.name, row.id, 'all', 'email')}
                           disabled={previewLoadingId === row.id || sending}
-                          className="rounded-2xl border border-sky-400/20 bg-sky-400/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-sky-200 transition hover:bg-sky-400/20 disabled:opacity-50"
+                          className="rounded-2xl border border-admin-sand/50 bg-admin-sand/15 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-admin-ink/80 transition hover:bg-admin-sand/25 disabled:opacity-50"
                         >
                           {previewLoadingId === row.id ? '…' : 'Email'}
                         </button>
@@ -749,7 +749,7 @@ export default function CommsClient({
                           type="button"
                           onClick={() => openBothChooser([row.id], row.name, `${row.id}-both`)}
                           disabled={previewLoadingId === `${row.id}-both` || bothSending}
-                          className="rounded-2xl bg-amber-300 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-950 transition hover:bg-amber-200 disabled:opacity-50"
+                          className="rounded-2xl bg-admin-green px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-50"
                         >
                           {previewLoadingId === `${row.id}-both` ? '…' : 'Both'}
                         </button>
@@ -764,28 +764,28 @@ export default function CommsClient({
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-sm text-slate-300">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-admin-sand/20 pt-4 text-sm text-admin-ink/70">
             <p>
-              Showing <span className="font-semibold text-white">{pageRows.length}</span> of{' '}
-              <span className="font-semibold text-white">{filtered.length}</span> households
+              Showing <span className="font-semibold text-admin-ink">{pageRows.length}</span> of{' '}
+              <span className="font-semibold text-admin-ink">{filtered.length}</span> households
             </p>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 disabled={page === 0}
                 onClick={() => setPage((p) => Math.max(p - 1, 0))}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Previous
               </button>
-              <span className="text-slate-400">
+              <span className="text-admin-ink/60">
                 Page {page + 1} of {totalPages}
               </span>
               <button
                 type="button"
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage((p) => Math.min(p + 1, totalPages - 1))}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Next
               </button>

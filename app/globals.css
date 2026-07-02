@@ -23,6 +23,18 @@
   --font-mono: var(--font-geist-mono);
   --font-cinzel: var(--font-cinzel);
   --font-dm-sans: var(--font-dm-sans);
+
+  /* Admin light-theme utilities (bg-admin-ink, text-admin-green, ...) — resolve
+     against the .admin-light scope applied in app/admin/layout.tsx. Defined here
+     because tailwind.config.ts is not loaded by Tailwind v4 (no @config). */
+  --color-admin-ink: var(--ink);
+  --color-admin-bone: var(--bone);
+  --color-admin-green: var(--green);
+  --color-admin-persimmon: var(--persimmon);
+  --color-admin-violet: var(--violet);
+  --color-admin-sand: var(--sand);
+  --color-admin-warning: var(--admin-warning);
+  --color-admin-warning-bg: var(--admin-warning-bg);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -60,6 +72,24 @@
   --grotesque: var(--font-bricolage), sans-serif;
   --mono: var(--font-dm-mono), monospace;
   --body: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+/* Admin light theme — same six-colour core palette as .mr-v4 above (keep values
+   in sync). Scoped to the admin root wrapper in app/admin/layout.tsx so guest
+   pages never inherit it. */
+.admin-light {
+  --green: #0F7A52;
+  --bone: #F6EEDD;
+  --persimmon: #F2603C;
+  --ink: #0B2118;
+  --violet: #8E7CC3;
+  --sand: #A88C60;
+
+  /* Admin-only additions — intentional exceptions to the core 6-colour palette.
+     Muted amber for pending/warning/partial states; #8F5F00 passes WCAG AA as
+     text on both --bone (4.8:1) and white cards (5.5:1). */
+  --admin-warning: #8F5F00;
+  --admin-warning-bg: #F3E3BE;
 }
 
 body {

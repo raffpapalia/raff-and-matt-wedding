@@ -17,7 +17,7 @@ export default function CopyInviteLinkButton({ slug }: { slug: string }) {
         setCopied(true);
         window.setTimeout(() => setCopied(false), 1500);
       }}
-      className="text-emerald-200 transition hover:text-emerald-100"
+      className="text-admin-green transition hover:text-admin-green/80"
     >
       {copied ? 'Copied!' : 'Copy link'}
     </button>

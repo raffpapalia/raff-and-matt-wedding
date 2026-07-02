@@ -94,12 +94,12 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (val
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-accent-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-green ${
-        checked ? 'bg-accent-gold' : 'bg-cream/15'
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-admin-green/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
+        checked ? 'bg-admin-green' : 'bg-admin-ink/15'
       }`}
     >
       <span
-        className={`inline-block h-5 w-5 transform rounded-full bg-dark-green shadow transition ${
+        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
           checked ? 'translate-x-5' : 'translate-x-0.5'
         }`}
       />
@@ -128,7 +128,7 @@ function MergeTagChips({ tags }: { tags: Array<{ tag: string; hint: string }> })
           type="button"
           onClick={() => copy(tag)}
           title={hint}
-          className="rounded-full border border-accent-gold/30 bg-accent-gold/5 px-3 py-1 font-mono text-xs text-accent-gold outline-none transition hover:border-accent-gold hover:bg-accent-gold/15 focus-visible:ring-2 focus-visible:ring-accent-gold/60"
+          className="rounded-full border border-admin-green/30 bg-admin-green/5 px-3 py-1 font-mono text-xs text-admin-green outline-none transition hover:border-admin-green hover:bg-admin-green/15 focus-visible:ring-2 focus-visible:ring-admin-green/60"
         >
           {copied === tag ? 'Copied!' : tag}
         </button>
@@ -176,7 +176,7 @@ function usePreview(templateKey: string, subject: string, body: string) {
 function ChevronIcon({ open }: { open: boolean }) {
   return (
     <svg
-      className={`h-5 w-5 shrink-0 text-cream/50 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+      className={`h-5 w-5 shrink-0 text-admin-ink/50 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -205,15 +205,15 @@ function AccordionItem({
   children: ReactNode;
 }) {
   const channelBadgeClass =
-    channel === 'Email' ? 'bg-accent-gold/10 text-accent-gold' : 'bg-emerald-400/10 text-emerald-300';
+    channel === 'Email' ? 'bg-admin-sand/25 text-admin-ink/80' : 'bg-admin-violet/25 text-admin-ink/80';
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-cream/10 bg-dark-green/60 shadow-lg shadow-black/20">
+    <div className="overflow-hidden rounded-3xl border border-admin-sand/20 bg-white">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="flex w-full flex-wrap items-center justify-between gap-3 px-6 py-5 text-left outline-none transition hover:bg-cream/[0.03] focus-visible:ring-2 focus-visible:ring-accent-gold/60 sm:px-8"
+        className="flex w-full flex-wrap items-center justify-between gap-3 px-6 py-5 text-left outline-none transition hover:bg-admin-bone/40 focus-visible:ring-2 focus-visible:ring-admin-green/60 sm:px-8"
       >
         <div className="flex flex-wrap items-center gap-3">
           <span
@@ -221,23 +221,23 @@ function AccordionItem({
           >
             {channel}
           </span>
-          <h3 className="font-cinzel text-lg text-cream sm:text-xl">{title}</h3>
+          <h3 className="font-cinzel text-lg text-admin-ink sm:text-xl">{title}</h3>
           <span
             className={`rounded-full px-2.5 py-0.5 text-[11px] uppercase tracking-[0.2em] ${
-              isActive ? 'bg-emerald-400/10 text-emerald-300' : 'bg-cream/10 text-cream/50'
+              isActive ? 'bg-admin-green/10 text-admin-green' : 'bg-admin-ink/10 text-admin-ink/50'
             }`}
           >
             {isActive ? 'Active' : 'Inactive'}
           </span>
           {dirty && (
-            <span className="rounded-full bg-brand-amber/10 px-2.5 py-0.5 text-[11px] uppercase tracking-[0.2em] text-brand-amber">
+            <span className="rounded-full bg-admin-warning-bg px-2.5 py-0.5 text-[11px] uppercase tracking-[0.2em] text-admin-warning">
               Unsaved
             </span>
           )}
         </div>
         <ChevronIcon open={isOpen} />
       </button>
-      {isOpen && <div className="border-t border-cream/10 p-6 sm:p-8">{children}</div>}
+      {isOpen && <div className="border-t border-admin-sand/20 p-6 sm:p-8">{children}</div>}
     </div>
   );
 }
@@ -254,7 +254,7 @@ function PhaseTabs({
   onChange: (id: string) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-1 border-b border-cream/10">
+    <div className="flex flex-wrap gap-1 border-b border-admin-sand/20">
       {tabs.map((tab) => {
         const isActive = tab.id === activeTab;
         const isLive = tab.id === currentPhase;
@@ -263,15 +263,15 @@ function PhaseTabs({
             key={tab.id}
             type="button"
             onClick={() => onChange(tab.id)}
-            className={`relative flex items-center gap-2 px-4 py-3 font-dm-sans text-sm font-semibold uppercase tracking-[0.1em] outline-none transition focus-visible:ring-2 focus-visible:ring-accent-gold/60 ${
+            className={`relative flex items-center gap-2 px-4 py-3 font-dm-sans text-sm font-semibold uppercase tracking-[0.1em] outline-none transition focus-visible:ring-2 focus-visible:ring-admin-green/60 ${
               isActive
-                ? 'border-b-2 border-accent-gold text-accent-gold'
-                : 'border-b-2 border-transparent text-cream/50 hover:text-cream/80'
+                ? 'border-b-2 border-admin-green text-admin-green'
+                : 'border-b-2 border-transparent text-admin-ink/50 hover:text-admin-ink/80'
             }`}
           >
             {tab.label}
             {isLive && (
-              <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] text-emerald-300">
+              <span className="rounded-full bg-admin-green/15 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] text-admin-green">
                 Live
               </span>
             )}
@@ -343,11 +343,11 @@ function TemplateCard({
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="max-w-md font-dm-sans text-sm text-cream/60">{info.description}</p>
-          <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.15em] text-cream/30">key: {template.key}</p>
+          <p className="max-w-md font-dm-sans text-sm text-admin-ink/60">{info.description}</p>
+          <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.15em] text-admin-ink/30">key: {template.key}</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-cream/50">
+          <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50">
             {draft.is_active ? 'Active' : 'Inactive'}
           </span>
           <Toggle
@@ -362,7 +362,7 @@ function TemplateCard({
         <div className="space-y-4">
           <div>
             <label
-              className="mb-2 block font-dm-sans text-xs uppercase tracking-[0.2em] text-cream/50"
+              className="mb-2 block font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50"
               htmlFor={`subject-${template.id}`}
             >
               Subject
@@ -371,12 +371,12 @@ function TemplateCard({
               id={`subject-${template.id}`}
               value={draft.subject}
               onChange={(e) => onChange({ subject: e.target.value })}
-              className="w-full rounded-2xl border border-cream/15 bg-black/20 px-4 py-3 font-dm-sans text-sm text-cream outline-none transition focus-visible:border-accent-gold focus-visible:ring-2 focus-visible:ring-accent-gold/40"
+              className="w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 font-dm-sans text-sm text-admin-ink outline-none transition focus-visible:border-admin-green focus-visible:ring-2 focus-visible:ring-admin-green/40"
             />
           </div>
           <div>
             <label
-              className="mb-2 block font-dm-sans text-xs uppercase tracking-[0.2em] text-cream/50"
+              className="mb-2 block font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50"
               htmlFor={`body-${template.id}`}
             >
               Body
@@ -386,13 +386,13 @@ function TemplateCard({
               value={draft.body}
               onChange={(e) => onChange({ body: e.target.value })}
               rows={10}
-              className="w-full resize-none rounded-2xl border border-cream/15 bg-black/20 px-4 py-3 font-dm-sans text-sm text-cream outline-none transition focus-visible:border-accent-gold focus-visible:ring-2 focus-visible:ring-accent-gold/40"
+              className="w-full resize-none rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 font-dm-sans text-sm text-admin-ink outline-none transition focus-visible:border-admin-green focus-visible:ring-2 focus-visible:ring-admin-green/40"
             />
           </div>
           <div>
-            <p className="mb-2 font-dm-sans text-xs uppercase tracking-[0.2em] text-cream/50">Merge tags</p>
+            <p className="mb-2 font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50">Merge tags</p>
             <MergeTagChips tags={MERGE_TAGS} />
-            <p className="mt-2 font-dm-sans text-xs text-cream/40">
+            <p className="mt-2 font-dm-sans text-xs text-admin-ink/40">
               The invite button is added automatically below the body — you don&apos;t need to add a link yourself.
             </p>
           </div>
@@ -402,26 +402,26 @@ function TemplateCard({
               type="button"
               onClick={onSave}
               disabled={!dirty || saving}
-              className="rounded-2xl bg-accent-gold px-6 py-2.5 font-dm-sans text-sm font-semibold text-dark-green outline-none transition hover:bg-accent-gold/90 focus-visible:ring-2 focus-visible:ring-accent-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-green disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-2xl bg-admin-green px-6 py-2.5 font-dm-sans text-sm font-semibold text-admin-bone outline-none transition hover:bg-admin-green/90 focus-visible:ring-2 focus-visible:ring-admin-green/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-40"
             >
               {saving ? 'Saving…' : 'Save changes'}
             </button>
             {dirty && !saving && (
-              <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-brand-amber">Unsaved changes</span>
+              <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-warning">Unsaved changes</span>
             )}
-            {savedFlash && <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-emerald-300">Saved</span>}
-            {error && <span className="font-dm-sans text-xs text-rose-300">{error}</span>}
+            {savedFlash && <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-green">Saved</span>}
+            {error && <span className="font-dm-sans text-xs text-admin-persimmon">{error}</span>}
           </div>
         </div>
 
         <div>
-          <p className="mb-2 flex items-center gap-2 font-dm-sans text-xs uppercase tracking-[0.2em] text-cream/50">
+          <p className="mb-2 flex items-center gap-2 font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50">
             Preview · sample guest &quot;Jane&quot;
-            {loading && <span className="text-accent-gold/70">· updating…</span>}
+            {loading && <span className="text-admin-green/70">· updating…</span>}
           </p>
-          <div className="overflow-hidden rounded-2xl border border-cream/10 bg-black/30">
+          <div className="overflow-hidden rounded-2xl border border-admin-sand/20 bg-admin-bone/40">
             {previewError ? (
-              <div className="p-6 font-dm-sans text-sm text-rose-300">{previewError}</div>
+              <div className="p-6 font-dm-sans text-sm text-admin-persimmon">{previewError}</div>
             ) : (
               <iframe
                 title={`${info.title} preview`}
@@ -434,8 +434,8 @@ function TemplateCard({
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-cream/10 bg-black/10 p-4 sm:p-5">
-        <p className="mb-3 font-dm-sans text-xs uppercase tracking-[0.2em] text-cream/50">Send a test</p>
+      <div className="mt-6 rounded-2xl border border-admin-sand/20 bg-admin-bone/40 p-4 sm:p-5">
+        <p className="mb-3 font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50">Send a test</p>
         <div className="flex flex-wrap items-center gap-3">
           <input
             type="email"
@@ -447,41 +447,41 @@ function TemplateCard({
             }}
             placeholder="you@example.com"
             aria-label="Test email address"
-            className="min-w-[220px] flex-1 rounded-2xl border border-cream/15 bg-black/20 px-4 py-2.5 font-dm-sans text-sm text-cream outline-none transition focus-visible:border-accent-gold focus-visible:ring-2 focus-visible:ring-accent-gold/40"
+            className="min-w-[220px] flex-1 rounded-2xl border border-admin-sand/40 bg-white px-4 py-2.5 font-dm-sans text-sm text-admin-ink outline-none transition focus-visible:border-admin-green focus-visible:ring-2 focus-visible:ring-admin-green/40"
           />
           <button
             type="button"
             onClick={handleSendTestClick}
             disabled={testStep === 'sending'}
-            className="rounded-2xl border border-accent-gold/40 bg-accent-gold/10 px-4 py-2.5 font-dm-sans text-sm font-semibold text-accent-gold outline-none transition hover:bg-accent-gold/20 focus-visible:ring-2 focus-visible:ring-accent-gold/60 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-2xl border border-admin-green/40 bg-admin-green/10 px-4 py-2.5 font-dm-sans text-sm font-semibold text-admin-green outline-none transition hover:bg-admin-green/20 focus-visible:ring-2 focus-visible:ring-admin-green/60 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Send test
           </button>
         </div>
 
         {dirty && (
-          <p className="mt-2 font-dm-sans text-xs text-cream/40">
+          <p className="mt-2 font-dm-sans text-xs text-admin-ink/40">
             Sends the last saved version — save your edits first to test them.
           </p>
         )}
 
         {testStep === 'confirm' && (
-          <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-brand-amber/30 bg-brand-amber/5 px-4 py-3">
-            <span className="font-dm-sans text-sm text-cream">
+          <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-admin-warning/30 bg-admin-warning-bg px-4 py-3">
+            <span className="font-dm-sans text-sm text-admin-ink">
               Send the saved &quot;{info.title}&quot; email to {testEmail.trim()}?
             </span>
             <div className="ml-auto flex gap-2">
               <button
                 type="button"
                 onClick={() => setTestStep('idle')}
-                className="rounded-xl border border-cream/15 px-3 py-1.5 font-dm-sans text-xs text-cream/80 transition hover:border-cream/30"
+                className="rounded-xl border border-admin-ink/15 px-3 py-1.5 font-dm-sans text-xs text-admin-ink/80 transition hover:border-admin-ink/30"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmTest}
-                className="rounded-xl bg-accent-gold px-3 py-1.5 font-dm-sans text-xs font-semibold text-dark-green transition hover:bg-accent-gold/90"
+                className="rounded-xl bg-admin-green px-3 py-1.5 font-dm-sans text-xs font-semibold text-admin-bone transition hover:bg-admin-green/90"
               >
                 Confirm send
               </button>
@@ -489,9 +489,9 @@ function TemplateCard({
           </div>
         )}
 
-        {testStep === 'sending' && <p className="mt-2 font-dm-sans text-xs text-accent-gold/80">Sending…</p>}
-        {testStep === 'done' && <p className="mt-2 font-dm-sans text-xs text-emerald-300">{testMessage}</p>}
-        {testStep === 'error' && <p className="mt-2 font-dm-sans text-xs text-rose-300">{testMessage}</p>}
+        {testStep === 'sending' && <p className="mt-2 font-dm-sans text-xs text-admin-green/80">Sending…</p>}
+        {testStep === 'done' && <p className="mt-2 font-dm-sans text-xs text-admin-green">{testMessage}</p>}
+        {testStep === 'error' && <p className="mt-2 font-dm-sans text-xs text-admin-persimmon">{testMessage}</p>}
       </div>
     </div>
   );
@@ -560,11 +560,11 @@ function SmsTemplateCard({
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="max-w-md font-dm-sans text-sm text-cream/60">{info.description}</p>
-          <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.15em] text-cream/30">key: {template.key}</p>
+          <p className="max-w-md font-dm-sans text-sm text-admin-ink/60">{info.description}</p>
+          <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.15em] text-admin-ink/30">key: {template.key}</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-cream/50">
+          <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50">
             {draft.is_active ? 'Active' : 'Inactive'}
           </span>
           <Toggle
@@ -579,7 +579,7 @@ function SmsTemplateCard({
         <div className="space-y-4">
           <div>
             <label
-              className="mb-2 block font-dm-sans text-xs uppercase tracking-[0.2em] text-cream/50"
+              className="mb-2 block font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50"
               htmlFor={`sms-body-${template.id}`}
             >
               Message
@@ -589,25 +589,25 @@ function SmsTemplateCard({
               value={draft.body}
               onChange={(e) => onChange({ body: e.target.value })}
               rows={5}
-              className="w-full resize-none rounded-2xl border border-cream/15 bg-black/20 px-4 py-3 font-dm-sans text-sm text-cream outline-none transition focus-visible:border-accent-gold focus-visible:ring-2 focus-visible:ring-accent-gold/40"
+              className="w-full resize-none rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 font-dm-sans text-sm text-admin-ink outline-none transition focus-visible:border-admin-green focus-visible:ring-2 focus-visible:ring-admin-green/40"
             />
             <div className="mt-2 flex flex-wrap items-center gap-2 font-dm-sans text-xs">
-              <span className={smsInfo.segments > 1 ? 'font-semibold text-rose-300' : 'text-cream/50'}>
+              <span className={smsInfo.segments > 1 ? 'font-semibold text-admin-warning' : 'text-admin-ink/50'}>
                 {smsInfo.chars} characters (incl. name + link) · {smsInfo.segments || 1} segment
                 {smsInfo.segments === 1 ? '' : 's'}
               </span>
               {smsInfo.segments > 1 && (
-                <span className="rounded-full bg-rose-400/10 px-2.5 py-0.5 text-[11px] uppercase tracking-[0.15em] text-rose-300">
+                <span className="rounded-full bg-admin-warning-bg px-2.5 py-0.5 text-[11px] uppercase tracking-[0.15em] text-admin-warning">
                   2nd segment — doubles cost
                 </span>
               )}
-              {!smsInfo.isGsm && <span className="text-cream/40">Contains non-GSM characters — lower per-segment limit.</span>}
+              {!smsInfo.isGsm && <span className="text-admin-ink/40">Contains non-GSM characters — lower per-segment limit.</span>}
             </div>
           </div>
           <div>
-            <p className="mb-2 font-dm-sans text-xs uppercase tracking-[0.2em] text-cream/50">Merge tags</p>
+            <p className="mb-2 font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50">Merge tags</p>
             <MergeTagChips tags={SMS_MERGE_TAGS} />
-            <p className="mt-2 font-dm-sans text-xs text-cream/40">
+            <p className="mt-2 font-dm-sans text-xs text-admin-ink/40">
               The short invite link is added automatically at the end — you don&apos;t need to type it. Plain text
               only, no formatting.
             </p>
@@ -618,35 +618,35 @@ function SmsTemplateCard({
               type="button"
               onClick={onSave}
               disabled={!dirty || saving}
-              className="rounded-2xl bg-accent-gold px-6 py-2.5 font-dm-sans text-sm font-semibold text-dark-green outline-none transition hover:bg-accent-gold/90 focus-visible:ring-2 focus-visible:ring-accent-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-green disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-2xl bg-admin-green px-6 py-2.5 font-dm-sans text-sm font-semibold text-admin-bone outline-none transition hover:bg-admin-green/90 focus-visible:ring-2 focus-visible:ring-admin-green/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-40"
             >
               {saving ? 'Saving…' : 'Save changes'}
             </button>
             {dirty && !saving && (
-              <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-brand-amber">Unsaved changes</span>
+              <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-warning">Unsaved changes</span>
             )}
-            {savedFlash && <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-emerald-300">Saved</span>}
-            {error && <span className="font-dm-sans text-xs text-rose-300">{error}</span>}
+            {savedFlash && <span className="font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-green">Saved</span>}
+            {error && <span className="font-dm-sans text-xs text-admin-persimmon">{error}</span>}
           </div>
         </div>
 
         <div>
-          <p className="mb-2 font-dm-sans text-xs uppercase tracking-[0.2em] text-cream/50">
+          <p className="mb-2 font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50">
             Preview · sample guest &quot;Jane&quot;
           </p>
-          <div className="rounded-2xl border border-cream/10 bg-black/30 p-5">
-            <div className="mx-auto max-w-xs rounded-2xl rounded-bl-sm bg-cream/95 px-4 py-3 font-dm-sans text-sm leading-relaxed text-dark-green shadow">
+          <div className="rounded-2xl border border-admin-sand/20 bg-admin-bone/40 p-5">
+            <div className="mx-auto max-w-xs rounded-2xl rounded-bl-sm bg-white px-4 py-3 font-dm-sans text-sm leading-relaxed text-admin-ink shadow">
               {previewText}
             </div>
-            <p className="mt-3 text-center font-mono text-[11px] uppercase tracking-[0.15em] text-cream/30">
+            <p className="mt-3 text-center font-mono text-[11px] uppercase tracking-[0.15em] text-admin-ink/30">
               from Matt &amp; Raff
             </p>
           </div>
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-cream/10 bg-black/10 p-4 sm:p-5">
-        <p className="mb-3 font-dm-sans text-xs uppercase tracking-[0.2em] text-cream/50">Send a test</p>
+      <div className="mt-6 rounded-2xl border border-admin-sand/20 bg-admin-bone/40 p-4 sm:p-5">
+        <p className="mb-3 font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50">Send a test</p>
         <div className="flex flex-wrap items-center gap-3">
           <input
             type="tel"
@@ -658,41 +658,41 @@ function SmsTemplateCard({
             }}
             placeholder="04xx xxx xxx"
             aria-label="Test mobile number"
-            className="min-w-[220px] flex-1 rounded-2xl border border-cream/15 bg-black/20 px-4 py-2.5 font-dm-sans text-sm text-cream outline-none transition focus-visible:border-accent-gold focus-visible:ring-2 focus-visible:ring-accent-gold/40"
+            className="min-w-[220px] flex-1 rounded-2xl border border-admin-sand/40 bg-white px-4 py-2.5 font-dm-sans text-sm text-admin-ink outline-none transition focus-visible:border-admin-green focus-visible:ring-2 focus-visible:ring-admin-green/40"
           />
           <button
             type="button"
             onClick={handleSendTestClick}
             disabled={testStep === 'sending'}
-            className="rounded-2xl border border-accent-gold/40 bg-accent-gold/10 px-4 py-2.5 font-dm-sans text-sm font-semibold text-accent-gold outline-none transition hover:bg-accent-gold/20 focus-visible:ring-2 focus-visible:ring-accent-gold/60 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-2xl border border-admin-green/40 bg-admin-green/10 px-4 py-2.5 font-dm-sans text-sm font-semibold text-admin-green outline-none transition hover:bg-admin-green/20 focus-visible:ring-2 focus-visible:ring-admin-green/60 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Send test SMS
           </button>
         </div>
 
         {dirty && (
-          <p className="mt-2 font-dm-sans text-xs text-cream/40">
+          <p className="mt-2 font-dm-sans text-xs text-admin-ink/40">
             Sends the last saved version — save your edits first to test them.
           </p>
         )}
 
         {testStep === 'confirm' && (
-          <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-brand-amber/30 bg-brand-amber/5 px-4 py-3">
-            <span className="font-dm-sans text-sm text-cream">
+          <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-admin-warning/30 bg-admin-warning-bg px-4 py-3">
+            <span className="font-dm-sans text-sm text-admin-ink">
               Send the saved &quot;{info.title}&quot; SMS to {testMobile.trim()}?
             </span>
             <div className="ml-auto flex gap-2">
               <button
                 type="button"
                 onClick={() => setTestStep('idle')}
-                className="rounded-xl border border-cream/15 px-3 py-1.5 font-dm-sans text-xs text-cream/80 transition hover:border-cream/30"
+                className="rounded-xl border border-admin-ink/15 px-3 py-1.5 font-dm-sans text-xs text-admin-ink/80 transition hover:border-admin-ink/30"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmTest}
-                className="rounded-xl bg-accent-gold px-3 py-1.5 font-dm-sans text-xs font-semibold text-dark-green transition hover:bg-accent-gold/90"
+                className="rounded-xl bg-admin-green px-3 py-1.5 font-dm-sans text-xs font-semibold text-admin-bone transition hover:bg-admin-green/90"
               >
                 Confirm send
               </button>
@@ -700,9 +700,9 @@ function SmsTemplateCard({
           </div>
         )}
 
-        {testStep === 'sending' && <p className="mt-2 font-dm-sans text-xs text-accent-gold/80">Sending…</p>}
-        {testStep === 'done' && <p className="mt-2 font-dm-sans text-xs text-emerald-300">{testMessage}</p>}
-        {testStep === 'error' && <p className="mt-2 font-dm-sans text-xs text-rose-300">{testMessage}</p>}
+        {testStep === 'sending' && <p className="mt-2 font-dm-sans text-xs text-admin-green/80">Sending…</p>}
+        {testStep === 'done' && <p className="mt-2 font-dm-sans text-xs text-admin-green">{testMessage}</p>}
+        {testStep === 'error' && <p className="mt-2 font-dm-sans text-xs text-admin-persimmon">{testMessage}</p>}
       </div>
     </div>
   );
@@ -938,14 +938,14 @@ export default function TemplatesClient({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-cream/10 bg-black/20 px-5 py-3 font-dm-sans text-xs text-cream/50">
+      <div className="rounded-2xl border border-admin-sand/20 bg-white px-5 py-3 font-dm-sans text-xs text-admin-ink/50">
         Merge tags resolve against your real settings — wedding date{' '}
-        <span className="text-cream/80">{previewDate}</span> · venue <span className="text-cream/80">{venueName}</span>.
+        <span className="text-admin-ink/80">{previewDate}</span> · venue <span className="text-admin-ink/80">{venueName}</span>.
         The preview on each template shows a sample guest named &quot;Jane&quot;.
       </div>
 
       {anyDirty && (
-        <div className="sticky top-4 z-10 rounded-2xl border border-brand-amber/40 bg-brand-amber/10 px-5 py-3 font-dm-sans text-sm text-cream backdrop-blur">
+        <div className="sticky top-4 z-10 rounded-2xl border border-admin-warning/40 bg-admin-warning-bg px-5 py-3 font-dm-sans text-sm text-admin-ink backdrop-blur">
           You have unsaved changes. Save each template before leaving this page.
         </div>
       )}
@@ -961,10 +961,10 @@ export default function TemplatesClient({
         {activePhaseTab.groups.length > 1 ? (
           <>
             {renderGroup(activePhaseTab.groups[0])}
-            <div className="ml-2 space-y-6 border-l border-accent-gold/20 pl-6 sm:ml-4">
+            <div className="ml-2 space-y-6 border-l border-admin-green/20 pl-6 sm:ml-4">
               {activePhaseTab.groups.slice(1).map((group) => (
                 <div key={group.key} className="space-y-3">
-                  <h3 className="font-cinzel text-xs uppercase tracking-[0.35em] text-accent-gold/70">
+                  <h3 className="font-cinzel text-xs uppercase tracking-[0.35em] text-admin-green">
                     {group.label}
                   </h3>
                   {renderGroup(group)}

@@ -62,15 +62,15 @@ export default function LogClient({
   const hasFilters = filters.channel || filters.status || filters.from || filters.to;
 
   return (
-    <div className="space-y-6 rounded-[2rem] border border-white/10 bg-slate-950/80 p-6 shadow-xl shadow-slate-950/20">
+    <div className="space-y-6 rounded-[2rem] border border-admin-sand/20 bg-white p-6">
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-4">
         <div>
-          <p className="mb-2 text-xs uppercase tracking-[0.25em] text-slate-400">Channel</p>
+          <p className="mb-2 text-xs uppercase tracking-[0.25em] text-admin-ink/50">Channel</p>
           <select
             value={filters.channel}
             onChange={(e) => updateFilter('channel', e.target.value)}
-            className="rounded-2xl border border-white/10 bg-slate-900/95 px-4 py-2 text-sm text-white outline-none"
+            className="rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink outline-none"
           >
             <option value="">All channels</option>
             <option value="sms">SMS</option>
@@ -78,11 +78,11 @@ export default function LogClient({
           </select>
         </div>
         <div>
-          <p className="mb-2 text-xs uppercase tracking-[0.25em] text-slate-400">Status</p>
+          <p className="mb-2 text-xs uppercase tracking-[0.25em] text-admin-ink/50">Status</p>
           <select
             value={filters.status}
             onChange={(e) => updateFilter('status', e.target.value)}
-            className="rounded-2xl border border-white/10 bg-slate-900/95 px-4 py-2 text-sm text-white outline-none"
+            className="rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink outline-none"
           >
             <option value="">All statuses</option>
             <option value="sent">Sent</option>
@@ -90,28 +90,28 @@ export default function LogClient({
           </select>
         </div>
         <div>
-          <p className="mb-2 text-xs uppercase tracking-[0.25em] text-slate-400">From</p>
+          <p className="mb-2 text-xs uppercase tracking-[0.25em] text-admin-ink/50">From</p>
           <input
             type="date"
             value={filters.from}
             onChange={(e) => updateFilter('from', e.target.value)}
-            className="rounded-2xl border border-white/10 bg-slate-900/95 px-4 py-2 text-sm text-white outline-none"
+            className="rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink outline-none"
           />
         </div>
         <div>
-          <p className="mb-2 text-xs uppercase tracking-[0.25em] text-slate-400">To</p>
+          <p className="mb-2 text-xs uppercase tracking-[0.25em] text-admin-ink/50">To</p>
           <input
             type="date"
             value={filters.to}
             onChange={(e) => updateFilter('to', e.target.value)}
-            className="rounded-2xl border border-white/10 bg-slate-900/95 px-4 py-2 text-sm text-white outline-none"
+            className="rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink outline-none"
           />
         </div>
         {hasFilters ? (
           <button
             type="button"
             onClick={clearFilters}
-            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/10"
+            className="rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/70 transition hover:border-admin-green/40 hover:text-admin-green"
           >
             Clear filters
           </button>
@@ -122,7 +122,7 @@ export default function LogClient({
       <div className="overflow-x-auto">
         <table className="min-w-full border-separate border-spacing-0 text-sm">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-[0.35em] text-slate-400">
+            <tr className="text-left text-xs uppercase tracking-[0.35em] text-admin-ink/50">
               <th className="px-4 py-3">Household</th>
               <th className="px-4 py-3">Channel</th>
               <th className="px-4 py-3">Status</th>
@@ -134,7 +134,7 @@ export default function LogClient({
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-sm text-admin-ink/60">
                   No communications found.
                 </td>
               </tr>
@@ -144,14 +144,14 @@ export default function LogClient({
                 const resolvedPreview = substitutePreviewTags(row.message, row.householdName, weddingDate);
                 return (
                   <Fragment key={row.id}>
-                    <tr className="border-t border-white/10 hover:bg-white/5">
-                      <td className="px-4 py-3 font-medium text-white">{row.householdName}</td>
+                    <tr className="border-t border-admin-sand/10 hover:bg-admin-bone/40">
+                      <td className="px-4 py-3 font-medium text-admin-ink">{row.householdName}</td>
                       <td className="px-4 py-3">
                         <span
                           className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] ${
                             row.channel === 'sms'
-                              ? 'bg-violet-400/10 text-violet-300'
-                              : 'bg-sky-400/10 text-sky-300'
+                              ? 'bg-admin-violet/25 text-admin-ink/80'
+                              : 'bg-admin-sand/25 text-admin-ink/80'
                           }`}
                         >
                           {row.channel.toUpperCase()}
@@ -161,19 +161,19 @@ export default function LogClient({
                         <span
                           className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] ${
                             row.status === 'sent'
-                              ? 'bg-emerald-400/10 text-emerald-300'
+                              ? 'bg-admin-green/10 text-admin-green'
                               : row.status === 'failed'
-                              ? 'bg-rose-500/10 text-rose-300'
-                              : 'bg-slate-800 text-slate-400'
+                              ? 'bg-admin-persimmon/10 text-admin-persimmon'
+                              : 'bg-admin-ink/5 text-admin-ink/40'
                           }`}
                         >
                           {row.status}
                         </span>
                       </td>
                       <td className="max-w-xs px-4 py-3">
-                        <p className="truncate text-slate-300">{resolvedPreview}</p>
+                        <p className="truncate text-admin-ink/70">{resolvedPreview}</p>
                       </td>
-                      <td className="px-4 py-3 text-xs text-slate-400">
+                      <td className="px-4 py-3 text-xs text-admin-ink/60">
                         {new Date(row.sentAt).toLocaleDateString('en-AU', {
                           day: 'numeric',
                           month: 'short',
@@ -186,27 +186,27 @@ export default function LogClient({
                         <button
                           type="button"
                           onClick={() => setExpandedId(isExpanded ? null : row.id)}
-                          className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-100 transition hover:border-emerald-300/40 hover:bg-emerald-300/10"
+                          className="rounded-2xl border border-admin-sand/40 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-admin-ink/80 transition hover:border-admin-green/40 hover:bg-admin-green/10"
                         >
                           {isExpanded ? 'Close' : 'View'}
                         </button>
                       </td>
                     </tr>
                     {isExpanded && (
-                      <tr className="border-t border-white/5 bg-slate-900/40">
+                      <tr className="border-t border-admin-sand/10 bg-admin-bone/40">
                         <td colSpan={6} className="px-6 py-4">
-                          <p className="mb-1 text-xs uppercase tracking-[0.25em] text-slate-500">
+                          <p className="mb-1 text-xs uppercase tracking-[0.25em] text-admin-ink/50">
                             Sent to
                           </p>
-                          <p className="mb-3 text-sm text-slate-200">
+                          <p className="mb-3 text-sm text-admin-ink/80">
                             {(row.channel === 'sms' ? row.recipientNumber : row.recipientEmail) ?? (
-                              <span className="text-slate-500">Unknown</span>
+                              <span className="text-admin-ink/50">Unknown</span>
                             )}
                           </p>
-                          <p className="mb-1 text-xs uppercase tracking-[0.25em] text-slate-500">Full message</p>
-                          <p className="whitespace-pre-wrap text-sm text-slate-200">{resolvedPreview}</p>
+                          <p className="mb-1 text-xs uppercase tracking-[0.25em] text-admin-ink/50">Full message</p>
+                          <p className="whitespace-pre-wrap text-sm text-admin-ink/80">{resolvedPreview}</p>
                           {/\{\{[^}]+\}\}/.test(resolvedPreview) && (
-                            <p className="mt-2 text-xs text-amber-400">⚠ Some merge tags could not be resolved in this preview.</p>
+                            <p className="mt-2 text-xs text-admin-warning">⚠ Some merge tags could not be resolved in this preview.</p>
                           )}
                         </td>
                       </tr>
@@ -221,28 +221,28 @@ export default function LogClient({
 
       {/* Pagination */}
       {totalPages > 1 ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-sm text-slate-300">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-admin-sand/20 pt-4 text-sm text-admin-ink/70">
           <p>
-            Showing <span className="font-semibold text-white">{rows.length}</span> of{' '}
-            <span className="font-semibold text-white">{total}</span> records
+            Showing <span className="font-semibold text-admin-ink">{rows.length}</span> of{' '}
+            <span className="font-semibold text-admin-ink">{total}</span> records
           </p>
           <div className="flex items-center gap-2">
             <button
               type="button"
               disabled={page === 0}
               onClick={() => router.push(buildUrl(filters, page - 1))}
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green disabled:cursor-not-allowed disabled:opacity-50"
             >
               Previous
             </button>
-            <span className="text-slate-400">
+            <span className="text-admin-ink/60">
               Page {page + 1} of {totalPages}
             </span>
             <button
               type="button"
               disabled={page >= totalPages - 1}
               onClick={() => router.push(buildUrl(filters, page + 1))}
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green disabled:cursor-not-allowed disabled:opacity-50"
             >
               Next
             </button>

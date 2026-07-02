@@ -13,7 +13,7 @@ const PHASE_OPTIONS: { value: string; label: string }[] = [
 ];
 
 const INPUT_CLASS =
-  'w-full rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white placeholder-slate-600 outline-none transition focus:border-emerald-400';
+  'w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green';
 
 const TEXTAREA_CLASS = `${INPUT_CLASS} resize-none`;
 
@@ -38,9 +38,9 @@ const PRACTICALITIES_LINK_FIELD_BY_ID: Record<string, 'accommodation_url' | 'pho
 
 function Section({ label, title, children }: { label: string; title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
-      <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">{label}</p>
-      <h2 className="mt-1 mb-7 text-xl font-semibold text-white">{title}</h2>
+    <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
+      <p className="text-sm uppercase tracking-[0.3em] text-admin-green">{label}</p>
+      <h2 className="mt-1 mb-7 text-xl font-semibold text-admin-ink">{title}</h2>
       <div className="space-y-6">{children}</div>
     </div>
   );
@@ -49,8 +49,8 @@ function Section({ label, title, children }: { label: string; title: string; chi
 function Field({ label, helper, children }: { label: string; helper?: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="mb-2 text-xs uppercase tracking-[0.25em] text-slate-400">{label}</p>
-      {helper && <p className="mb-2 text-xs text-slate-500">{helper}</p>}
+      <p className="mb-2 text-xs uppercase tracking-[0.25em] text-admin-ink/60">{label}</p>
+      {helper && <p className="mb-2 text-xs text-admin-ink/50">{helper}</p>}
       {children}
     </div>
   );
@@ -60,10 +60,10 @@ function SaveFeedback({ error, success }: { error: string | null; success: boole
   return (
     <>
       {error && (
-        <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div>
+        <div className="rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">{error}</div>
       )}
       {success && (
-        <div className="rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+        <div className="rounded-2xl bg-admin-green/10 px-4 py-3 text-sm text-admin-green">
           Saved successfully.
         </div>
       )}
@@ -346,7 +346,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
   return (
     <div className="space-y-8">
       {/* Tab nav */}
-      <div className="flex flex-wrap gap-2 rounded-3xl border border-white/10 bg-white/5 p-2 backdrop-blur-xl">
+      <div className="flex flex-wrap gap-2 rounded-3xl border border-admin-sand/20 bg-white p-2">
         {TABS.map(tab => (
           <button
             key={tab.key}
@@ -354,8 +354,8 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
             onClick={() => setActiveTab(tab.key)}
             className={`rounded-2xl px-5 py-2.5 text-sm font-medium transition ${
               activeTab === tab.key
-                ? 'bg-emerald-400/20 text-emerald-200'
-                : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                ? 'bg-admin-green/15 text-admin-green'
+                : 'text-admin-ink/60 hover:bg-admin-bone/60 hover:text-admin-ink'
             }`}
           >
             {tab.label}
@@ -389,7 +389,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 value={settings.wedding_date}
                 onChange={e => update('wedding_date', e.target.value)}
                 className={INPUT_CLASS}
-                style={{ colorScheme: 'dark' }}
+                style={{ colorScheme: 'light' }}
               />
             </Field>
             <Field label="Wedding time" helper="The ceremony start time shown to guests.">
@@ -398,7 +398,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 value={settings.wedding_time}
                 onChange={e => update('wedding_time', e.target.value)}
                 className={INPUT_CLASS}
-                style={{ colorScheme: 'dark' }}
+                style={{ colorScheme: 'light' }}
               />
             </Field>
           </div>
@@ -446,7 +446,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               type="button"
               onClick={handleSaveWedding}
               disabled={savingTab === 'wedding'}
-              className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+              className="rounded-3xl bg-admin-green px-8 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
             >
               {savingTab === 'wedding' ? 'Saving…' : 'Save'}
             </button>
@@ -508,7 +508,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               type="button"
               onClick={handleSaveSaveTheDate}
               disabled={savingTab === 'save_the_date'}
-              className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+              className="rounded-3xl bg-admin-green px-8 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
             >
               {savingTab === 'save_the_date' ? 'Saving…' : 'Save'}
             </button>
@@ -569,8 +569,8 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
             </Field>
 
             <div>
-              <p className="mb-1 text-xs uppercase tracking-[0.25em] text-slate-400">Practicalities cards</p>
-              <p className="mb-4 text-xs text-slate-500">
+              <p className="mb-1 text-xs uppercase tracking-[0.25em] text-admin-ink/60">Practicalities cards</p>
+              <p className="mb-4 text-xs text-admin-ink/50">
                 Controls the three cards in the &ldquo;The Practicalities&rdquo; section of the invitation.
               </p>
               <div className="space-y-3">
@@ -579,11 +579,11 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                   return (
                     <details
                       key={card.id}
-                      className="group rounded-2xl border border-white/10 bg-slate-950/90 px-5 py-4"
+                      className="group rounded-2xl border border-admin-sand/30 bg-admin-bone/50 px-5 py-4"
                     >
-                      <summary className="flex cursor-pointer items-center justify-between text-sm text-white">
+                      <summary className="flex cursor-pointer items-center justify-between text-sm text-admin-ink">
                         <span>{card.title || card.id}</span>
-                        <span className={`text-xs ${card.enabled ? 'text-emerald-300' : 'text-slate-500'}`}>
+                        <span className={`text-xs ${card.enabled ? 'text-admin-green' : 'text-admin-ink/50'}`}>
                           {card.enabled ? 'Enabled' : 'Hidden'}
                         </span>
                       </summary>
@@ -631,7 +631,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                           </Field>
                         )}
                         <div>
-                          <p className="mb-2 text-xs text-slate-500">The photo shown on this card, cropped to 16:9.</p>
+                          <p className="mb-2 text-xs text-admin-ink/50">The photo shown on this card, cropped to 16:9.</p>
                           <PhotoUpload
                             value={card.image_url || null}
                             onChange={url => updatePracticalityCard(card.id, 'image_url', url ?? '')}
@@ -640,16 +640,16 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                             uploadPathPrefix={`settings/practicalities-${card.id}`}
                           />
                         </div>
-                        <label className="flex items-center gap-2 text-sm text-slate-300">
+                        <label className="flex items-center gap-2 text-sm text-admin-ink/70">
                           <input
                             type="checkbox"
                             checked={card.enabled}
                             onChange={e => updatePracticalityCard(card.id, 'enabled', e.target.checked)}
-                            className="accent-emerald-400"
+                            className="accent-admin-green"
                           />
                           <span>
                             Enabled
-                            <span className="ml-1 text-xs text-slate-500">— hides the card from guests without deleting its content</span>
+                            <span className="ml-1 text-xs text-admin-ink/50">— hides the card from guests without deleting its content</span>
                           </span>
                         </label>
                       </div>
@@ -665,7 +665,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 type="button"
                 onClick={handleSaveInvitation}
                 disabled={savingTab === 'invitation'}
-                className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+                className="rounded-3xl bg-admin-green px-8 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
               >
                 {savingTab === 'invitation' ? 'Saving…' : 'Save'}
               </button>
@@ -717,7 +717,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 type="button"
                 onClick={handleSaveInvitation}
                 disabled={savingTab === 'invitation'}
-                className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+                className="rounded-3xl bg-admin-green px-8 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
               >
                 {savingTab === 'invitation' ? 'Saving…' : 'Save'}
               </button>
@@ -726,33 +726,33 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
 
           {/* On the Day schedule */}
           <Section label="Invitation Page" title="On the Day Schedule">
-            <p className="-mt-2 text-xs text-slate-500">
+            <p className="-mt-2 text-xs text-admin-ink/50">
               These times appear in the &ldquo;On the Day&rdquo; section of the invitation. Leave empty to hide that part of the section.
             </p>
             <div className="space-y-2">
               {schedule.map((item, i) => (
-                <div key={i} className="space-y-2 rounded-2xl border border-white/10 bg-slate-950/50 p-3">
+                <div key={i} className="space-y-2 rounded-2xl border border-admin-sand/30 bg-admin-bone/50 p-3">
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
                       value={item.time}
                       onChange={e => updateScheduleItem(i, 'time', e.target.value)}
                       placeholder="3:00 PM"
-                      className="w-28 rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                      className="w-28 rounded-2xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green"
                     />
                     <input
                       type="text"
                       value={item.label}
                       onChange={e => updateScheduleItem(i, 'label', e.target.value)}
                       placeholder="Ceremony"
-                      className="flex-1 rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                      className="flex-1 rounded-2xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green"
                     />
                     <div className="flex flex-col">
                       <button
                         type="button"
                         onClick={() => moveScheduleItem(i, -1)}
                         disabled={i === 0}
-                        className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
+                        className="px-1 text-xs leading-none text-admin-ink/50 transition hover:text-admin-green disabled:opacity-30"
                         aria-label="Move up"
                       >
                         ▲
@@ -761,7 +761,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                         type="button"
                         onClick={() => moveScheduleItem(i, 1)}
                         disabled={i === schedule.length - 1}
-                        className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
+                        className="px-1 text-xs leading-none text-admin-ink/50 transition hover:text-admin-green disabled:opacity-30"
                         aria-label="Move down"
                       >
                         ▼
@@ -770,7 +770,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                     <button
                       type="button"
                       onClick={() => removeScheduleItem(i)}
-                      className="px-2 text-lg leading-none text-slate-500 transition hover:text-rose-400"
+                      className="px-2 text-lg leading-none text-admin-ink/50 transition hover:text-admin-persimmon"
                       aria-label="Remove item"
                     >
                       ×
@@ -781,14 +781,14 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                     value={item.location ?? ''}
                     onChange={e => updateScheduleItem(i, 'location', e.target.value)}
                     placeholder="e.g. QT Melbourne"
-                    className="w-full rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                    className="w-full rounded-2xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green"
                   />
                   <textarea
                     rows={2}
                     value={item.description ?? ''}
                     onChange={e => updateScheduleItem(i, 'description', e.target.value)}
                     placeholder="Optional note for guests"
-                    className="w-full resize-none rounded-2xl border border-white/10 bg-slate-950/90 px-3 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                    className="w-full resize-none rounded-2xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green"
                   />
                 </div>
               ))}
@@ -797,7 +797,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               <button
                 type="button"
                 onClick={addScheduleItem}
-                className="text-sm text-emerald-400 transition hover:text-emerald-200"
+                className="text-sm text-admin-green transition hover:text-admin-green/70"
               >
                 + Add item
               </button>
@@ -805,16 +805,16 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 type="button"
                 onClick={handleSaveSchedule}
                 disabled={scheduleSaving}
-                className="rounded-3xl bg-amber-300 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+                className="rounded-3xl bg-admin-green px-6 py-2 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
               >
                 {scheduleSaving ? 'Saving…' : 'Save schedule'}
               </button>
             </div>
             {scheduleError && (
-              <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{scheduleError}</div>
+              <div className="rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">{scheduleError}</div>
             )}
             {scheduleSuccess && (
-              <div className="rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+              <div className="rounded-2xl bg-admin-green/10 px-4 py-3 text-sm text-admin-green">
                 Schedule saved successfully.
               </div>
             )}
@@ -822,24 +822,24 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
 
           {/* Section order */}
           <Section label="Invitation Page" title="Section Order">
-            <p className="-mt-2 text-xs text-slate-500">
+            <p className="-mt-2 text-xs text-admin-ink/50">
               The order below controls section order on the invitation page. Tick which pages each section
               appears on — untick to hide it from that page.
             </p>
             <div className="space-y-2">
-              <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-slate-950/50 px-4 py-3 text-sm text-slate-400">
+              <div className="flex items-center justify-between rounded-2xl border border-admin-sand/20 bg-admin-bone/50 px-4 py-3 text-sm text-admin-ink/60">
                 <span>The Day (always shown)</span>
               </div>
               {sectionOrder.map((section, i) => (
-                <div key={section.id} className="rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3">
+                <div key={section.id} className="rounded-2xl border border-admin-sand/30 bg-admin-bone/50 px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-white">{section.label}</span>
+                    <span className="text-sm text-admin-ink">{section.label}</span>
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => moveSectionOrderItem(i, -1)}
                         disabled={i === 0}
-                        className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
+                        className="px-1 text-xs leading-none text-admin-ink/50 transition hover:text-admin-green disabled:opacity-30"
                         aria-label="Move up"
                       >
                         ▲
@@ -848,7 +848,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                         type="button"
                         onClick={() => moveSectionOrderItem(i, 1)}
                         disabled={i === sectionOrder.length - 1}
-                        className="px-1 text-xs leading-none text-slate-500 transition hover:text-emerald-300 disabled:opacity-30"
+                        className="px-1 text-xs leading-none text-admin-ink/50 transition hover:text-admin-green disabled:opacity-30"
                         aria-label="Move down"
                       >
                         ▼
@@ -857,12 +857,12 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-4">
                     {PHASE_OPTIONS.map(opt => (
-                      <label key={opt.value} className="flex items-center gap-2 text-xs text-slate-400">
+                      <label key={opt.value} className="flex items-center gap-2 text-xs text-admin-ink/60">
                         <input
                           type="checkbox"
                           checked={section.visible_phases.includes(opt.value)}
                           onChange={() => toggleSectionPhase(i, opt.value)}
-                          className="accent-emerald-400"
+                          className="accent-admin-green"
                         />
                         {opt.label}
                       </label>
@@ -876,16 +876,16 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 type="button"
                 onClick={handleSaveSectionOrder}
                 disabled={sectionOrderSaving}
-                className="rounded-3xl bg-amber-300 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+                className="rounded-3xl bg-admin-green px-6 py-2 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
               >
                 {sectionOrderSaving ? 'Saving…' : 'Save section order'}
               </button>
             </div>
             {sectionOrderError && (
-              <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{sectionOrderError}</div>
+              <div className="rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">{sectionOrderError}</div>
             )}
             {sectionOrderSuccess && (
-              <div className="rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+              <div className="rounded-2xl bg-admin-green/10 px-4 py-3 text-sm text-admin-green">
                 Section order saved successfully.
               </div>
             )}
@@ -913,7 +913,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
             />
           </Field>
           <div>
-            <p className="mb-2 text-xs text-slate-500">The photo shown on the Thank You page guests see after RSVPing.</p>
+            <p className="mb-2 text-xs text-admin-ink/50">The photo shown on the Thank You page guests see after RSVPing.</p>
             <PhotoUpload
               value={settings.wedding_photo_url || null}
               onChange={url => update('wedding_photo_url', url ?? '')}
@@ -929,7 +929,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               type="button"
               onClick={handleSaveThankYou}
               disabled={savingTab === 'thank_you'}
-              className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+              className="rounded-3xl bg-admin-green px-8 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
             >
               {savingTab === 'thank_you' ? 'Saving…' : 'Save'}
             </button>
@@ -940,7 +940,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       {/* Tab 5 — Links */}
       {activeTab === 'links' && (
         <Section label="Standalone links" title="Links">
-          <p className="-mt-2 text-xs text-slate-500">
+          <p className="-mt-2 text-xs text-admin-ink/50">
             Links that aren&rsquo;t tied to a specific page section. The accommodation, registry, and guest
             photo upload links now live inside their cards on the Invitation tab — edit them there instead.
           </p>
@@ -963,7 +963,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               type="button"
               onClick={handleSaveLinks}
               disabled={savingTab === 'links'}
-              className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+              className="rounded-3xl bg-admin-green px-8 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
             >
               {savingTab === 'links' ? 'Saving…' : 'Save'}
             </button>
@@ -981,7 +981,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 value={settings.rsvp_cutoff_date}
                 onChange={e => update('rsvp_cutoff_date', e.target.value)}
                 className={INPUT_CLASS}
-                style={{ colorScheme: 'dark' }}
+                style={{ colorScheme: 'light' }}
               />
             </Field>
             <Field
@@ -994,14 +994,14 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 max={5}
                 value={settings.default_plus_one_allowance}
                 onChange={e => update('default_plus_one_allowance', Number(e.target.value))}
-                className="w-24 rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-3 text-white outline-none transition focus:border-emerald-400"
+                className="w-24 rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-admin-ink outline-none transition focus:border-admin-green"
               />
             </Field>
           </div>
 
           <div>
-            <p className="mb-1 text-xs uppercase tracking-[0.25em] text-slate-400">Dietary options</p>
-            <p className="mb-4 text-xs text-slate-500">Drag to reorder. &ldquo;Other&rdquo; always shows a free-text field.</p>
+            <p className="mb-1 text-xs uppercase tracking-[0.25em] text-admin-ink/60">Dietary options</p>
+            <p className="mb-4 text-xs text-admin-ink/50">Drag to reorder. &ldquo;Other&rdquo; always shows a free-text field.</p>
             <div className="space-y-2 mb-3">
               {settings.dietary_options.map((opt, i) => (
                 <div
@@ -1012,17 +1012,17 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                   onDrop={e => handleDietaryDrop(e, i)}
                   className="flex items-center gap-2"
                 >
-                  <div className="cursor-move select-none px-1 text-lg leading-none text-slate-500">⠿</div>
+                  <div className="cursor-move select-none px-1 text-lg leading-none text-admin-ink/50">⠿</div>
                   <input
                     type="text"
                     value={opt}
                     onChange={e => updateDietaryOption(i, e.target.value)}
-                    className="flex-1 rounded-2xl border border-white/10 bg-slate-950/90 px-4 py-2 text-sm text-white placeholder-slate-600 outline-none transition focus:border-emerald-400"
+                    className="flex-1 rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green"
                   />
                   <button
                     type="button"
                     onClick={() => removeDietaryOption(i)}
-                    className="px-2 text-lg leading-none text-slate-500 transition hover:text-rose-400"
+                    className="px-2 text-lg leading-none text-admin-ink/50 transition hover:text-admin-persimmon"
                     aria-label="Remove option"
                   >
                     ×
@@ -1033,7 +1033,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
             <button
               type="button"
               onClick={addDietaryOption}
-              className="text-sm text-emerald-400 transition hover:text-emerald-200"
+              className="text-sm text-admin-green transition hover:text-admin-green/70"
             >
               + Add option
             </button>
@@ -1045,7 +1045,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               type="button"
               onClick={handleSaveRsvp}
               disabled={savingTab === 'rsvp'}
-              className="rounded-3xl bg-amber-300 px-8 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60"
+              className="rounded-3xl bg-admin-green px-8 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
             >
               {savingTab === 'rsvp' ? 'Saving…' : 'Save'}
             </button>

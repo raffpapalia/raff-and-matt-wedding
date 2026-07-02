@@ -8,54 +8,21 @@ const phaseLabels: Record<string, string> = {
   thank_you: 'Thank You',
 };
 
-function AdminNav() {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 px-6 py-4 shadow-lg shadow-slate-950/30 backdrop-blur-xl">
-      <div>
-        <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/80">Admin</p>
-        <p className="mt-1 text-2xl font-semibold text-white">Wedding dashboard</p>
-      </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <a href="/admin" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
-          Dashboard
-        </a>
-        <a href="/admin/guests" className="rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm text-amber-100 transition hover:border-amber-300 hover:bg-amber-300/20">
-          Guests
-        </a>
-        <a href="/admin/comms" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
-          Comms
-        </a>
-        <a href="/admin/responses" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
-          Responses
-        </a>
-        <a href="/admin/setup" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
-          Setup
-        </a>
-        <form action="/admin/logout" method="post">
-          <button className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10" type="submit">
-            Log out
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 function SummaryCard({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
-      <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">{label}</p>
-      <p className="mt-4 text-4xl font-semibold text-white">{value}</p>
-      {detail ? <p className="mt-2 text-sm text-slate-300">{detail}</p> : null}
+    <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
+      <p className="text-sm uppercase tracking-[0.3em] text-admin-green">{label}</p>
+      <p className="mt-4 text-4xl font-semibold text-admin-ink">{value}</p>
+      {detail ? <p className="mt-2 text-sm text-admin-ink/70">{detail}</p> : null}
     </div>
   );
 }
 
 function StatusPill({ label, value, colorClass }: { label: string; value: number; colorClass: string }) {
   return (
-    <div className="rounded-2xl bg-white/5 px-4 py-3 text-sm">
+    <div className="rounded-2xl bg-admin-bone/50 px-4 py-3 text-sm">
       <p className={`text-xs uppercase tracking-[0.2em] ${colorClass} opacity-80`}>{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
+      <p className="mt-2 text-2xl font-semibold text-admin-ink">{value}</p>
     </div>
   );
 }
@@ -63,20 +30,20 @@ function StatusPill({ label, value, colorClass }: { label: string; value: number
 function StatusBar({ attending, declined, pending }: { attending: number; declined: number; pending: number }) {
   const total = attending + declined + pending || 1;
   return (
-    <div className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
-      <div className="flex items-center justify-between text-sm text-slate-300">
+    <div className="space-y-4 rounded-3xl border border-admin-sand/20 bg-white p-6">
+      <div className="flex items-center justify-between text-sm text-admin-ink/70">
         <p>RSVP progress</p>
         <p>{total} guest{total === 1 ? '' : 's'}</p>
       </div>
-      <div className="flex h-4 overflow-hidden rounded-full bg-slate-900">
-        <div className="h-full bg-emerald-400 transition-all" style={{ width: `${(attending / total) * 100}%` }} />
-        <div className="h-full bg-amber-400 transition-all" style={{ width: `${(declined / total) * 100}%` }} />
-        <div className="h-full bg-slate-500 transition-all" style={{ width: `${(pending / total) * 100}%` }} />
+      <div className="flex h-4 overflow-hidden rounded-full bg-admin-ink/10">
+        <div className="h-full bg-admin-green transition-all" style={{ width: `${(attending / total) * 100}%` }} />
+        <div className="h-full bg-admin-persimmon transition-all" style={{ width: `${(declined / total) * 100}%` }} />
+        <div className="h-full bg-admin-warning transition-all" style={{ width: `${(pending / total) * 100}%` }} />
       </div>
       <div className="grid grid-cols-3 gap-3">
-        <StatusPill label="Attending" value={attending} colorClass="text-emerald-300" />
-        <StatusPill label="Declined" value={declined} colorClass="text-amber-300" />
-        <StatusPill label="Pending" value={pending} colorClass="text-slate-300" />
+        <StatusPill label="Attending" value={attending} colorClass="text-admin-green" />
+        <StatusPill label="Declined" value={declined} colorClass="text-admin-persimmon" />
+        <StatusPill label="Pending" value={pending} colorClass="text-admin-warning" />
       </div>
     </div>
   );
@@ -84,22 +51,22 @@ function StatusBar({ attending, declined, pending }: { attending: number; declin
 
 function PhaseForm({ currentPhase }: { currentPhase: string }) {
   return (
-    <form action="/admin/phase" method="post" className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
+    <form action="/admin/phase" method="post" className="rounded-3xl border border-admin-sand/20 bg-white p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Current active phase</p>
-          <p className="mt-2 text-2xl font-semibold text-white">{phaseLabels[currentPhase] || 'Save the Date'}</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Current active phase</p>
+          <p className="mt-2 text-2xl font-semibold text-admin-ink">{phaseLabels[currentPhase] || 'Save the Date'}</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <label className="min-w-[200px] rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-slate-200">
-            <span className="block text-xs uppercase tracking-[0.25em] text-slate-400">Choose phase</span>
-            <select name="phase" defaultValue={currentPhase} className="mt-2 w-full bg-transparent text-white outline-none">
+          <label className="min-w-[200px] rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink">
+            <span className="block text-xs uppercase tracking-[0.25em] text-admin-ink/50">Choose phase</span>
+            <select name="phase" defaultValue={currentPhase} className="mt-2 w-full bg-transparent text-admin-ink outline-none">
               {Object.entries(phaseLabels).map(([value, label]) => (
-                <option key={value} value={value} className="bg-slate-900 text-white">{label}</option>
+                <option key={value} value={value} className="bg-white text-admin-ink">{label}</option>
               ))}
             </select>
           </label>
-          <button type="submit" className="rounded-2xl bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200">
+          <button type="submit" className="rounded-2xl bg-admin-green px-5 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90">
             Update phase
           </button>
         </div>
@@ -110,18 +77,18 @@ function PhaseForm({ currentPhase }: { currentPhase: string }) {
 
 function DashboardHeader({ daysUntil, totalHouseholds }: { daysUntil: number; totalHouseholds: number }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-950/40 to-slate-950/70 p-8 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
-      <p className="text-sm uppercase tracking-[0.35em] text-emerald-200/70">Welcome back</p>
-      <h1 className="mt-4 text-4xl font-semibold text-white sm:text-5xl">Manage the invitation experience</h1>
-      <p className="mt-4 max-w-2xl text-slate-300">Review guests, monitor RSVP progress, and keep your wedding phase up to date with one password-protected dashboard.</p>
+    <div className="rounded-3xl border border-admin-sand/20 bg-gradient-to-br from-admin-green/10 to-admin-bone p-8">
+      <p className="text-sm uppercase tracking-[0.35em] text-admin-green">Welcome back</p>
+      <h1 className="mt-4 text-4xl font-semibold text-admin-ink sm:text-5xl">Manage the invitation experience</h1>
+      <p className="mt-4 max-w-2xl text-admin-ink/70">Review guests, monitor RSVP progress, and keep your wedding phase up to date with one password-protected dashboard.</p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="rounded-3xl border border-white/10 bg-white/5 px-6 py-5 text-white">
-          <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Days until wedding</p>
-          <p className="mt-2 text-5xl font-semibold text-amber-300">{daysUntil}</p>
+        <div className="rounded-3xl border border-admin-sand/30 bg-white px-6 py-5 text-admin-ink">
+          <p className="text-sm uppercase tracking-[0.3em] text-admin-ink/60">Days until wedding</p>
+          <p className="mt-2 text-5xl font-semibold text-admin-green">{daysUntil}</p>
         </div>
-        <div className="rounded-3xl border border-white/10 bg-white/5 px-6 py-5 text-white">
-          <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Households invited</p>
-          <p className="mt-2 text-5xl font-semibold text-white">{totalHouseholds}</p>
+        <div className="rounded-3xl border border-admin-sand/30 bg-white px-6 py-5 text-admin-ink">
+          <p className="text-sm uppercase tracking-[0.3em] text-admin-ink/60">Households invited</p>
+          <p className="mt-2 text-5xl font-semibold text-admin-ink">{totalHouseholds}</p>
         </div>
       </div>
     </div>
@@ -208,22 +175,23 @@ async function getDashboardData() {
 
 function LoginForm({ error }: { error?: string }) {
   return (
-    <div className="mx-auto max-w-lg rounded-[2rem] border border-white/10 bg-slate-950/90 p-10 shadow-2xl shadow-slate-950/40">
-      <p className="text-sm uppercase tracking-[0.35em] text-emerald-300/80">Admin login</p>
-      <h1 className="mt-4 text-3xl font-semibold text-white">Enter your password</h1>
-      <p className="mt-3 text-slate-400">This admin panel is protected by the shared wedding password.</p>
-      {error ? <div className="mt-6 rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">Invalid password, please try again.</div> : null}
+    /* Pre-auth login card deliberately stays dark (on-brand), now on admin-ink tokens. */
+    <div className="mx-auto max-w-lg rounded-[2rem] border border-white/10 bg-admin-ink p-10 shadow-2xl shadow-black/40">
+      <p className="text-sm uppercase tracking-[0.35em] text-admin-sand">Admin login</p>
+      <h1 className="mt-4 text-3xl font-semibold text-admin-bone">Enter your password</h1>
+      <p className="mt-3 text-admin-bone/60">This admin panel is protected by the shared wedding password.</p>
+      {error ? <div className="mt-6 rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">Invalid password, please try again.</div> : null}
       <form action="/admin/api/login" method="post" className="mt-8 space-y-6">
-        <label className="block text-sm font-medium text-slate-300">
+        <label className="block text-sm font-medium text-admin-bone/80">
           Password
           <input
             name="password"
             type="password"
             required
-            className="mt-3 w-full rounded-3xl border border-white/10 bg-slate-900/90 px-4 py-3 text-white outline-none transition focus:border-emerald-400"
+            className="mt-3 w-full rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-admin-bone outline-none transition focus:border-admin-green"
           />
         </label>
-        <button type="submit" className="w-full rounded-3xl bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200">
+        <button type="submit" className="w-full rounded-3xl bg-admin-green px-5 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90">
           Sign in
         </button>
       </form>
@@ -244,7 +212,6 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
 
   return (
     <div className="space-y-8">
-      <AdminNav />
       <div className="space-y-8 lg:space-y-10">
         <DashboardHeader daysUntil={daysUntil} totalHouseholds={dashboard.totalHouseholds} />
         <div className="grid gap-6 md:grid-cols-3">
@@ -257,34 +224,34 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
           <PhaseForm currentPhase={dashboard.activePhase} />
         </div>
         {Object.keys(dashboard.dietaryBreakdown).length > 0 && (
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
-            <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Dietary requirements</p>
-            <h2 className="mt-1 mb-6 text-xl font-semibold text-white">Confirmed guest dietary needs</h2>
+          <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
+            <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Dietary requirements</p>
+            <h2 className="mt-1 mb-6 text-xl font-semibold text-admin-ink">Confirmed guest dietary needs</h2>
             <div className="flex flex-wrap gap-3">
               {Object.entries(dashboard.dietaryBreakdown)
                 .sort((a, b) => b[1] - a[1])
                 .map(([key, count]) => (
-                  <div key={key} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 min-w-[120px]">
-                    <p className="text-xs uppercase tracking-[0.2em] text-emerald-200/60">{formatDietaryLabel(key)}</p>
-                    <p className="mt-2 text-3xl font-semibold text-white">{count}</p>
+                  <div key={key} className="rounded-2xl border border-admin-sand/30 bg-admin-bone/40 px-5 py-4 min-w-[120px]">
+                    <p className="text-xs uppercase tracking-[0.2em] text-admin-green">{formatDietaryLabel(key)}</p>
+                    <p className="mt-2 text-3xl font-semibold text-admin-ink">{count}</p>
                   </div>
                 ))}
             </div>
           </div>
         )}
         {dashboard.tagBreakdown.length > 0 && (
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
-            <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Tags</p>
-            <h2 className="mt-1 mb-6 text-xl font-semibold text-white">Guests by tag</h2>
+          <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
+            <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Tags</p>
+            <h2 className="mt-1 mb-6 text-xl font-semibold text-admin-ink">Guests by tag</h2>
             <div className="flex flex-wrap gap-3">
               {dashboard.tagBreakdown.map((t) => (
-                <div key={t.tag} className="min-w-[180px] rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-emerald-200/60">{t.tag}</p>
-                  <p className="mt-2 text-3xl font-semibold text-white">{t.households}</p>
-                  <p className="text-xs text-slate-400">
+                <div key={t.tag} className="min-w-[180px] rounded-2xl border border-admin-sand/30 bg-admin-bone/40 px-5 py-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-admin-green">{t.tag}</p>
+                  <p className="mt-2 text-3xl font-semibold text-admin-ink">{t.households}</p>
+                  <p className="text-xs text-admin-ink/60">
                     household{t.households === 1 ? '' : 's'} · {t.guests} guest{t.guests === 1 ? '' : 's'}
                   </p>
-                  <p className="mt-2 text-xs text-slate-300">
+                  <p className="mt-2 text-xs text-admin-ink/70">
                     {t.attending} attending · {t.declined} declined · {t.pending} pending
                   </p>
                 </div>

@@ -48,28 +48,28 @@ export default async function AdminGuestsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
+      <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Guest list</p>
-            <h1 className="mt-2 text-3xl font-semibold text-white">All households and RSVP summaries</h1>
+            <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Guest list</p>
+            <h1 className="mt-2 text-3xl font-semibold text-admin-ink">All households and RSVP summaries</h1>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <a href="/admin/api/guests/export" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
+            <a href="/admin/api/guests/export" className="rounded-full border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green">
               Export CSV
             </a>
-            <a href="/admin" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">
+            <a href="/admin" className="rounded-full border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green">
               ← Dashboard
             </a>
-            <a href="/admin/guests/new" className="rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200">
+            <a href="/admin/guests/new" className="rounded-full bg-admin-green px-5 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90">
               Add household
             </a>
           </div>
         </div>
       </div>
       <GuestListTable rows={rows} />
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-slate-300 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
-        <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Tip</p>
+      <div className="rounded-3xl border border-admin-sand/20 bg-white p-8 text-admin-ink/70">
+        <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Tip</p>
         <p className="mt-3 text-sm leading-7">Use the link buttons to copy invite URLs directly, then paste them into your communications or SMS messages.</p>
       </div>
     </div>

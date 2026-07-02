@@ -65,7 +65,7 @@ export default function ImmediatePhotoUpload({
   };
 
   return (
-    <div className="space-y-3 text-sm text-slate-300">
+    <div className="space-y-3 text-sm text-admin-ink">
       {currentUrl ? (
         <div
           role="button"
@@ -74,12 +74,12 @@ export default function ImmediatePhotoUpload({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') cropper.fileInputRef.current?.click();
           }}
-          className="group relative w-full max-w-xs cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-slate-950/90"
+          className="group relative w-full max-w-xs cursor-pointer overflow-hidden rounded-2xl border border-admin-sand/30 bg-admin-ink/5"
           style={{ aspectRatio }}
         >
           <img src={currentUrl} alt="" className="h-full w-full object-cover" />
           <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/50 group-hover:opacity-100 group-active:bg-black/50 group-active:opacity-100">
-            <span className="rounded-full bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950">
+            <span className="rounded-full bg-admin-green px-4 py-2 text-sm font-semibold text-admin-bone">
               Change photo
             </span>
           </div>
@@ -92,7 +92,7 @@ export default function ImmediatePhotoUpload({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') cropper.fileInputRef.current?.click();
           }}
-          className="flex w-full max-w-xs cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/15 text-slate-500 transition hover:border-amber-300/60"
+          className="flex w-full max-w-xs cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-admin-ink/25 text-admin-ink/60 transition hover:border-admin-green/60"
           style={{ aspectRatio }}
         >
           <UploadIcon />
@@ -100,7 +100,7 @@ export default function ImmediatePhotoUpload({
         </div>
       )}
 
-      {error && !imageSrc ? <p className="text-xs text-rose-400">{error}</p> : null}
+      {error && !imageSrc ? <p className="text-xs text-admin-persimmon">{error}</p> : null}
 
       <input
         ref={cropper.fileInputRef}
@@ -111,9 +111,10 @@ export default function ImmediatePhotoUpload({
       />
 
       {imageSrc ? (
+        /* Crop modal deliberately stays dark — focused editing surface. */
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
-          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-950 p-6">
-            <p className="mb-4 text-sm font-semibold text-white">Crop photo</p>
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-admin-ink p-6">
+            <p className="mb-4 text-sm font-semibold text-admin-bone">Crop photo</p>
             <div className="relative w-full overflow-hidden rounded-xl bg-black" style={{ height: 400 }}>
               <Cropper
                 image={imageSrc}
@@ -126,7 +127,7 @@ export default function ImmediatePhotoUpload({
               />
             </div>
             <div className="mt-4 flex items-center gap-3">
-              <span className="text-xs uppercase tracking-[0.25em] text-slate-500">Zoom</span>
+              <span className="text-xs uppercase tracking-[0.25em] text-admin-bone/50">Zoom</span>
               <input
                 type="range"
                 min={1}
@@ -134,18 +135,18 @@ export default function ImmediatePhotoUpload({
                 step={0.01}
                 value={zoom}
                 onChange={(e) => setZoom(Number(e.target.value))}
-                className="flex-1 accent-amber-300"
+                className="flex-1 accent-admin-green"
               />
             </div>
             {error ? (
-              <div className="mt-4 rounded-xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div>
+              <div className="mt-4 rounded-xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">{error}</div>
             ) : null}
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
                 onClick={handleConfirmCrop}
                 disabled={uploading}
-                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-admin-green px-5 py-3 text-sm font-semibold text-admin-bone transition disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {uploading ? (
                   <>
@@ -160,7 +161,7 @@ export default function ImmediatePhotoUpload({
                 type="button"
                 onClick={cropper.closeCropModal}
                 disabled={uploading}
-                className="rounded-full border border-white/15 px-5 py-3 text-sm text-slate-300 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-70"
+                className="rounded-full border border-admin-bone/30 px-5 py-3 text-sm text-admin-bone transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 Cancel
               </button>

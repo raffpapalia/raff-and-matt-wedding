@@ -35,10 +35,10 @@ const defaultSortDir: Record<SortKey, SortDir> = {
   rsvp: 'desc',
 };
 
-const sortHeaderClass = 'inline-flex items-center gap-1 transition hover:text-accent-gold';
+const sortHeaderClass = 'inline-flex items-center gap-1 transition hover:text-admin-green';
 
 function SortArrow({ direction }: { direction: SortDir }) {
-  return <span className="text-[10px] text-accent-gold">{direction === 'asc' ? '▲' : '▼'}</span>;
+  return <span className="text-[10px] text-admin-green">{direction === 'asc' ? '▲' : '▼'}</span>;
 }
 
 function TrashIcon({ className }: { className?: string }) {
@@ -71,12 +71,12 @@ function ChevronRightIcon({ className }: { className?: string }) {
 
 function RsvpSummary({ attending, declined, pending }: { attending: number; declined: number; pending: number }) {
   const parts: { text: string; className: string }[] = [];
-  if (attending > 0) parts.push({ text: `✓ ${attending} attending`, className: 'text-emerald-400' });
-  if (declined > 0) parts.push({ text: `${declined} declined`, className: 'text-rose-400' });
-  if (pending > 0) parts.push({ text: `${pending} pending`, className: 'text-amber-400' });
+  if (attending > 0) parts.push({ text: `✓ ${attending} attending`, className: 'text-admin-green' });
+  if (declined > 0) parts.push({ text: `${declined} declined`, className: 'text-admin-persimmon' });
+  if (pending > 0) parts.push({ text: `${pending} pending`, className: 'text-admin-warning' });
 
   if (parts.length === 0) {
-    return <span className="text-xs text-[#F2E8D0]/30">—</span>;
+    return <span className="text-xs text-admin-ink/30">—</span>;
   }
 
   return (
@@ -84,7 +84,7 @@ function RsvpSummary({ attending, declined, pending }: { attending: number; decl
       {parts.map((part, index) => (
         <span key={part.text}>
           <span className={part.className}>{part.text}</span>
-          {index < parts.length - 1 ? <span className="mx-1.5 text-[#F2E8D0]/25">·</span> : null}
+          {index < parts.length - 1 ? <span className="mx-1.5 text-admin-ink/25">·</span> : null}
         </span>
       ))}
     </span>
@@ -93,13 +93,14 @@ function RsvpSummary({ attending, declined, pending }: { attending: number; decl
 
 function GuestCountCell({ count, names }: { count: number; names: string[] }) {
   if (names.length === 0) {
-    return <span className="text-[#F2E8D0]/80">{count}</span>;
+    return <span className="text-admin-ink/80">{count}</span>;
   }
 
   return (
-    <span className="group relative inline-block cursor-default border-b border-dotted border-[#F2E8D0]/25 text-[#F2E8D0]/80">
+    <span className="group relative inline-block cursor-default border-b border-dotted border-admin-ink/25 text-admin-ink/80">
       {count}
-      <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 w-max max-w-[240px] rounded-xl border border-[#F2E8D0]/15 bg-[#06120B] px-3 py-2 text-xs leading-relaxed text-[#F2E8D0]/80 opacity-0 shadow-xl shadow-black/40 transition group-hover:opacity-100">
+      {/* Tooltip stays dark deliberately — popover surface, matches modal treatment. */}
+      <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 w-max max-w-[240px] rounded-xl border border-white/10 bg-admin-ink px-3 py-2 text-xs leading-relaxed text-admin-bone/80 opacity-0 shadow-xl shadow-black/40 transition group-hover:opacity-100">
         {names.join(', ')}
       </span>
     </span>
@@ -118,11 +119,11 @@ function CopyLinkButton({ url, title }: { url: string; title: string }) {
         window.setTimeout(() => setCopied(false), 1600);
       }}
       title={title}
-      className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#F2E8D0]/15 text-[#F2E8D0]/60 transition hover:border-accent-gold/40 hover:text-accent-gold"
+      className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-admin-sand/40 text-admin-ink/60 transition hover:border-admin-green/40 hover:text-admin-green"
     >
       <ClipboardIcon className="h-4 w-4" />
       {copied ? (
-        <span className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-accent-gold px-2.5 py-1 text-[11px] font-semibold text-dark-green">
+        <span className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-admin-green px-2.5 py-1 text-[11px] font-semibold text-admin-bone">
           Copied!
         </span>
       ) : null}
@@ -168,23 +169,24 @@ function DeleteConfirmModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
       onClick={() => !deleting && onCancel()}
     >
+      {/* Confirm modal stays dark deliberately, matching the crop-modal treatment. */}
       <div
-        className="w-full max-w-md rounded-3xl border border-[#F2E8D0]/10 bg-dark-green p-6 shadow-2xl shadow-black/50 sm:p-8"
+        className="w-full max-w-md rounded-3xl border border-white/10 bg-admin-ink p-6 shadow-2xl shadow-black/50 sm:p-8"
         onClick={(event) => event.stopPropagation()}
       >
-        <h3 className="font-cinzel text-xl font-semibold text-[#F2E8D0]">Delete {household.name}?</h3>
-        <p className="mt-3 text-sm leading-relaxed text-[#F2E8D0]/70">
+        <h3 className="font-cinzel text-xl font-semibold text-admin-bone">Delete {household.name}?</h3>
+        <p className="mt-3 text-sm leading-relaxed text-admin-bone/70">
           This will permanently delete the household, all guests, and all their RSVP responses. This cannot be undone.
         </p>
         {error ? (
-          <div className="mt-4 rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
+          <div className="mt-4 rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">{error}</div>
         ) : null}
         <div className="mt-6 flex flex-wrap gap-3">
           <button
             type="button"
             onClick={handleConfirm}
             disabled={deleting}
-            className="rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full bg-admin-persimmon px-5 py-3 text-sm font-semibold text-admin-ink transition hover:bg-admin-persimmon/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {deleting ? 'Deleting…' : 'Delete'}
           </button>
@@ -192,7 +194,7 @@ function DeleteConfirmModal({
             type="button"
             onClick={onCancel}
             disabled={deleting}
-            className="rounded-full border border-[#F2E8D0]/15 px-5 py-3 text-sm text-[#F2E8D0]/85 transition hover:border-accent-gold/40 hover:text-accent-gold disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full border border-admin-bone/20 px-5 py-3 text-sm text-admin-bone/85 transition hover:border-admin-bone/40 hover:text-admin-bone disabled:cursor-not-allowed disabled:opacity-60"
           >
             Cancel
           </button>
@@ -281,11 +283,11 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
   const pageRows = sortedRows.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   return (
-    <div className="space-y-6 rounded-[2rem] border border-[#F2E8D0]/10 bg-dark-green p-6 font-dm-sans shadow-xl shadow-black/30 sm:p-8">
+    <div className="space-y-6 rounded-[2rem] border border-admin-sand/20 bg-white p-6 font-dm-sans sm:p-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-accent-gold/60">Guest manager</p>
-          <h2 className="mt-2 font-cinzel text-2xl font-semibold text-[#F2E8D0]">Household roster</h2>
+          <p className="text-xs uppercase tracking-[0.3em] text-admin-green">Guest manager</p>
+          <h2 className="mt-2 font-cinzel text-2xl font-semibold text-admin-ink">Household roster</h2>
         </div>
         <div className="max-w-md flex-1">
           <label className="relative block">
@@ -297,7 +299,7 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
                 setPage(0);
               }}
               placeholder="Search households…"
-              className="w-full rounded-2xl border border-[#F2E8D0]/15 bg-black/20 px-4 py-3 text-sm text-[#F2E8D0] placeholder-[#F2E8D0]/30 outline-none transition focus:border-accent-gold"
+              className="w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green"
             />
           </label>
         </div>
@@ -314,8 +316,8 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
             }}
             className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
               activeTab === key
-                ? 'border-accent-gold bg-accent-gold/10 text-accent-gold'
-                : 'border-[#F2E8D0]/15 bg-black/20 text-[#F2E8D0]/70 hover:border-accent-gold/40 hover:text-accent-gold'
+                ? 'border-admin-green bg-admin-green/10 text-admin-green'
+                : 'border-admin-sand/30 bg-admin-bone/40 text-admin-ink/70 hover:border-admin-green/40 hover:text-admin-green'
             }`}
           >
             {tabLabels[key]} ({counts[key]})
@@ -326,7 +328,7 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
       <div className="overflow-x-auto">
         <table className="min-w-full border-separate border-spacing-0 text-sm">
           <thead>
-            <tr className="border-b border-[#F2E8D0]/10 text-left text-xs uppercase tracking-[0.25em] text-[#F2E8D0]/50">
+            <tr className="border-b border-admin-sand/20 text-left text-xs uppercase tracking-[0.25em] text-admin-ink/50">
               <th className="px-4 py-3 font-cinzel font-semibold">
                 <button type="button" onClick={() => handleSort('household')} className={sortHeaderClass}>
                   Household
@@ -354,7 +356,7 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
           <tbody>
             {pageRows.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-sm text-[#F2E8D0]/50">
+                <td colSpan={5} className="px-4 py-10 text-center text-sm text-admin-ink/50">
                   No households match your search or filters.
                 </td>
               </tr>
@@ -362,16 +364,16 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
               pageRows.map((row) => (
                 <tr
                   key={row.id}
-                  className={`border-t border-[#F2E8D0]/5 transition-opacity duration-300 hover:bg-white/5 ${
+                  className={`border-t border-admin-sand/10 transition-opacity duration-300 hover:bg-admin-bone/40 ${
                     fadingIds.has(row.id) ? 'opacity-0' : 'opacity-100'
                   }`}
                 >
                   <td className="px-4 py-4 align-top">
-                    <Link href={`/admin/guests/${row.id}/edit`} className="font-medium text-[#F2E8D0] transition hover:text-accent-gold">
+                    <Link href={`/admin/guests/${row.id}/edit`} className="font-medium text-admin-ink transition hover:text-admin-green">
                       {row.name}
                     </Link>
-                    <p className="mt-1 text-xs text-[#F2E8D0]/40">invite/{row.slug}</p>
-                    {row.shortCode ? <p className="text-xs text-[#F2E8D0]/40">i/{row.shortCode}</p> : null}
+                    <p className="mt-1 text-xs text-admin-ink/40">invite/{row.slug}</p>
+                    {row.shortCode ? <p className="text-xs text-admin-ink/40">i/{row.shortCode}</p> : null}
                     <div className="mt-2 sm:hidden">
                       <RsvpSummary attending={row.attending} declined={row.declined} pending={row.pending} />
                     </div>
@@ -391,13 +393,13 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
                         type="button"
                         onClick={() => setDeleteTarget(row)}
                         title="Delete household"
-                        className="text-red-900/50 transition hover:text-red-400"
+                        className="text-admin-persimmon/40 transition hover:text-admin-persimmon"
                       >
                         <TrashIcon className="h-4 w-4" />
                       </button>
                       <Link
                         href={`/admin/guests/${row.id}/edit`}
-                        className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-[0.2em] text-[#F2E8D0]/60 transition hover:text-accent-gold"
+                        className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-[0.2em] text-admin-ink/60 transition hover:text-admin-green"
                       >
                         <span className="hidden sm:inline">Details →</span>
                         <ChevronRightIcon className="h-4 w-4 sm:hidden" />
@@ -412,26 +414,26 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
       </div>
 
       {totalPages > 1 ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#F2E8D0]/10 pt-4 text-sm text-[#F2E8D0]/70">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-admin-sand/20 pt-4 text-sm text-admin-ink/70">
           <p>
-            Showing <span className="font-semibold text-[#F2E8D0]">{pageRows.length}</span> of{' '}
-            <span className="font-semibold text-[#F2E8D0]">{sortedRows.length}</span> households.
+            Showing <span className="font-semibold text-admin-ink">{pageRows.length}</span> of{' '}
+            <span className="font-semibold text-admin-ink">{sortedRows.length}</span> households.
           </p>
           <div className="flex items-center gap-2">
             <button
               type="button"
               disabled={page === 0}
               onClick={() => setPage((current) => Math.max(current - 1, 0))}
-              className="rounded-2xl border border-[#F2E8D0]/15 px-4 py-2 text-sm text-[#F2E8D0]/85 transition hover:border-accent-gold/40 hover:text-accent-gold disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-2xl border border-admin-sand/40 px-4 py-2 text-sm text-admin-ink/85 transition hover:border-admin-green/40 hover:text-admin-green disabled:cursor-not-allowed disabled:opacity-40"
             >
               Previous
             </button>
-            <span className="text-[#F2E8D0]/50">Page {page + 1} of {totalPages}</span>
+            <span className="text-admin-ink/50">Page {page + 1} of {totalPages}</span>
             <button
               type="button"
               disabled={page >= totalPages - 1}
               onClick={() => setPage((current) => Math.min(current + 1, totalPages - 1))}
-              className="rounded-2xl border border-[#F2E8D0]/15 px-4 py-2 text-sm text-[#F2E8D0]/85 transition hover:border-accent-gold/40 hover:text-accent-gold disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-2xl border border-admin-sand/40 px-4 py-2 text-sm text-admin-ink/85 transition hover:border-admin-green/40 hover:text-admin-green disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next
             </button>

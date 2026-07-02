@@ -72,15 +72,15 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="space-y-8">
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-lg shadow-slate-950/20 backdrop-blur-xl">
+      <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-emerald-200/70">Communications</p>
-            <h1 className="mt-2 text-3xl font-semibold text-white">{household.name}</h1>
+            <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Communications</p>
+            <h1 className="mt-2 text-3xl font-semibold text-admin-ink">{household.name}</h1>
             {tags.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {tags.map((tag) => (
-                  <span key={tag} className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-300">
+                  <span key={tag} className="rounded-full bg-admin-ink/5 px-3 py-1 text-xs text-admin-ink/70">
                     {tag}
                   </span>
                 ))}
@@ -90,13 +90,13 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
           <div className="flex flex-wrap items-center gap-3">
             <a
               href={`/admin/guests/${household.id}/edit`}
-              className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10"
+              className="rounded-full border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green"
             >
               Edit household
             </a>
             <a
               href="/admin/comms"
-              className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10"
+              className="rounded-full border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green"
             >
               ← Comms
             </a>
@@ -104,8 +104,8 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-slate-300">
-        Current phase: <span className="font-semibold text-white">{PHASE_LABELS[currentPhase]}</span>
+      <div className="rounded-2xl border border-admin-sand/20 bg-white px-6 py-4 text-sm text-admin-ink/70">
+        Current phase: <span className="font-semibold text-admin-ink">{PHASE_LABELS[currentPhase]}</span>
         {primaryTemplateActive ? (
           <> — the Email button sends the &ldquo;{EMAIL_TEMPLATE_TITLES[primaryKey]}&rdquo; email.</>
         ) : (
@@ -113,7 +113,7 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
             {' '}
             — no active email template is set for this phase; the Email button won&apos;t send anything until one is
             activated on the{' '}
-            <a href="/admin/comms/templates" className="underline transition hover:text-white">
+            <a href="/admin/comms/templates" className="underline transition hover:text-admin-ink">
               Templates page
             </a>
             .

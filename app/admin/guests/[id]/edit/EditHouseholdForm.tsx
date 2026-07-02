@@ -47,16 +47,16 @@ function validateMobile(mobile: string, commsSms: boolean, firstName: string): s
 type GuestErrors = { email?: string; mobile?: string };
 type SlugStatus = 'idle' | 'checking' | 'available' | 'taken';
 
-const fieldClass = 'w-full rounded-2xl border border-[#F2E8D0]/15 bg-black/20 px-4 py-3 text-sm text-[#F2E8D0] placeholder-[#F2E8D0]/30 outline-none transition focus:border-accent-gold';
-const labelClass = 'block space-y-2 text-sm text-[#F2E8D0]/85';
-const helperClass = 'text-xs text-[#F2E8D0]/45';
+const fieldClass = 'w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green';
+const labelClass = 'block space-y-2 text-sm text-admin-ink/85';
+const helperClass = 'text-xs text-admin-ink/45';
 
 function SectionHeading({ title }: { title: string }) {
-  return <h2 className="font-cinzel text-2xl font-semibold text-accent-gold">{title}</h2>;
+  return <h2 className="font-cinzel text-2xl font-semibold text-admin-green">{title}</h2>;
 }
 
 function SectionDivider() {
-  return <div className="border-t border-[#F2E8D0]/10" />;
+  return <div className="border-t border-admin-sand/20" />;
 }
 
 function CopyableLink({ label, value, helper }: { label: string; value: string; helper?: string }) {
@@ -79,7 +79,7 @@ function CopyableLink({ label, value, helper }: { label: string; value: string; 
             setCopied(true);
             window.setTimeout(() => setCopied(false), 1600);
           }}
-          className="shrink-0 rounded-full border border-[#F2E8D0]/15 px-4 py-3 text-sm text-[#F2E8D0]/85 transition hover:border-accent-gold/40 hover:text-accent-gold"
+          className="shrink-0 rounded-full border border-admin-sand/40 px-4 py-3 text-sm text-admin-ink/85 transition hover:border-admin-green/40 hover:text-admin-green"
         >
           {copied ? 'Copied!' : 'Copy'}
         </button>
@@ -152,8 +152,8 @@ function initialGuestErrors(initial: HouseholdFormData): GuestErrors[] {
 }
 
 function PrevNextNav({ prev, next }: { prev: HouseholdNavItem | null; next: HouseholdNavItem | null }) {
-  const linkClass = 'inline-flex max-w-[45%] items-center gap-2 truncate rounded-full border border-[#F2E8D0]/15 bg-black/20 px-4 py-2 text-sm text-[#F2E8D0]/85 transition hover:border-accent-gold/40 hover:text-accent-gold';
-  const disabledClass = 'inline-flex max-w-[45%] items-center gap-2 truncate rounded-full border border-[#F2E8D0]/5 px-4 py-2 text-sm text-[#F2E8D0]/25';
+  const linkClass = 'inline-flex max-w-[45%] items-center gap-2 truncate rounded-full border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/85 transition hover:border-admin-green/40 hover:text-admin-green';
+  const disabledClass = 'inline-flex max-w-[45%] items-center gap-2 truncate rounded-full border border-admin-sand/20 px-4 py-2 text-sm text-admin-ink/25';
 
   return (
     <div className="flex items-center justify-between gap-4">
@@ -372,7 +372,7 @@ export default function EditHouseholdForm({
     <div className="space-y-6">
       <PrevNextNav prev={prevHousehold} next={nextHousehold} />
 
-      <form onSubmit={handleSubmit} className="space-y-10 rounded-[2rem] border border-[#F2E8D0]/10 bg-dark-green p-6 font-dm-sans shadow-xl shadow-black/30 sm:p-8">
+      <form onSubmit={handleSubmit} className="space-y-10 rounded-[2rem] border border-admin-sand/20 bg-white p-6 font-dm-sans sm:p-8">
         {/* Section 1: Household */}
         <section className="space-y-6">
           <SectionHeading title="Household" />
@@ -402,11 +402,11 @@ export default function EditHouseholdForm({
               required
             />
             {slugStatus === 'checking' ? (
-              <span className="block text-xs text-[#F2E8D0]/50">Checking availability...</span>
+              <span className="block text-xs text-admin-ink/50">Checking availability...</span>
             ) : slugStatus === 'available' ? (
-              <span className="block text-xs text-emerald-400">✓ Available</span>
+              <span className="block text-xs text-admin-green">✓ Available</span>
             ) : slugStatus === 'taken' ? (
-              <span className="block text-xs text-red-400">✗ Already in use — please choose another</span>
+              <span className="block text-xs text-admin-persimmon">✗ Already in use — please choose another</span>
             ) : null}
           </label>
 
@@ -456,20 +456,20 @@ export default function EditHouseholdForm({
         <section className="space-y-6">
           <div className="flex items-center justify-between gap-4">
             <SectionHeading title="Guests" />
-            <button type="button" onClick={addGuest} className="rounded-full border border-accent-gold/30 bg-accent-gold/10 px-4 py-2 text-sm text-accent-gold transition hover:bg-accent-gold/20">
+            <button type="button" onClick={addGuest} className="rounded-full border border-admin-green/30 bg-admin-green/10 px-4 py-2 text-sm text-admin-green transition hover:bg-admin-green/20">
               Add guest
             </button>
           </div>
           <div className="space-y-6">
             {guests.map((guest, index) => (
-              <div key={index} className="rounded-3xl border border-[#F2E8D0]/10 bg-black/20 p-6">
+              <div key={index} className="rounded-3xl border border-admin-sand/20 bg-admin-bone/50 p-6">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                  <p className="text-sm font-semibold text-[#F2E8D0]">Guest {index + 1}</p>
+                  <p className="text-sm font-semibold text-admin-ink">Guest {index + 1}</p>
                   {guests.length > 1 ? (
                     <button
                       type="button"
                       onClick={() => removeGuest(index)}
-                      className="rounded-full bg-red-500/10 px-4 py-2 text-sm text-red-300 transition hover:bg-red-500/15"
+                      className="rounded-full bg-admin-persimmon/10 px-4 py-2 text-sm text-admin-persimmon transition hover:bg-admin-persimmon/15"
                     >
                       Remove
                     </button>
@@ -509,7 +509,7 @@ export default function EditHouseholdForm({
                       placeholder="Email address"
                     />
                     {guestErrors[index]?.email ? (
-                      <p className="text-xs text-[#C4621A]">{guestErrors[index].email}</p>
+                      <p className="text-xs text-admin-persimmon">{guestErrors[index].email}</p>
                     ) : null}
                   </label>
                   <label className={labelClass}>
@@ -523,7 +523,7 @@ export default function EditHouseholdForm({
                       placeholder="Mobile number"
                     />
                     {guestErrors[index]?.mobile ? (
-                      <p className="text-xs text-[#C4621A]">{guestErrors[index].mobile}</p>
+                      <p className="text-xs text-admin-persimmon">{guestErrors[index].mobile}</p>
                     ) : null}
                   </label>
                 </div>
@@ -581,7 +581,7 @@ export default function EditHouseholdForm({
                 ) : null}
 
                 <div className="flex flex-wrap gap-5 pt-1">
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-[#F2E8D0]/85">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-admin-ink/85">
                     <input
                       type="checkbox"
                       checked={guest.commsEmail}
@@ -589,11 +589,11 @@ export default function EditHouseholdForm({
                         updateGuest(index, 'commsEmail', e.target.checked);
                         if (!e.target.checked) setGuestFieldError(index, 'email', undefined);
                       }}
-                      className="h-4 w-4 rounded accent-[#D4A83A]"
+                      className="h-4 w-4 rounded accent-admin-green"
                     />
                     Send email
                   </label>
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-[#F2E8D0]/85">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-admin-ink/85">
                     <input
                       type="checkbox"
                       checked={guest.commsSms}
@@ -601,7 +601,7 @@ export default function EditHouseholdForm({
                         updateGuest(index, 'commsSms', e.target.checked);
                         if (!e.target.checked) setGuestFieldError(index, 'mobile', undefined);
                       }}
-                      className="h-4 w-4 rounded accent-[#D4A83A]"
+                      className="h-4 w-4 rounded accent-admin-green"
                     />
                     Send SMS
                   </label>
@@ -664,7 +664,7 @@ export default function EditHouseholdForm({
                         setTags(next);
                       }
                     }}
-                    className="rounded-full bg-[#F2E8D0]/5 px-3 py-1 text-sm text-[#F2E8D0]/80 transition hover:bg-[#F2E8D0]/10"
+                    className="rounded-full bg-admin-ink/5 px-3 py-1 text-sm text-admin-ink/80 transition hover:bg-admin-ink/10"
                   >
                     {tag}
                   </button>
@@ -677,14 +677,14 @@ export default function EditHouseholdForm({
         <SectionDivider />
 
         {/* Section 5: After the Wedding */}
-        <section className="space-y-6 rounded-3xl border border-accent-gold/20 bg-accent-gold/5 p-6">
+        <section className="space-y-6 rounded-3xl border border-admin-sand/30 bg-admin-sand/10 p-6">
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-accent-gold/50">Filled in after the wedding</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-admin-ink/50">Filled in after the wedding</p>
             <SectionHeading title="After the wedding" />
             {thankYouPhotoFilled && thankYouMessageFilled ? (
-              <p className="text-sm text-emerald-400">✓ Thank you page complete</p>
+              <p className="text-sm text-admin-green">✓ Thank you page complete</p>
             ) : thankYouPhotoFilled || thankYouMessageFilled ? (
-              <p className="text-sm text-amber-400">⚠ Thank you page partially complete</p>
+              <p className="text-sm text-admin-warning">⚠ Thank you page partially complete</p>
             ) : null}
           </div>
 
@@ -711,20 +711,20 @@ export default function EditHouseholdForm({
           </label>
         </section>
 
-        {error ? <div className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div> : null}
+        {error ? <div className="rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">{error}</div> : null}
 
         <div className="flex flex-wrap gap-3">
           <button
             type="submit"
             disabled={isPending || slugStatus === 'checking' || slugStatus === 'taken'}
-            className="w-full rounded-full bg-accent-gold px-5 py-4 text-sm font-semibold text-dark-green transition hover:bg-[#E8C766] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-[240px]"
+            className="w-full rounded-full bg-admin-green px-5 py-4 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-[240px]"
           >
             {isPending ? 'Saving...' : 'Save household'}
           </button>
           <button
             type="button"
             onClick={() => router.push('/admin/guests')}
-            className="rounded-full border border-[#F2E8D0]/15 px-5 py-4 text-sm text-[#F2E8D0]/85 transition hover:border-accent-gold/40 hover:text-accent-gold"
+            className="rounded-full border border-admin-sand/40 px-5 py-4 text-sm text-admin-ink/85 transition hover:border-admin-green/40 hover:text-admin-green"
           >
             Cancel
           </button>
