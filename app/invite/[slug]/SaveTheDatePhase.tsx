@@ -126,7 +126,7 @@ export default function SaveTheDatePhase({
         }
       `}</style>
 
-      {/* ── HERO — teaser only: greeting, names, "are getting married!!", photo. No date/venue. ── */}
+      {/* ── HERO — teaser only: greeting, names, "are getting married!", photo. No date/venue. ── */}
       <header
         style={{
           position: 'relative',
@@ -223,7 +223,7 @@ export default function SaveTheDatePhase({
                     marginTop: TYPE.married.marginTop,
                   }}
                 >
-                  are getting married!!
+                  are getting married!
                 </div>
               </div>
             </Reveal>

@@ -13,12 +13,14 @@ import {
   Hr,
 } from 'react-email';
 
+export type BodyBlock = { type: 'text'; content: string } | { type: 'cta' };
+
 export interface EmailWrapperProps {
   previewText: string;
   eyebrow: string;
   weddingDate: string;
   venue: string;
-  bodyText: string;
+  bodyBlocks: BodyBlock[];
   inviteLink: string;
   ctaLabel?: string;
 }
@@ -51,6 +53,19 @@ const sansFontStack =
   '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
 const serifFontStack = 'Georgia, "Times New Roman", serif';
 
+// `white-space: pre-line` isn't reliably honoured by email clients (notably
+// Outlook's Word rendering engine ignores it), so line breaks are emitted as
+// literal <br/> tags instead — those work everywhere. A blank line (\n\n)
+// naturally becomes two consecutive <br/>s via the empty string between them.
+function renderWithLineBreaks(content: string): React.ReactNode {
+  return content.split('\n').map((line, i, lines) => (
+    <span key={i}>
+      {line}
+      {i < lines.length - 1 && <br />}
+    </span>
+  ));
+}
+
 // Code-owned brand shell. Template content (subject/body) is the only thing the
 // admin can edit — the invite link, date, and venue below are always engine-injected.
 export default function EmailWrapper({
@@ -58,7 +73,7 @@ export default function EmailWrapper({
   eyebrow,
   weddingDate,
   venue,
-  bodyText,
+  bodyBlocks,
   inviteLink,
   ctaLabel = 'See the details',
 }: EmailWrapperProps) {
@@ -86,43 +101,55 @@ export default function EmailWrapper({
 
           <Section style={{ backgroundColor: bone, padding: '48px 48px 40px' }}>
 
-            {/* Merged body content slot */}
-            <Text
-              style={{
-                margin: '0 0 36px',
-                fontSize: '15px',
-                color: ink,
-                fontFamily: sansFontStack,
-                lineHeight: '1.75',
-                whiteSpace: 'pre-line',
-              }}
-            >
-              {bodyText}
-            </Text>
-
-            {/* CTA — link is always engine-injected, never from template content */}
-            <Row>
-              <Column style={{ textAlign: 'center' }}>
-                <Button
-                  href={inviteLink}
+            {/* Body content — {{cta_button}} paragraphs become a Button at that
+                position; if the tag isn't present anywhere, no button renders. */}
+            {bodyBlocks.map((block, index) => {
+              if (block.type === 'cta') {
+                // Only the default "button trails the body" position relies on the
+                // tagline's own top margin for spacing (unchanged from before this
+                // feature). A button placed mid-body needs its own bottom margin
+                // since the next text block carries none of its own.
+                const isFollowedByMoreContent = index < bodyBlocks.length - 1;
+                return (
+                  <Row key={index} style={isFollowedByMoreContent ? { marginBottom: '36px' } : undefined}>
+                    <Column style={{ textAlign: 'center' }}>
+                      <Button
+                        href={inviteLink}
+                        style={{
+                          backgroundColor: persimmon,
+                          color: ink,
+                          padding: '14px 36px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          letterSpacing: '2px',
+                          textTransform: 'uppercase',
+                          textDecoration: 'none',
+                          fontFamily: sansFontStack,
+                          boxSizing: 'border-box',
+                          display: 'inline-block',
+                        }}
+                      >
+                        {ctaLabel}
+                      </Button>
+                    </Column>
+                  </Row>
+                );
+              }
+              return (
+                <Text
+                  key={index}
                   style={{
-                    backgroundColor: persimmon,
+                    margin: '0 0 36px',
+                    fontSize: '15px',
                     color: ink,
-                    padding: '14px 36px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    letterSpacing: '2px',
-                    textTransform: 'uppercase',
-                    textDecoration: 'none',
                     fontFamily: sansFontStack,
-                    boxSizing: 'border-box',
-                    display: 'inline-block',
+                    lineHeight: '1.75',
                   }}
                 >
-                  {ctaLabel}
-                </Button>
-              </Column>
-            </Row>
+                  {renderWithLineBreaks(block.content)}
+                </Text>
+              );
+            })}
 
             {/* Tagline */}
             <Text
@@ -189,7 +216,13 @@ EmailWrapper.PreviewProps = {
   eyebrow: 'Save the Date',
   weddingDate: '10 July 2027',
   venue: 'Melbourne',
-  bodyText:
-    "Hi James,\n\nWe can't wait to celebrate with you. Mark your calendar — your personal invitation, with all the details you need, is ready below.",
+  bodyBlocks: [
+    {
+      type: 'text',
+      content:
+        "Hi James,\n\nWe can't wait to celebrate with you. Mark your calendar — your personal invitation, with all the details you need, is ready below.",
+    },
+    { type: 'cta' },
+  ],
   inviteLink: 'https://www.mattandraff.com/invite/sample',
 } satisfies EmailWrapperProps;

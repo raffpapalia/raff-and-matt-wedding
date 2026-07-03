@@ -3,6 +3,7 @@ import { render } from 'react-email';
 import { supabaseServer, getSettings, type PhaseName } from '@/lib/supabase';
 import { resolveMergeTags } from './mergeTags';
 import { getWrapperForTemplate } from './wrapperRegistry';
+import type { BodyBlock } from '@/emails/EmailWrapper';
 
 // Duplicated from sendEmail.tsx rather than imported, to avoid a circular import
 // (sendEmail.tsx imports renderEmailTemplate from this file).
@@ -56,6 +57,40 @@ export async function loadEmailTemplate(key: string): Promise<EmailTemplateRow |
   return data as EmailTemplateRow;
 }
 
+// A paragraph consisting of exactly this literal (once trimmed) becomes a Button
+// instead of text. Checked BEFORE resolveMergeTags() so the generic {{word}} pass
+// (which blanks out any key not in mergeValues) never gets a chance to consume it.
+// If the token is embedded inside a paragraph with other content, it does NOT
+// match here and falls through to resolveMergeTags() like any other unknown tag —
+// i.e. it silently resolves to an empty string rather than rendering a button.
+const CTA_BUTTON_TOKEN = '{{cta_button}}';
+
+// Splits on blank-line boundaries (matching the whitespace:pre-line rendering the
+// body previously relied on), pulls out cta_button paragraphs as their own block,
+// and re-joins consecutive text paragraphs with '\n\n' so unrelated body copy
+// still renders as one merged block exactly as it did before this existed.
+function buildBodyBlocks(rawBody: string, mergeValues: Record<string, string>): BodyBlock[] {
+  const paragraphs = rawBody.split(/\n\s*\n/);
+  const blocks: BodyBlock[] = [];
+
+  for (const paragraph of paragraphs) {
+    if (paragraph.trim() === CTA_BUTTON_TOKEN) {
+      blocks.push({ type: 'cta' });
+      continue;
+    }
+
+    const resolved = resolveMergeTags(paragraph, mergeValues);
+    const previous = blocks[blocks.length - 1];
+    if (previous?.type === 'text') {
+      previous.content = `${previous.content}\n\n${resolved}`;
+    } else {
+      blocks.push({ type: 'text', content: resolved });
+    }
+  }
+
+  return blocks;
+}
+
 function formatWeddingDate(isoDate: string): string {
   try {
     return new Date(isoDate + 'T00:00:00Z').toLocaleDateString('en-AU', {
@@ -84,7 +119,7 @@ async function renderWithWrapper(
   };
 
   const resolvedSubject = resolveMergeTags(subject, mergeValues);
-  const bodyText = resolveMergeTags(body, mergeValues);
+  const bodyBlocks = buildBodyBlocks(body, mergeValues);
   const inviteLink = `${EMAIL_LINK_BASE}/invite/${householdSlug}`;
 
   const Wrapper = getWrapperForTemplate(templateKey);
@@ -94,7 +129,7 @@ async function renderWithWrapper(
       eyebrow: EYEBROW_LABELS[templateKey] ?? 'Matt & Raff',
       weddingDate,
       venue: settings.venue_name,
-      bodyText,
+      bodyBlocks,
       inviteLink,
     })
   );

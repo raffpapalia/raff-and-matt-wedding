@@ -12,6 +12,7 @@ const MERGE_TAGS: Array<{ tag: string; hint: string }> = [
   { tag: '{{first_name}}', hint: "Guest's first name" },
   { tag: '{{wedding_date}}', hint: 'Wedding date, formatted' },
   { tag: '{{venue}}', hint: 'Venue name' },
+  { tag: '{{cta_button}}', hint: 'Invite button — must be on its own line' },
 ];
 
 const SMS_MERGE_TAGS: Array<{ tag: string; hint: string }> = [
@@ -393,7 +394,9 @@ function TemplateCard({
             <p className="mb-2 font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50">Merge tags</p>
             <MergeTagChips tags={MERGE_TAGS} />
             <p className="mt-2 font-dm-sans text-xs text-admin-ink/40">
-              The invite button is added automatically below the body — you don&apos;t need to add a link yourself.
+              The invite button renders wherever <code>{'{{cta_button}}'}</code> appears on its own line in the
+              body, and is left out entirely if you don&apos;t include it. The other tags above can sit inline
+              within a sentence.
             </p>
           </div>
 
