@@ -100,6 +100,7 @@ interface HouseholdFormData {
   personal_photo_url?: string | null;
   plus_one_allowance: number;
   guests?: Array<{
+    id?: string;
     first_name: string;
     last_name: string;
     is_child: boolean;
@@ -120,6 +121,7 @@ interface HouseholdNavItem {
 
 function makeGuestState(g: NonNullable<HouseholdFormData['guests']>[number]) {
   return {
+    id: g.id,
     firstName: g.first_name,
     lastName: g.last_name,
     isChild: Boolean(g.is_child),
@@ -134,6 +136,7 @@ function makeGuestState(g: NonNullable<HouseholdFormData['guests']>[number]) {
 }
 
 const blankGuest = {
+  id: undefined as string | undefined,
   firstName: '',
   lastName: '',
   isChild: false,
@@ -335,6 +338,7 @@ export default function EditHouseholdForm({
         formData.append('thank_you_message', thankYouMessage || '');
         formData.append('plus_one_allowance', String(plusOneAllowance));
         formData.append('guests', JSON.stringify(guests.map((guest, idx) => ({
+          id: guest.id,
           first_name: guest.firstName,
           last_name: guest.lastName,
           is_child: guest.isChild,

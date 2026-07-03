@@ -76,11 +76,44 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
     }
 
-    // replace guests: delete + insert
-    await supabaseServer.from('guests').delete().eq('household_id', id);
+    // sync guests: update existing rows in place (by id), insert new ones,
+    // and only delete rows that were actually removed from the form. A
+    // previous version of this handler deleted every guest for the
+    // household and re-inserted them from scratch; if that delete failed
+    // (e.g. a guest had communications logged against them and the FK
+    // constraint rejected the delete) the error was never checked, so the
+    // insert ran anyway and produced duplicate guests.
     const guests = JSON.parse(String(formData.get('guests') ?? '[]'));
-    if (Array.isArray(guests) && guests.length > 0) {
-      const guestsToInsert = guests.map((g: any) => ({
+    const guestList = Array.isArray(guests) ? guests : [];
+
+    const existingGuestsRes = await supabaseServer.from('guests').select('id').eq('household_id', id);
+    if (existingGuestsRes.error) {
+      console.error('[admin:guests:patch] load existing guests error', existingGuestsRes.error);
+      return NextResponse.json({ message: 'Failed to load existing guests', error: { message: existingGuestsRes.error.message, code: existingGuestsRes.error.code, details: existingGuestsRes.error.details } }, { status: 500 });
+    }
+    const existingIds = new Set((existingGuestsRes.data ?? []).map((g: { id: string }) => g.id));
+
+    const incomingIds = new Set(
+      guestList.filter((g: any) => g.id && existingIds.has(g.id)).map((g: any) => g.id as string)
+    );
+    const idsToDelete = [...existingIds].filter((gid) => !incomingIds.has(gid));
+
+    if (idsToDelete.length > 0) {
+      const delRes = await supabaseServer.from('guests').delete().in('id', idsToDelete);
+      if (delRes.error) {
+        console.error('[admin:guests:patch] delete removed guests error', {
+          operation: 'delete removed guests',
+          error: delRes.error,
+          payload: { household_id: id, idsToDelete },
+        });
+        return NextResponse.json({ message: 'Failed to remove guests', error: { message: delRes.error.message, code: delRes.error.code, details: delRes.error.details } }, { status: 500 });
+      }
+    }
+
+    const toUpdate: any[] = [];
+    const toInsert: any[] = [];
+    for (const g of guestList) {
+      const row = {
         household_id: id,
         first_name: g.first_name,
         last_name: g.last_name,
@@ -93,18 +126,35 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         mobile: g.mobile || null,
         comms_email: g.comms_email !== false,
         comms_sms: g.comms_sms !== false,
-      }));
-      const gRes = await supabaseServer.from('guests').insert(guestsToInsert);
-      if (gRes.error) {
+      };
+      if (g.id && existingIds.has(g.id)) {
+        toUpdate.push({ id: g.id, ...row });
+      } else {
+        toInsert.push(row);
+      }
+    }
+
+    if (toUpdate.length > 0) {
+      const upRes = await supabaseServer.from('guests').upsert(toUpdate, { onConflict: 'id' });
+      if (upRes.error) {
+        console.error('[admin:guests:patch] update guests error', {
+          operation: 'update guests',
+          error: upRes.error,
+          payload: { household_id: id, guests: toUpdate },
+        });
+        return NextResponse.json({ message: 'Failed to update guests', error: { message: upRes.error.message, code: upRes.error.code, details: upRes.error.details } }, { status: 500 });
+      }
+    }
+
+    if (toInsert.length > 0) {
+      const insRes = await supabaseServer.from('guests').insert(toInsert);
+      if (insRes.error) {
         console.error('[admin:guests:patch] insert guests error', {
           operation: 'insert guests',
-          error: gRes.error,
-          payload: {
-            household_id: id,
-            guests: guestsToInsert,
-          },
+          error: insRes.error,
+          payload: { household_id: id, guests: toInsert },
         });
-        return NextResponse.json({ message: 'Failed to update guests', error: { message: gRes.error.message, code: gRes.error.code, details: gRes.error.details } }, { status: 500 });
+        return NextResponse.json({ message: 'Failed to update guests', error: { message: insRes.error.message, code: insRes.error.code, details: insRes.error.details } }, { status: 500 });
       }
     }
 
