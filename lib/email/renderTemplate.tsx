@@ -60,15 +60,16 @@ export async function loadEmailTemplate(key: string): Promise<EmailTemplateRow |
 // A paragraph consisting of exactly this literal (once trimmed) becomes a Button
 // instead of text. Checked BEFORE resolveMergeTags() so the generic {{word}} pass
 // (which blanks out any key not in mergeValues) never gets a chance to consume it.
-// If the token is embedded inside a paragraph with other content, it does NOT
-// match here and falls through to resolveMergeTags() like any other unknown tag —
-// i.e. it silently resolves to an empty string rather than rendering a button.
+// If the token is embedded inside a paragraph with other content, it does NOT match
+// here — but "cta_button" is passed to resolveMergeTags() as a preserved key, so it
+// falls through as literal visible text ("{{cta_button}}") rather than being blanked
+// out like a genuinely unknown tag would be.
 const CTA_BUTTON_TOKEN = '{{cta_button}}';
 
-// Splits on blank-line boundaries (matching the whitespace:pre-line rendering the
-// body previously relied on), pulls out cta_button paragraphs as their own block,
-// and re-joins consecutive text paragraphs with '\n\n' so unrelated body copy
-// still renders as one merged block exactly as it did before this existed.
+// Splits on blank-line boundaries (matching the literal-<br/> rendering the body
+// relies on), pulls out cta_button paragraphs as their own block, and re-joins
+// consecutive text paragraphs with '\n\n' so unrelated body copy still renders as
+// one merged block exactly as it did before this existed.
 function buildBodyBlocks(rawBody: string, mergeValues: Record<string, string>): BodyBlock[] {
   const paragraphs = rawBody.split(/\n\s*\n/);
   const blocks: BodyBlock[] = [];
@@ -79,7 +80,7 @@ function buildBodyBlocks(rawBody: string, mergeValues: Record<string, string>): 
       continue;
     }
 
-    const resolved = resolveMergeTags(paragraph, mergeValues);
+    const resolved = resolveMergeTags(paragraph, mergeValues, ['cta_button']);
     const previous = blocks[blocks.length - 1];
     if (previous?.type === 'text') {
       previous.content = `${previous.content}\n\n${resolved}`;

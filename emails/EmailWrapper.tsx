@@ -1,7 +1,6 @@
 import {
   Html,
   Head,
-  Font,
   Preview,
   Body,
   Container,
@@ -34,9 +33,8 @@ const persimmon = '#F2603C';
 const ink = '#0B2118';
 const violet = '#8E7CC3';
 
-// Muted tints derived from the palette above for secondary text — kept as
+// Muted tint derived from the palette above for secondary text — kept as
 // solid hex (no rgba) so colour holds up in Outlook's Word rendering engine.
-const boneMuted = '#C9BFA1';
 const inkMuted = '#6B7268';
 
 const edgeDividerStyle: React.CSSProperties = {
@@ -52,6 +50,37 @@ const edgeDividerStyle: React.CSSProperties = {
 const sansFontStack =
   '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
 const serifFontStack = 'Georgia, "Times New Roman", serif';
+
+// One consistent gap between every paragraph-level element (text blocks, the CTA
+// button, the tagline) — no element gets its own separate/special-cased margin.
+const paragraphGap = '18px';
+
+// react-email's <Font> component always injects a `* { font-family: ... }` rule
+// alongside its @font-face — harmless for elements that set their own inline
+// fontFamily (all of ours do), EXCEPT it directly matches every other element
+// with no font-family override of its own, like the <span> line-break wrappers
+// below, overriding what they'd otherwise inherit from their parent. Since the
+// last-declared @font-face's `*` rule wins the cascade, that made ALL body text
+// resolve to the italic face in real browsers (e.g. this admin preview iframe) —
+// invisible in Gmail only because Gmail doesn't support @font-face at all and
+// silently falls back to Georgia. Declaring the @font-face rules directly here,
+// without the `*` selector, avoids the footgun entirely.
+const fontFaceStyle = `
+  @font-face {
+    font-family: 'Fraunces Email';
+    font-style: normal;
+    font-weight: 900;
+    mso-font-alt: 'Georgia';
+    src: url(https://mattandraff.com/fonts/fraunces-email-normal.woff2) format('woff2');
+  }
+  @font-face {
+    font-family: 'Fraunces Email Italic';
+    font-style: italic;
+    font-weight: 600;
+    mso-font-alt: 'Georgia';
+    src: url(https://mattandraff.com/fonts/fraunces-email-italic.woff2) format('woff2');
+  }
+`;
 
 // `white-space: pre-line` isn't reliably honoured by email clients (notably
 // Outlook's Word rendering engine ignores it), so line breaks are emitted as
@@ -80,20 +109,7 @@ export default function EmailWrapper({
   return (
     <Html lang="en">
       <Head>
-        <Font
-          fontFamily="Fraunces Email"
-          fallbackFontFamily="Georgia"
-          webFont={{ url: 'https://mattandraff.com/fonts/fraunces-email-normal.woff2', format: 'woff2' }}
-          fontWeight={900}
-          fontStyle="normal"
-        />
-        <Font
-          fontFamily="Fraunces Email Italic"
-          fallbackFontFamily="Georgia"
-          webFont={{ url: 'https://mattandraff.com/fonts/fraunces-email-italic.woff2', format: 'woff2' }}
-          fontWeight={600}
-          fontStyle="italic"
-        />
+        <style dangerouslySetInnerHTML={{ __html: fontFaceStyle }} />
       </Head>
       <Preview>{previewText}</Preview>
       <Body style={{ backgroundColor: bone, margin: 0, padding: '40px 0' }}>
@@ -105,13 +121,8 @@ export default function EmailWrapper({
                 position; if the tag isn't present anywhere, no button renders. */}
             {bodyBlocks.map((block, index) => {
               if (block.type === 'cta') {
-                // Only the default "button trails the body" position relies on the
-                // tagline's own top margin for spacing (unchanged from before this
-                // feature). A button placed mid-body needs its own bottom margin
-                // since the next text block carries none of its own.
-                const isFollowedByMoreContent = index < bodyBlocks.length - 1;
                 return (
-                  <Row key={index} style={isFollowedByMoreContent ? { marginBottom: '36px' } : undefined}>
+                  <Row key={index} style={{ marginBottom: paragraphGap }}>
                     <Column style={{ textAlign: 'center' }}>
                       <Button
                         href={inviteLink}
@@ -139,7 +150,7 @@ export default function EmailWrapper({
                 <Text
                   key={index}
                   style={{
-                    margin: '0 0 36px',
+                    margin: `0 0 ${paragraphGap}`,
                     fontSize: '15px',
                     color: ink,
                     fontFamily: sansFontStack,
@@ -151,10 +162,11 @@ export default function EmailWrapper({
               );
             })}
 
-            {/* Tagline */}
+            {/* Tagline — no margin of its own; the block above it (text or cta)
+                already supplies paragraphGap via its own bottom margin. */}
             <Text
               style={{
-                margin: '36px 0 0',
+                margin: 0,
                 textAlign: 'center',
                 fontSize: '13px',
                 fontStyle: 'italic',
@@ -167,11 +179,14 @@ export default function EmailWrapper({
 
           </Section>
 
-          {/* Footer band — wordmark, no hashtag */}
+          {/* Footer band — wordmark only. No hashtag, no link/URL text: plain
+              "mattandraff.com" text was being auto-linkified by Gmail (default
+              blue/underline styling applied regardless of our own color), so
+              it's removed outright rather than merely restyled. */}
           <Section style={{ backgroundColor: deepGreen, padding: '36px 48px 40px' }}>
             <Text
               style={{
-                margin: '0 0 6px',
+                margin: 0,
                 textAlign: 'center',
                 fontSize: '32px',
                 lineHeight: '1',
@@ -187,18 +202,6 @@ export default function EmailWrapper({
               <span style={{ fontFamily: 'Fraunces Email, Georgia, serif', fontWeight: 900, color: violet }}>
                 Raff
               </span>
-            </Text>
-            <Text
-              style={{
-                margin: 0,
-                textAlign: 'center',
-                fontSize: '11px',
-                letterSpacing: '1px',
-                color: boneMuted,
-                fontFamily: sansFontStack,
-              }}
-            >
-              mattandraff.com
             </Text>
           </Section>
 
