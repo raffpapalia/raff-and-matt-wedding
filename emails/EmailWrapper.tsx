@@ -1,6 +1,7 @@
 import {
   Html,
   Head,
+  Font,
   Preview,
   Body,
   Container,
@@ -22,12 +23,14 @@ export interface EmailWrapperProps {
   ctaLabel?: string;
 }
 
-// v4 "Admit Two" palette.
-const deepGreen = '#0B2E22';
+// v4 "Admit Two" palette — kept in sync with --green-deep/--persimmon/--ink/--bone/--violet
+// in app/globals.css .mr-v4 and app/invite/[slug]/v4/tokens.ts.
+const deepGreen = '#0F4331';
 const bone = '#F6EEDD';
 const gold = '#E2B23C';
 const persimmon = '#F2603C';
 const ink = '#0B2118';
+const violet = '#8E7CC3';
 
 // Muted tints derived from the palette above for secondary text — kept as
 // solid hex (no rgba) so colour holds up in Outlook's Word rendering engine.
@@ -42,16 +45,6 @@ const edgeDividerStyle: React.CSSProperties = {
   borderLeftWidth: 0,
   borderRightWidth: 0,
   margin: 0,
-};
-
-const dividerStyle: React.CSSProperties = {
-  borderTopStyle: 'solid',
-  borderTopColor: gold,
-  borderTopWidth: '1px',
-  borderBottomWidth: 0,
-  borderLeftWidth: 0,
-  borderRightWidth: 0,
-  margin: '0 0 32px',
 };
 
 const sansFontStack =
@@ -71,82 +64,27 @@ export default function EmailWrapper({
 }: EmailWrapperProps) {
   return (
     <Html lang="en">
-      <Head />
+      <Head>
+        <Font
+          fontFamily="Fraunces Email"
+          fallbackFontFamily="Georgia"
+          webFont={{ url: 'https://mattandraff.com/fonts/fraunces-email-normal.woff2', format: 'woff2' }}
+          fontWeight={900}
+          fontStyle="normal"
+        />
+        <Font
+          fontFamily="Fraunces Email Italic"
+          fallbackFontFamily="Georgia"
+          webFont={{ url: 'https://mattandraff.com/fonts/fraunces-email-italic.woff2', format: 'woff2' }}
+          fontWeight={600}
+          fontStyle="italic"
+        />
+      </Head>
       <Preview>{previewText}</Preview>
       <Body style={{ backgroundColor: bone, margin: 0, padding: '40px 0' }}>
         <Container style={{ maxWidth: '560px', margin: '0 auto', backgroundColor: bone }}>
 
-          {/* Top gold rule */}
-          <Hr style={edgeDividerStyle} />
-
-          {/* Header band */}
-          <Section style={{ backgroundColor: deepGreen, padding: '48px 48px 8px' }}>
-
-            {/* Eyebrow */}
-            <Text
-              style={{
-                margin: '0 0 20px',
-                textAlign: 'center',
-                fontSize: '11px',
-                letterSpacing: '5px',
-                textTransform: 'uppercase',
-                color: gold,
-                fontFamily: sansFontStack,
-              }}
-            >
-              {eyebrow}
-            </Text>
-
-            {/* Couple names */}
-            <Text
-              style={{
-                margin: '0 0 10px',
-                textAlign: 'center',
-                fontSize: '54px',
-                lineHeight: '1',
-                fontWeight: 700,
-                fontFamily: serifFontStack,
-                color: bone,
-                letterSpacing: '-0.5px',
-              }}
-            >
-              Matt <span style={{ color: persimmon }}>&amp;</span> Raff
-            </Text>
-
-            {/* Date */}
-            <Text
-              style={{
-                margin: '0 0 8px',
-                textAlign: 'center',
-                fontSize: '20px',
-                color: boneMuted,
-                fontFamily: serifFontStack,
-                letterSpacing: '1px',
-              }}
-            >
-              {weddingDate}
-            </Text>
-
-            {/* Venue */}
-            <Text
-              style={{
-                margin: '0 0 36px',
-                textAlign: 'center',
-                fontSize: '11px',
-                letterSpacing: '4px',
-                textTransform: 'uppercase',
-                color: boneMuted,
-                fontFamily: sansFontStack,
-              }}
-            >
-              {venue}
-            </Text>
-
-            <Hr style={dividerStyle} />
-
-          </Section>
-
-          <Section style={{ backgroundColor: bone, padding: '0 48px 40px' }}>
+          <Section style={{ backgroundColor: bone, padding: '48px 48px 40px' }}>
 
             {/* Merged body content slot */}
             <Text
@@ -202,20 +140,38 @@ export default function EmailWrapper({
 
           </Section>
 
-          {/* Footer band */}
-          <Section style={{ backgroundColor: deepGreen, padding: '20px 48px 40px' }}>
+          {/* Footer band — wordmark, no hashtag */}
+          <Section style={{ backgroundColor: deepGreen, padding: '36px 48px 40px' }}>
+            <Text
+              style={{
+                margin: '0 0 6px',
+                textAlign: 'center',
+                fontSize: '32px',
+                lineHeight: '1',
+                letterSpacing: '-0.5px',
+              }}
+            >
+              <span style={{ fontFamily: 'Fraunces Email, Georgia, serif', fontWeight: 900, color: violet }}>
+                Matt
+              </span>
+              <span style={{ fontFamily: 'Fraunces Email Italic, Georgia, serif', fontStyle: 'italic', fontWeight: 600, color: persimmon }}>
+                {' '}&amp;{' '}
+              </span>
+              <span style={{ fontFamily: 'Fraunces Email, Georgia, serif', fontWeight: 900, color: violet }}>
+                Raff
+              </span>
+            </Text>
             <Text
               style={{
                 margin: 0,
                 textAlign: 'center',
                 fontSize: '11px',
-                letterSpacing: '3px',
-                textTransform: 'uppercase',
-                color: bone,
+                letterSpacing: '1px',
+                color: boneMuted,
                 fontFamily: sansFontStack,
               }}
             >
-              #mattraff2027
+              mattandraff.com
             </Text>
           </Section>
 
