@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { supabase, getSettings } from '@/lib/supabase';
 import { isAdminAuthenticated } from '@/lib/adminAuth';
 
@@ -245,7 +246,11 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
             <h2 className="mt-1 mb-6 text-xl font-semibold text-admin-ink">Guests by tag</h2>
             <div className="flex flex-wrap gap-3">
               {dashboard.tagBreakdown.map((t) => (
-                <div key={t.tag} className="min-w-[180px] rounded-2xl border border-admin-sand/30 bg-admin-bone/40 px-5 py-4">
+                <Link
+                  key={t.tag}
+                  href={`/admin/guests?tag=${encodeURIComponent(t.tag)}`}
+                  className="min-w-[180px] rounded-2xl border border-admin-sand/30 bg-admin-bone/40 px-5 py-4 transition hover:border-admin-green/40 hover:bg-admin-bone/70"
+                >
                   <p className="text-xs uppercase tracking-[0.2em] text-admin-green">{t.tag}</p>
                   <p className="mt-2 text-3xl font-semibold text-admin-ink">{t.households}</p>
                   <p className="text-xs text-admin-ink/60">
@@ -254,7 +259,7 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
                   <p className="mt-2 text-xs text-admin-ink/70">
                     {t.attending} attending · {t.declined} declined · {t.pending} pending
                   </p>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

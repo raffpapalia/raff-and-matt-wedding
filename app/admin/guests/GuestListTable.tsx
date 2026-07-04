@@ -8,6 +8,7 @@ type GuestRow = {
   name: string;
   slug: string;
   shortCode: string;
+  tags: string[];
   guestNames: string[];
   invited: number;
   attending: number;
@@ -204,9 +205,9 @@ function DeleteConfirmModal({
   );
 }
 
-export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[] }) {
+export default function GuestListTable({ rows: initialRows, initialQuery }: { rows: GuestRow[]; initialQuery?: string }) {
   const [rows, setRows] = useState(initialRows);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery ?? '');
   const [activeTab, setActiveTab] = useState<typeof tabKeys[number]>('all');
   const [page, setPage] = useState(0);
   const [sortKey, setSortKey] = useState<SortKey>('household');
@@ -250,7 +251,9 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
   const filteredRows = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return rows.filter((row) => {
-      const matchesQuery = row.name.toLowerCase().includes(normalizedQuery);
+      const matchesQuery =
+        row.name.toLowerCase().includes(normalizedQuery) ||
+        row.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery));
       if (!matchesQuery) return false;
 
       if (activeTab === 'confirmed') {
@@ -298,7 +301,7 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
                 setQuery(event.target.value);
                 setPage(0);
               }}
-              placeholder="Search households…"
+              placeholder="Search households or tags…"
               className="w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green"
             />
           </label>
@@ -374,6 +377,23 @@ export default function GuestListTable({ rows: initialRows }: { rows: GuestRow[]
                     </Link>
                     <p className="mt-1 text-xs text-admin-ink/40">invite/{row.slug}</p>
                     {row.shortCode ? <p className="text-xs text-admin-ink/40">i/{row.shortCode}</p> : null}
+                    {row.tags.length > 0 ? (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {row.tags.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => {
+                              setQuery(tag);
+                              setPage(0);
+                            }}
+                            className="rounded-full border border-admin-sand/40 bg-admin-bone/40 px-2.5 py-0.5 text-[11px] text-admin-ink/60 transition hover:border-admin-green/40 hover:text-admin-green"
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                     <div className="mt-2 sm:hidden">
                       <RsvpSummary attending={row.attending} declined={row.declined} pending={row.pending} />
                     </div>

@@ -2,8 +2,13 @@ import { requireAdminAuth } from '@/lib/adminAuth';
 import { supabase } from '@/lib/supabase';
 import GuestListTable from '@/app/admin/guests/GuestListTable';
 
-export default async function AdminGuestsPage() {
+export default async function AdminGuestsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ tag?: string }> | { tag?: string };
+}) {
   await requireAdminAuth();
+  const params = searchParams instanceof Promise ? await searchParams : (searchParams ?? {});
 
   const [householdsRes, tagsRes, guestsRes] = await Promise.all([
     supabase.from('households').select('id,name,slug,short_code,personal_message,thank_you_message,thank_you_photo_url,link_open_count,link_first_opened_at').order('created_at', { ascending: false }),
@@ -67,7 +72,7 @@ export default async function AdminGuestsPage() {
           </div>
         </div>
       </div>
-      <GuestListTable rows={rows} />
+      <GuestListTable rows={rows} initialQuery={params.tag} />
       <div className="rounded-3xl border border-admin-sand/20 bg-white p-8 text-admin-ink/70">
         <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Tip</p>
         <p className="mt-3 text-sm leading-7">Use the link buttons to copy invite URLs directly, then paste them into your communications or SMS messages.</p>
