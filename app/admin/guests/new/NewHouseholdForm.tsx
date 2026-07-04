@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import PhotoUpload from '../../components/PhotoUpload';
 
 const dietaryOptions = [
@@ -59,6 +60,16 @@ function validateMobile(mobile: string, commsSms: boolean, firstName: string): s
 type GuestErrors = { email?: string; mobile?: string };
 type SlugStatus = 'idle' | 'checking' | 'available' | 'taken';
 
+type HouseholdMatch = { id: string; name: string; slug: string };
+type GuestMatch = {
+  guestId: string;
+  guestName: string;
+  householdId: string;
+  householdName: string;
+  slug: string;
+  matchType: 'name' | 'email' | 'mobile';
+};
+
 const fieldClass = 'w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green';
 const labelClass = 'block space-y-2 text-sm text-admin-ink/85';
 const helperClass = 'text-xs text-admin-ink/45';
@@ -69,6 +80,40 @@ function SectionHeading({ title }: { title: string }) {
 
 function SectionDivider() {
   return <div className="border-t border-admin-sand/20" />;
+}
+
+const matchTypeLabel: Record<GuestMatch['matchType'], string> = {
+  name: 'name',
+  email: 'email address',
+  mobile: 'mobile number',
+};
+
+function HouseholdDuplicateWarning({ matches }: { matches: HouseholdMatch[] }) {
+  if (!matches.length) return null;
+  return (
+    <div className="rounded-2xl bg-admin-warning/10 px-4 py-3 text-sm text-admin-warning">
+      ⚠ A household named &ldquo;{matches[0].name}&rdquo; already exists —{' '}
+      <Link href={`/admin/guests/${matches[0].id}/edit`} className="underline hover:no-underline" target="_blank">
+        view household
+      </Link>
+    </div>
+  );
+}
+
+function GuestDuplicateWarning({ matches }: { matches: GuestMatch[] }) {
+  if (!matches.length) return null;
+  return (
+    <div className="space-y-1">
+      {matches.map((match) => (
+        <p key={`${match.guestId}-${match.matchType}`} className="text-xs text-admin-warning">
+          ⚠ Matches the {matchTypeLabel[match.matchType]} of {match.guestName} in{' '}
+          <Link href={`/admin/guests/${match.householdId}/edit`} className="underline hover:no-underline" target="_blank">
+            {match.householdName || 'another household'}
+          </Link>
+        </p>
+      ))}
+    </div>
+  );
 }
 
 export default function NewHouseholdForm() {
@@ -84,6 +129,8 @@ export default function NewHouseholdForm() {
   const [personalPhotoUrl, setPersonalPhotoUrl] = useState<string | null>(null);
   const [guests, setGuests] = useState([initialGuest]);
   const [guestErrors, setGuestErrors] = useState<GuestErrors[]>([{}]);
+  const [householdMatches, setHouseholdMatches] = useState<HouseholdMatch[]>([]);
+  const [guestMatches, setGuestMatches] = useState<GuestMatch[][]>([[]]);
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -117,6 +164,55 @@ export default function NewHouseholdForm() {
       setSlugStatus(json?.available ? 'available' : 'taken');
     } catch {
       setSlugStatus('idle');
+    }
+  };
+
+  const handleHouseholdNameBlur = async () => {
+    if (!householdName.trim()) {
+      setHouseholdMatches([]);
+      return;
+    }
+    try {
+      const res = await fetch(`/admin/api/guests/check-duplicates?type=household&name=${encodeURIComponent(householdName.trim())}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      setHouseholdMatches(Array.isArray(json?.matches) ? json.matches : []);
+    } catch {
+      // ignore — duplicate check is best-effort
+    }
+  };
+
+  const checkGuestDuplicate = async (index: number) => {
+    const guest = guests[index];
+    if (!guest) return;
+    const params = new URLSearchParams({ type: 'guest' });
+    if (guest.firstName.trim() && guest.lastName.trim()) {
+      params.set('firstName', guest.firstName.trim());
+      params.set('lastName', guest.lastName.trim());
+    }
+    if (guest.email.trim()) params.set('email', guest.email.trim());
+    if (guest.mobile.trim()) params.set('mobile', guest.mobile.trim());
+
+    if (!params.has('firstName') && !params.has('email') && !params.has('mobile')) {
+      setGuestMatches((prev) => {
+        const next = [...prev];
+        next[index] = [];
+        return next;
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch(`/admin/api/guests/check-duplicates?${params.toString()}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      setGuestMatches((prev) => {
+        const next = [...prev];
+        next[index] = Array.isArray(json?.matches) ? json.matches : [];
+        return next;
+      });
+    } catch {
+      // ignore — duplicate check is best-effort
     }
   };
 
@@ -166,11 +262,13 @@ export default function NewHouseholdForm() {
   const addGuest = () => {
     setGuests((prev) => [...prev, { ...initialGuest }]);
     setGuestErrors((prev) => [...prev, {}]);
+    setGuestMatches((prev) => [...prev, []]);
   };
 
   const removeGuest = (index: number) => {
     setGuests((prev) => prev.filter((_, idx) => idx !== index));
     setGuestErrors((prev) => prev.filter((_, idx) => idx !== index));
+    setGuestMatches((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -251,11 +349,13 @@ export default function NewHouseholdForm() {
           <input
             value={householdName}
             onChange={(event) => setHouseholdName(event.target.value)}
+            onBlur={handleHouseholdNameBlur}
             className={fieldClass}
             placeholder="Smith family"
             required
           />
         </label>
+        <HouseholdDuplicateWarning matches={householdMatches} />
 
         <div className="space-y-2">
           <label className={labelClass}>
@@ -342,6 +442,7 @@ export default function NewHouseholdForm() {
                   <input
                     value={guest.firstName}
                     onChange={(event) => updateGuest(index, 'firstName', event.target.value)}
+                    onBlur={() => checkGuestDuplicate(index)}
                     className={fieldClass}
                     required
                   />
@@ -351,6 +452,7 @@ export default function NewHouseholdForm() {
                   <input
                     value={guest.lastName}
                     onChange={(event) => updateGuest(index, 'lastName', event.target.value)}
+                    onBlur={() => checkGuestDuplicate(index)}
                     className={fieldClass}
                     required
                   />
@@ -364,7 +466,10 @@ export default function NewHouseholdForm() {
                     type="email"
                     value={guest.email}
                     onChange={(event) => updateGuest(index, 'email', event.target.value)}
-                    onBlur={() => handleEmailBlur(index)}
+                    onBlur={() => {
+                      handleEmailBlur(index);
+                      checkGuestDuplicate(index);
+                    }}
                     className={fieldClass}
                     placeholder="Email address"
                   />
@@ -378,7 +483,10 @@ export default function NewHouseholdForm() {
                     type="tel"
                     value={guest.mobile}
                     onChange={(event) => updateGuest(index, 'mobile', event.target.value)}
-                    onBlur={() => handleMobileBlur(index)}
+                    onBlur={() => {
+                      handleMobileBlur(index);
+                      checkGuestDuplicate(index);
+                    }}
                     className={fieldClass}
                     placeholder="Mobile number"
                   />
@@ -387,6 +495,7 @@ export default function NewHouseholdForm() {
                   ) : null}
                 </label>
               </div>
+              <GuestDuplicateWarning matches={guestMatches[index] ?? []} />
 
               <div className="grid gap-4 lg:grid-cols-3 mb-4">
                 <label className={labelClass}>
