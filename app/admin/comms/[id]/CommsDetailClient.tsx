@@ -52,7 +52,9 @@ function RsvpBadge({ status }: { status: string }) {
 export default function CommsDetailClient({
   householdId,
   householdName: _householdName,
-  householdSlug: _householdSlug,
+  householdSlug,
+  linkOpenCount,
+  linkFirstOpenedAt,
   guests,
   comms,
   templates,
@@ -64,6 +66,8 @@ export default function CommsDetailClient({
   householdId: string;
   householdName: string;
   householdSlug: string;
+  linkOpenCount: number;
+  linkFirstOpenedAt: string | null;
   guests: DetailGuest[];
   comms: DetailComm[];
   templates: EmailTemplateRow[];
@@ -520,6 +524,7 @@ export default function CommsDetailClient({
           </p>
         </div>
 
+        <div className="space-y-8">
         {/* Send history */}
         <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
           <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Send history</p>
@@ -595,6 +600,40 @@ export default function CommsDetailClient({
               })}
             </div>
           )}
+        </div>
+
+        {/* Invite link activity */}
+        <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
+          <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Invite link</p>
+          <h2 className="mt-1 mb-6 text-xl font-semibold text-admin-ink">Link activity</h2>
+          <table className="w-full text-sm">
+            <tbody>
+              <tr className="border-t border-admin-sand/20">
+                <td className="py-3 pr-4 text-admin-ink/50">Status</td>
+                <td className="py-3 text-right font-medium text-admin-ink">
+                  {linkOpenCount > 0 ? 'Opened' : 'Not yet opened'}
+                </td>
+              </tr>
+              <tr className="border-t border-admin-sand/20">
+                <td className="py-3 pr-4 text-admin-ink/50">Times opened</td>
+                <td className="py-3 text-right font-medium text-admin-ink">{linkOpenCount}</td>
+              </tr>
+              <tr className="border-t border-admin-sand/20">
+                <td className="py-3 pr-4 text-admin-ink/50">First opened</td>
+                <td
+                  className="py-3 text-right font-medium text-admin-ink"
+                  title={linkFirstOpenedAt ? new Date(linkFirstOpenedAt).toLocaleString() : undefined}
+                >
+                  {linkFirstOpenedAt ? relativeTime(linkFirstOpenedAt) : '—'}
+                </td>
+              </tr>
+              <tr className="border-t border-admin-sand/20">
+                <td className="py-3 pr-4 text-admin-ink/50">Invite link</td>
+                <td className="py-3 text-right font-medium text-admin-ink/70">invite/{householdSlug}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         </div>
       </div>
     </>

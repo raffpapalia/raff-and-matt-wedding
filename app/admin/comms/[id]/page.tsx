@@ -30,7 +30,7 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
   const { id } = await params;
 
   const [householdRes, guestsRes, commsRes, tagsRes, phaseRes, templatesRes, smsTemplatesRes] = await Promise.all([
-    supabase.from('households').select('id,name,slug').eq('id', id).single(),
+    supabase.from('households').select('id,name,slug,link_open_count,link_first_opened_at').eq('id', id).single(),
     supabase
       .from('guests')
       .select('id,first_name,last_name,email,mobile,comms_email,comms_sms,rsvp_status')
@@ -125,6 +125,8 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
         householdId={household.id}
         householdName={household.name}
         householdSlug={household.slug}
+        linkOpenCount={(household as any).link_open_count ?? 0}
+        linkFirstOpenedAt={(household as any).link_first_opened_at ?? null}
         guests={guests}
         comms={comms}
         templates={emailTemplates}
