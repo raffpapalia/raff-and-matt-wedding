@@ -1,7 +1,9 @@
 import { Resend } from 'resend';
 import { supabaseServer, type PhaseName } from '@/lib/supabase';
-import { renderEmailTemplate, type EmailTemplateKey } from './renderTemplate';
+import { renderEmailTemplate, renderCustomEmail, type EmailTemplateKey } from './renderTemplate';
 import { PHASE_TEMPLATE_MAP } from './templateInfo';
+
+export type CustomEmailContent = { subject: string; body: string; baseKey?: EmailTemplateKey };
 
 export const FROM_EMAIL = 'ten7twenty7@mattandraff.com';
 export const REPLY_TO = 'ten7twenty7@gmail.com';
@@ -46,13 +48,16 @@ export async function sendGuestEmail(
   guest: GuestForEmail,
   household: HouseholdForEmail,
   template: EmailTemplate | undefined,
-  phase: PhaseName
+  phase: PhaseName,
+  custom?: CustomEmailContent
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const templateKey = template ?? PHASE_TEMPLATE_MAP[phase];
 
   let rendered: { subject: string; html: string };
   try {
-    rendered = await renderEmailTemplate(templateKey, guest, household);
+    rendered = custom
+      ? await renderCustomEmail(custom.subject, custom.body, guest, household, custom.baseKey)
+      : await renderEmailTemplate(templateKey, guest, household);
   } catch (err) {
     const error = err instanceof Error ? err.message : 'Failed to render email template';
     await supabaseServer.from('communications').insert({
@@ -66,6 +71,7 @@ export async function sendGuestEmail(
       error_message: error,
       sent_at: new Date().toISOString(),
       phase,
+      is_custom: !!custom,
     });
     return { success: false, error };
   }
@@ -91,6 +97,7 @@ export async function sendGuestEmail(
     error_message: sendError?.message ?? null,
     sent_at: new Date().toISOString(),
     phase,
+    is_custom: !!custom,
   });
 
   if (sendError) {
@@ -104,7 +111,8 @@ export async function sendHouseholdEmail(
   householdId: string,
   template: EmailTemplate | undefined,
   phase: PhaseName,
-  mode: SendMode = 'all'
+  mode: SendMode = 'all',
+  custom?: CustomEmailContent
 ): Promise<SendResult> {
   const { data: household, error: householdError } = await supabaseServer
     .from('households')
@@ -154,7 +162,8 @@ export async function sendHouseholdEmail(
       },
       household,
       template,
-      phase
+      phase,
+      custom
     );
 
     if (result.success) {
@@ -171,7 +180,8 @@ export async function sendHouseholdEmail(
 export async function sendSingleGuestEmail(
   guestId: string,
   template: EmailTemplate | undefined,
-  phase: PhaseName
+  phase: PhaseName,
+  custom?: CustomEmailContent
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const { data: guest, error: guestError } = await supabaseServer
     .from('guests')
@@ -201,7 +211,8 @@ export async function sendSingleGuestEmail(
     { id: guest.id, first_name: guest.first_name as string, email: guest.email as string },
     household,
     template,
-    phase
+    phase,
+    custom
   );
 }
 

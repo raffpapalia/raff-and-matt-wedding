@@ -23,6 +23,7 @@ export type DetailComm = {
   status: string;
   sent_at: string;
   guest_id: string | null;
+  is_custom: boolean;
 };
 
 export default async function CommsDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -39,7 +40,7 @@ export default async function CommsDetailPage({ params }: { params: Promise<{ id
       .order('first_name', { ascending: true }),
     supabaseServer
       .from('communications')
-      .select('id,type,message,status,sent_at,guest_id')
+      .select('id,type,message,status,sent_at,guest_id,is_custom')
       .eq('household_id', id)
       .order('sent_at', { ascending: false }),
     supabase.from('guest_tags').select('tag').eq('household_id', id),

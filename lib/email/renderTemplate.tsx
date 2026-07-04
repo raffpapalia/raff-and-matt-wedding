@@ -105,7 +105,7 @@ function formatWeddingDate(isoDate: string): string {
 }
 
 async function renderWithWrapper(
-  templateKey: EmailTemplateKey,
+  templateKey: string,
   subject: string,
   body: string,
   firstName: string,
@@ -127,7 +127,7 @@ async function renderWithWrapper(
   const html = await render(
     React.createElement(Wrapper, {
       previewText: resolvedSubject,
-      eyebrow: EYEBROW_LABELS[templateKey] ?? 'Matt & Raff',
+      eyebrow: EYEBROW_LABELS[templateKey as EmailTemplateKey] ?? 'Matt & Raff',
       weddingDate,
       venue: settings.venue_name,
       bodyBlocks,
@@ -159,4 +159,27 @@ export async function renderEmailPreview(
   body: string
 ): Promise<RenderedEmail> {
   return renderWithWrapper(templateKey, subject, body, 'Jane', 'sample');
+}
+
+// One-off custom send: subject/body are typed by the admin for this send only and
+// never touch email_templates. baseKey (the template the admin started customizing
+// from, if any) only affects cosmetic wrapper/eyebrow choice — falls back to the
+// generic "Matt & Raff" eyebrow and EmailWrapper when writing fully from scratch.
+export async function renderCustomEmail(
+  subject: string,
+  body: string,
+  guest: GuestForRender,
+  household: HouseholdForRender,
+  baseKey?: EmailTemplateKey
+): Promise<RenderedEmail> {
+  return renderWithWrapper(baseKey ?? 'custom', subject, body, guest.first_name, household.slug);
+}
+
+// Live preview counterpart to renderCustomEmail, against sample guest data.
+export async function renderCustomEmailPreview(
+  subject: string,
+  body: string,
+  baseKey?: EmailTemplateKey
+): Promise<RenderedEmail> {
+  return renderWithWrapper(baseKey ?? 'custom', subject, body, 'Jane', 'sample');
 }

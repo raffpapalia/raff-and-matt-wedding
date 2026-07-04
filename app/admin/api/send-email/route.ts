@@ -1,7 +1,13 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
-import { sendHouseholdEmail, sendSingleGuestEmail, type EmailTemplate, type SendMode } from '@/lib/email/sendEmail';
+import {
+  sendHouseholdEmail,
+  sendSingleGuestEmail,
+  type EmailTemplate,
+  type SendMode,
+  type CustomEmailContent,
+} from '@/lib/email/sendEmail';
 import { getCurrentPhase, type PhaseName } from '@/lib/supabase';
 
 export async function POST(request: Request) {
@@ -11,14 +17,33 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { household_id, household_ids, guest_id, template, phase, mode = 'all' } = body as {
+  const {
+    household_id,
+    household_ids,
+    guest_id,
+    template,
+    phase,
+    mode = 'all',
+    custom_subject,
+    custom_body,
+    custom_base_key,
+  } = body as {
     household_id?: string;
     household_ids?: string[];
     guest_id?: string;
     template?: EmailTemplate;
     phase?: PhaseName;
     mode?: SendMode;
+    custom_subject?: string;
+    custom_body?: string;
+    custom_base_key?: EmailTemplate;
   };
+
+  if ((custom_subject && !custom_body) || (!custom_subject && custom_body)) {
+    return NextResponse.json({ error: 'custom_subject and custom_body must be provided together' }, { status: 400 });
+  }
+  const custom: CustomEmailContent | undefined =
+    custom_subject && custom_body ? { subject: custom_subject, body: custom_body, baseKey: custom_base_key } : undefined;
 
   let activePhase = phase;
   if (!activePhase) {
@@ -27,7 +52,7 @@ export async function POST(request: Request) {
   }
 
   if (guest_id) {
-    const result = await sendSingleGuestEmail(guest_id, template, activePhase);
+    const result = await sendSingleGuestEmail(guest_id, template, activePhase, custom);
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
@@ -53,7 +78,7 @@ export async function POST(request: Request) {
   const errors: string[] = [];
 
   for (const id of ids) {
-    const result = await sendHouseholdEmail(id, template, activePhase, mode);
+    const result = await sendHouseholdEmail(id, template, activePhase, mode, custom);
     if (!result.success) {
       errors.push(result.error);
       continue;

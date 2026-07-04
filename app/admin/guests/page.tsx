@@ -13,7 +13,7 @@ export default async function AdminGuestsPage({
   const [householdsRes, tagsRes, guestsRes] = await Promise.all([
     supabase.from('households').select('id,name,slug,short_code,personal_message,thank_you_message,thank_you_photo_url,link_open_count,link_first_opened_at').order('created_at', { ascending: false }),
     supabase.from('guest_tags').select('household_id,tag'),
-    supabase.from('guests').select('household_id,first_name,rsvp_status,comms_email,comms_sms'),
+    supabase.from('guests').select('household_id,first_name,last_name,rsvp_status,comms_email,comms_sms'),
   ]);
 
   const households = householdsRes.data ?? [];
@@ -29,7 +29,9 @@ export default async function AdminGuestsPage({
     const pending = householdGuests.filter((item) => item.rsvp_status !== 'attending' && item.rsvp_status !== 'declined').length;
     const commsEmail = householdGuests.filter((item: any) => item.comms_email !== false).length;
     const commsSms = householdGuests.filter((item: any) => item.comms_sms !== false).length;
-    const guestNames = householdGuests.map((item: any) => item.first_name).filter(Boolean);
+    const guestNames = householdGuests
+      .map((item: any) => [item.first_name, item.last_name].filter(Boolean).join(' '))
+      .filter(Boolean);
 
     return {
       id: household.id,

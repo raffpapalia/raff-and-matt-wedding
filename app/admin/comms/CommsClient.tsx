@@ -7,7 +7,7 @@ import type { EmailTemplateRow, SmsTemplateRow } from './templates/page';
 import type { EmailTemplateKey } from '@/lib/email/renderTemplate';
 import type { PhaseName } from '@/lib/supabase';
 import { PHASE_LABELS } from '@/lib/email/templateInfo';
-import TemplateChooserModal from './TemplateChooserModal';
+import TemplateChooserModal, { CUSTOM_MESSAGE_KEY } from './TemplateChooserModal';
 import EmailConfirmModal, { type EmailPreview } from './EmailConfirmModal';
 import SmsConfirmModal, { type SmsPreview } from './SmsConfirmModal';
 import BothTemplateChooserModal from './BothTemplateChooserModal';
@@ -189,7 +189,10 @@ export default function CommsClient({
     setChooserTarget({ ids, title, loadingKey, defaultMode, channel });
   }
 
-  async function handleChooseTemplate(key: EmailTemplateKey) {
+  // Bulk sends don't offer the "write a custom message" option (allowCustom is left
+  // off on both choosers below), so this key is never actually reached here.
+  async function handleChooseTemplate(key: EmailTemplateKey | typeof CUSTOM_MESSAGE_KEY) {
+    if (key === CUSTOM_MESSAGE_KEY) return;
     if (!chooserTarget) return;
     const { ids, title, loadingKey, defaultMode, channel } = chooserTarget;
     setChooserTarget(null);

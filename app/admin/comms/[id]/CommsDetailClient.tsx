@@ -7,11 +7,14 @@ import type { EmailTemplateRow, SmsTemplateRow } from '../templates/page';
 import type { EmailTemplateKey } from '@/lib/email/renderTemplate';
 import type { PhaseName } from '@/lib/supabase';
 import { PHASE_LABELS } from '@/lib/email/templateInfo';
-import TemplateChooserModal from '../TemplateChooserModal';
+import TemplateChooserModal, { CUSTOM_MESSAGE_KEY } from '../TemplateChooserModal';
 import EmailConfirmModal, { type EmailPreview } from '../EmailConfirmModal';
 import SmsConfirmModal, { type SmsPreview } from '../SmsConfirmModal';
 import BothTemplateChooserModal from '../BothTemplateChooserModal';
 import BothConfirmModal, { type BothPreview } from '../BothConfirmModal';
+import CustomizeMessageModal, { type CustomizeDraft } from '../CustomizeMessageModal';
+
+type CustomContent = { subject?: string; body: string };
 
 // --- Helpers ---
 
@@ -79,11 +82,16 @@ export default function CommsDetailClient({
   const router = useRouter();
   const guestById = new Map(guests.map((g) => [g.id, g]));
   const [chooserOpen, setChooserOpen] = useState<'email' | 'sms' | null>(null);
+  const [customizeDraft, setCustomizeDraft] = useState<CustomizeDraft | null>(null);
   const [bothChooserOpen, setBothChooserOpen] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [emailConfirm, setEmailConfirm] = useState<(EmailPreview & { templateKey: EmailTemplateKey }) | null>(null);
-  const [smsConfirm, setSmsConfirm] = useState<(SmsPreview & { templateKey: EmailTemplateKey }) | null>(null);
+  const [emailConfirm, setEmailConfirm] = useState<
+    (EmailPreview & { templateKey: EmailTemplateKey | null; custom?: CustomContent }) | null
+  >(null);
+  const [smsConfirm, setSmsConfirm] = useState<
+    (SmsPreview & { templateKey: EmailTemplateKey | null; custom?: CustomContent }) | null
+  >(null);
   const [bothConfirm, setBothConfirm] = useState<(BothPreview & { emailKey: EmailTemplateKey; smsKey: EmailTemplateKey }) | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [sending, setSending] = useState(false);
@@ -91,9 +99,32 @@ export default function CommsDetailClient({
   const [guestSendingId, setGuestSendingId] = useState<string | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
 
-  async function handleChooseTemplate(key: EmailTemplateKey) {
+  // Choosing a template (or "write a custom message") from the chooser never sends
+  // directly anymore — it always opens the customize step first, prefilled from the
+  // chosen template (or blank for a fully custom message).
+  function handleChooseTemplate(key: EmailTemplateKey | typeof CUSTOM_MESSAGE_KEY) {
     const channel = chooserOpen;
     setChooserOpen(null);
+    if (!channel) return;
+
+    if (key === CUSTOM_MESSAGE_KEY) {
+      setCustomizeDraft({ channel, subject: channel === 'email' ? '' : undefined, body: '' });
+      return;
+    }
+
+    if (channel === 'email') {
+      const source = templates.find((t) => t.key === key);
+      setCustomizeDraft({ channel, subject: source?.subject ?? '', body: source?.body ?? '', baseKey: key });
+    } else {
+      const source = smsTemplates.find((t) => t.key === key);
+      setCustomizeDraft({ channel, body: source?.body ?? '', baseKey: key });
+    }
+  }
+
+  async function handleCustomizeContinue(content: CustomContent) {
+    if (!customizeDraft) return;
+    const { channel, baseKey } = customizeDraft;
+    setCustomizeDraft(null);
     setSendError(null);
     setPreviewLoading(true);
     try {
@@ -105,9 +136,9 @@ export default function CommsDetailClient({
           return;
         }
         if (data.alreadyEmailed === 0) {
-          await sendEmail('all', key);
+          await sendEmail('all', baseKey, content);
         } else {
-          setEmailConfirm({ ...data, templateKey: key });
+          setEmailConfirm({ ...data, templateKey: baseKey ?? null, custom: content });
         }
       } else {
         const res = await fetch(`/admin/api/send-sms/preview?household_id=${householdId}`);
@@ -117,9 +148,9 @@ export default function CommsDetailClient({
           return;
         }
         if (data.alreadyTexted === 0) {
-          await sendSms('all', key);
+          await sendSms('all', baseKey, content);
         } else {
-          setSmsConfirm({ ...data, templateKey: key });
+          setSmsConfirm({ ...data, templateKey: baseKey ?? null, custom: content });
         }
       }
     } catch {
@@ -219,14 +250,20 @@ export default function CommsDetailClient({
     }
   }
 
-  async function sendEmail(mode: 'all' | 'not_yet_emailed', templateKey: EmailTemplateKey) {
+  async function sendEmail(mode: 'all' | 'not_yet_emailed', templateKey: EmailTemplateKey | undefined, custom?: CustomContent) {
     setSending(true);
     setSendError(null);
     try {
       const res = await fetch('/admin/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ household_id: householdId, mode, template: templateKey }),
+        body: JSON.stringify({
+          household_id: householdId,
+          mode,
+          ...(custom
+            ? { custom_subject: custom.subject, custom_body: custom.body, custom_base_key: templateKey }
+            : { template: templateKey }),
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -247,14 +284,18 @@ export default function CommsDetailClient({
     }
   }
 
-  async function sendSms(mode: 'all' | 'not_yet_texted', templateKey: EmailTemplateKey) {
+  async function sendSms(mode: 'all' | 'not_yet_texted', templateKey: EmailTemplateKey | undefined, custom?: CustomContent) {
     setSending(true);
     setSendError(null);
     try {
       const res = await fetch('/admin/api/send-sms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ household_id: householdId, mode, template: templateKey }),
+        body: JSON.stringify({
+          household_id: householdId,
+          mode,
+          ...(custom ? { custom_body: custom.body } : { template: templateKey }),
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -316,6 +357,7 @@ export default function CommsDetailClient({
           defaultKey={defaultTemplateKey}
           heading="Send email"
           recipientSummary={`Current phase: ${PHASE_LABELS[currentPhase]}`}
+          allowCustom
           onCancel={() => setChooserOpen(null)}
           onConfirm={handleChooseTemplate}
         />
@@ -328,8 +370,18 @@ export default function CommsDetailClient({
           heading="Send SMS"
           recipientSummary={`Current phase: ${PHASE_LABELS[currentPhase]}`}
           emptyMessage="No active SMS templates. Activate one on the Templates page first."
+          allowCustom
           onCancel={() => setChooserOpen(null)}
           onConfirm={handleChooseTemplate}
+        />
+      )}
+
+      {customizeDraft && (
+        <CustomizeMessageModal
+          title={`${customizeDraft.channel === 'email' ? 'Email' : 'SMS'} for ${_householdName}`}
+          draft={customizeDraft}
+          onCancel={() => setCustomizeDraft(null)}
+          onContinue={handleCustomizeContinue}
         />
       )}
 
@@ -352,8 +404,8 @@ export default function CommsDetailClient({
           templateKey={emailConfirm.templateKey}
           preview={emailConfirm}
           sending={sending}
-          onSendAll={() => sendEmail('all', emailConfirm.templateKey)}
-          onSendNotYetEmailed={() => sendEmail('not_yet_emailed', emailConfirm.templateKey)}
+          onSendAll={() => sendEmail('all', emailConfirm.templateKey ?? undefined, emailConfirm.custom)}
+          onSendNotYetEmailed={() => sendEmail('not_yet_emailed', emailConfirm.templateKey ?? undefined, emailConfirm.custom)}
           onCancel={() => setEmailConfirm(null)}
         />
       )}
@@ -364,8 +416,8 @@ export default function CommsDetailClient({
           templateKey={smsConfirm.templateKey}
           preview={smsConfirm}
           sending={sending}
-          onSendAll={() => sendSms('all', smsConfirm.templateKey)}
-          onSendNotYetTexted={() => sendSms('not_yet_texted', smsConfirm.templateKey)}
+          onSendAll={() => sendSms('all', smsConfirm.templateKey ?? undefined, smsConfirm.custom)}
+          onSendNotYetTexted={() => sendSms('not_yet_texted', smsConfirm.templateKey ?? undefined, smsConfirm.custom)}
           onCancel={() => setSmsConfirm(null)}
         />
       )}
@@ -546,13 +598,20 @@ export default function CommsDetailClient({
                 return (
                 <div key={comm.id} className="rounded-2xl border border-admin-sand/20 bg-admin-bone/40 p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] ${
-                        comm.type === 'sms' ? 'bg-admin-violet/25 text-admin-ink/80' : 'bg-admin-sand/25 text-admin-ink/80'
-                      }`}
-                    >
-                      {comm.type.toUpperCase()}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] ${
+                          comm.type === 'sms' ? 'bg-admin-violet/25 text-admin-ink/80' : 'bg-admin-sand/25 text-admin-ink/80'
+                        }`}
+                      >
+                        {comm.type.toUpperCase()}
+                      </span>
+                      {comm.is_custom && (
+                        <span className="inline-flex rounded-full bg-admin-green/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-admin-green">
+                          Custom
+                        </span>
+                      )}
+                    </div>
                     <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] ${
                         comm.status === 'sent'

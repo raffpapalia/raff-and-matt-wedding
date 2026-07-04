@@ -51,11 +51,14 @@ export async function getQualifyingGuestsForSms(householdId: string) {
     .neq('mobile', '');
 }
 
+export type CustomSmsContent = { body: string };
+
 export async function sendGuestSms(
   guest: GuestForSms,
   household: HouseholdForSms,
   template: SmsTemplate | undefined,
-  phase: PhaseName
+  phase: PhaseName,
+  custom?: CustomSmsContent
 ): Promise<SmsSendOutcome> {
   const templateKey = template ?? PHASE_TEMPLATE_MAP[phase];
   const normalized = normalizeAuMobile(guest.mobile);
@@ -78,7 +81,7 @@ export async function sendGuestSms(
 
   let body: string;
   try {
-    const template = await loadSmsTemplate(templateKey);
+    const template = custom ? custom.body : await loadSmsTemplate(templateKey);
     const shortLink = getShortLink({ short_code: household.short_code });
     body = `${resolveMergeTags(template, { first_name: guest.first_name })} ${shortLink}`;
   } catch (err) {
@@ -94,6 +97,7 @@ export async function sendGuestSms(
       error_message: reason,
       sent_at: new Date().toISOString(),
       phase,
+      is_custom: !!custom,
     });
     return { guestId: guest.id, status: 'failed', reason };
   }
@@ -116,6 +120,7 @@ export async function sendGuestSms(
       error_message: null,
       sent_at: new Date().toISOString(),
       phase,
+      is_custom: !!custom,
     });
 
     return { guestId: guest.id, status: 'sent', messageId: message.sid };
@@ -133,6 +138,7 @@ export async function sendGuestSms(
       error_message: reason,
       sent_at: new Date().toISOString(),
       phase,
+      is_custom: !!custom,
     });
 
     return { guestId: guest.id, status: 'failed', reason };
@@ -143,7 +149,8 @@ export async function sendHouseholdSms(
   householdId: string,
   template: SmsTemplate | undefined,
   phase: PhaseName,
-  mode: SmsSendMode = 'all'
+  mode: SmsSendMode = 'all',
+  custom?: CustomSmsContent
 ): Promise<SmsSendResult> {
   const { data: household, error: householdError } = await supabaseServer
     .from('households')
@@ -184,7 +191,8 @@ export async function sendHouseholdSms(
       },
       household,
       template,
-      phase
+      phase,
+      custom
     );
     results.push(outcome);
   }
@@ -202,7 +210,8 @@ export async function sendHouseholdSms(
 export async function sendSingleGuestSms(
   guestId: string,
   template: SmsTemplate | undefined,
-  phase: PhaseName
+  phase: PhaseName,
+  custom?: CustomSmsContent
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const { data: guest, error: guestError } = await supabaseServer
     .from('guests')
@@ -232,7 +241,8 @@ export async function sendSingleGuestSms(
     { id: guest.id, first_name: guest.first_name as string, mobile: guest.mobile as string },
     household,
     template,
-    phase
+    phase,
+    custom
   );
 
   if (outcome.status === 'sent') {

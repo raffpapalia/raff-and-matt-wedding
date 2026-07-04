@@ -21,7 +21,7 @@ export default function EmailConfirmModal({
   onCancel,
 }: {
   title: string;
-  templateKey: EmailTemplateKey;
+  templateKey: EmailTemplateKey | null;
   preview: EmailPreview;
   sending: boolean;
   onSendAll: () => void;
@@ -29,7 +29,7 @@ export default function EmailConfirmModal({
   onCancel: () => void;
 }) {
   const phaseLabel = PHASE_LABELS[preview.phase] ?? preview.phase;
-  const templateLabel = EMAIL_TEMPLATE_TITLES[templateKey] ?? templateKey;
+  const templateLabel = templateKey ? EMAIL_TEMPLATE_TITLES[templateKey] ?? templateKey : 'your custom message';
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
       <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[2rem] border border-white/10 bg-admin-ink p-8 shadow-2xl">

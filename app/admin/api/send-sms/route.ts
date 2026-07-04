@@ -1,7 +1,13 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
-import { sendHouseholdSms, sendSingleGuestSms, type SmsTemplate, type SmsSendMode } from '@/lib/sms/sendSms';
+import {
+  sendHouseholdSms,
+  sendSingleGuestSms,
+  type SmsTemplate,
+  type SmsSendMode,
+  type CustomSmsContent,
+} from '@/lib/sms/sendSms';
 import { getCurrentPhase, type PhaseName } from '@/lib/supabase';
 
 export async function POST(request: Request) {
@@ -11,14 +17,17 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { household_id, household_ids, guest_id, template, phase, mode = 'all' } = body as {
+  const { household_id, household_ids, guest_id, template, phase, mode = 'all', custom_body } = body as {
     household_id?: string;
     household_ids?: string[];
     guest_id?: string;
     template?: SmsTemplate;
     phase?: PhaseName;
     mode?: SmsSendMode;
+    custom_body?: string;
   };
+
+  const custom: CustomSmsContent | undefined = custom_body ? { body: custom_body } : undefined;
 
   let activePhase = phase;
   if (!activePhase) {
@@ -27,7 +36,7 @@ export async function POST(request: Request) {
   }
 
   if (guest_id) {
-    const result = await sendSingleGuestSms(guest_id, template, activePhase);
+    const result = await sendSingleGuestSms(guest_id, template, activePhase, custom);
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
@@ -55,7 +64,7 @@ export async function POST(request: Request) {
   const errors: string[] = [];
 
   for (const id of ids) {
-    const result = await sendHouseholdSms(id, template, activePhase, mode);
+    const result = await sendHouseholdSms(id, template, activePhase, mode, custom);
     if (!result.success) {
       errors.push(result.error);
       continue;
