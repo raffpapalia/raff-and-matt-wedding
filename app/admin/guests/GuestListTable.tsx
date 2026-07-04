@@ -253,7 +253,8 @@ export default function GuestListTable({ rows: initialRows, initialQuery }: { ro
     return rows.filter((row) => {
       const matchesQuery =
         row.name.toLowerCase().includes(normalizedQuery) ||
-        row.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery));
+        row.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery)) ||
+        row.guestNames.some((guestName) => guestName.toLowerCase().includes(normalizedQuery));
       if (!matchesQuery) return false;
 
       if (activeTab === 'confirmed') {
@@ -301,7 +302,7 @@ export default function GuestListTable({ rows: initialRows, initialQuery }: { ro
                 setQuery(event.target.value);
                 setPage(0);
               }}
-              placeholder="Search households or tags…"
+              placeholder="Search households, guests, or tags…"
               className="w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green"
             />
           </label>
