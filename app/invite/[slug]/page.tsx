@@ -30,7 +30,7 @@ async function resolvePreviewPhase(rawPreview: string | undefined): Promise<Phas
   return rawPreview as PhaseName;
 }
 
-async function getInviteData(slug: string) {
+async function getInviteData(slug: string, isPreview = false) {
   try {
     // TIER 1 — no dependencies, fire immediately
     // supabaseServer bypasses RLS for faqs — needed because that table has no anon-read policy
@@ -86,19 +86,20 @@ async function getInviteData(slug: string) {
         .eq('household_id', household.id),
     ]);
 
-    // Track invite link open — fire and forget, result is never used downstream.
-    // Supabase query builders are lazy thenables: the request only fires once `.then()`
-    // is called, so this still needs a `.then()` even though we don't await it.
-    supabaseServer
-      .from('households')
-      .update({
-        link_open_count: (household.link_open_count || 0) + 1,
-        link_first_opened_at: household.link_first_opened_at || new Date().toISOString(),
-      })
-      .eq('id', household.id)
-      .then(({ error }) => {
-        if (error) console.error('Error updating link_open_count:', error);
-      });
+    // Track invite link open — skipped for admin preview requests so they don't
+    // inflate the household's view count.
+    if (!isPreview) {
+      supabaseServer
+        .from('households')
+        .update({
+          link_open_count: (household.link_open_count || 0) + 1,
+          link_first_opened_at: household.link_first_opened_at || new Date().toISOString(),
+        })
+        .eq('id', household.id)
+        .then(({ error }) => {
+          if (error) console.error('Error updating link_open_count:', error);
+        });
+    }
 
     const { data: guests, error: guestsError } = guestsRes;
     if (guestsError) {
@@ -163,7 +164,9 @@ export default async function InvitePage({
   const { slug } = await params;
   const { preview: rawPreview } = (await searchParams) ?? {};
 
-  const data = await getInviteData(slug);
+  // Resolve preview before fetching data so we can skip tracking for admin previews.
+  const previewPhase = await resolvePreviewPhase(rawPreview);
+  const data = await getInviteData(slug, previewPhase !== null);
 
   if (!data) {
     notFound();
@@ -172,10 +175,6 @@ export default async function InvitePage({
   const { household, guests, phase, questions, existingAnswers, settings, faqs } = data;
 
   const guestName = formatGuestName(guests) || household.name;
-
-  // Read-only for this response only: never written back to `phase` or the
-  // phases table, so it can't affect getCurrentPhase or any other request/guest.
-  const previewPhase = await resolvePreviewPhase(rawPreview);
   const effectivePhase: PhaseName = previewPhase ?? phase.current_phase;
 
   let phaseContent: React.ReactNode;

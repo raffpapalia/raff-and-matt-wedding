@@ -72,6 +72,64 @@ function ExternalLinkIcon({ className }: { className?: string }) {
   );
 }
 
+const PHASE_OPTIONS = [
+  { value: 'save_the_date', label: 'Save the Date' },
+  { value: 'invitation',    label: 'Invitation'    },
+  { value: 'pre_wedding',   label: 'Pre-wedding'   },
+  { value: 'thank_you',     label: 'Thank You'     },
+] as const;
+
+function PreviewPhaseModal({
+  household,
+  currentPhase,
+  onClose,
+}: {
+  household: GuestRow;
+  currentPhase: string;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-3xl border border-white/10 bg-admin-ink p-6 shadow-2xl shadow-black/50 sm:p-8"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <p className="text-xs uppercase tracking-[0.3em] text-admin-sand/60">Preview as</p>
+        <h3 className="mt-1 font-cinzel text-xl font-semibold text-admin-bone">{household.name}</h3>
+        <p className="mt-3 text-sm text-admin-bone/60">Choose a phase to open in a new tab.</p>
+        <div className="mt-5 flex flex-col gap-2">
+          {PHASE_OPTIONS.map(({ value, label }) => (
+            <a
+              key={value}
+              href={`/invite/${household.slug}?preview=${value}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition ${
+                value === currentPhase
+                  ? 'border-admin-green/50 bg-admin-green/10 font-semibold text-admin-green'
+                  : 'border-white/10 text-admin-bone/80 hover:border-admin-green/30 hover:text-admin-green'
+              }`}
+            >
+              {label}
+              <span className="text-xs opacity-60">↗</span>
+            </a>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-5 w-full rounded-full border border-admin-bone/20 px-5 py-3 text-sm text-admin-bone/70 transition hover:border-admin-bone/40 hover:text-admin-bone"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ChevronRightIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -223,6 +281,7 @@ export default function GuestListTable({ rows: initialRows, initialQuery, curren
   const [sortKey, setSortKey] = useState<SortKey>('household');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [deleteTarget, setDeleteTarget] = useState<GuestRow | null>(null);
+  const [previewTarget, setPreviewTarget] = useState<GuestRow | null>(null);
   const [fadingIds, setFadingIds] = useState<Set<string>>(new Set());
 
   const handleSort = (key: SortKey) => {
@@ -418,15 +477,14 @@ export default function GuestListTable({ rows: initialRows, initialQuery, curren
                   <td className="px-4 py-4 align-top">
                     <div className="flex items-center gap-2">
                       <CopyLinkButton url={`${SITE_URL}/invite/${row.slug}`} title="Copy invite link" />
-                      <a
-                        href={`/invite/${row.slug}?preview=${currentPhase}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => setPreviewTarget(row)}
                         title="Preview invite"
                         className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-admin-sand/40 text-admin-ink/60 transition hover:border-admin-green/40 hover:text-admin-green"
                       >
                         <ExternalLinkIcon className="h-4 w-4" />
-                      </a>
+                      </button>
                     </div>
                   </td>
                   <td className="px-4 py-4 align-top">
@@ -488,6 +546,14 @@ export default function GuestListTable({ rows: initialRows, initialQuery, curren
           household={deleteTarget}
           onCancel={() => setDeleteTarget(null)}
           onDeleted={handleDeleted}
+        />
+      ) : null}
+
+      {previewTarget ? (
+        <PreviewPhaseModal
+          household={previewTarget}
+          currentPhase={currentPhase}
+          onClose={() => setPreviewTarget(null)}
         />
       ) : null}
     </div>
