@@ -26,8 +26,8 @@ const dmSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Matt & Raff — 10.07.2027",
-  description: "You're invited to celebrate the wedding of Matt & Raff on 10 July 2027 in Melbourne.",
+  title: "Matt & Raff",
+  description: "You're invited to celebrate the wedding of Matt & Raff in Melbourne.",
 };
 
 export default function RootLayout({

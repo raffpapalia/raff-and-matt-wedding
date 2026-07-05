@@ -1,177 +1,106 @@
+import localFont from 'next/font/local';
 import FindInvitationForm from './FindInvitationForm';
-import { Parallelogram, EmeraldJewel, WaterRipple, LightBeam, FloatingPetal } from './invite/[slug]/v3/primitives';
-import { palette } from './invite/[slug]/v3/tokens';
+import { tokens } from './invite/[slug]/v4/tokens';
+import './invite/[slug]/v4/design.css';
+
+// Self-hosted — reuses the same font files as the v4 invitation pages (see
+// app/invite/[slug]/layout.tsx). Loaded here too since the homepage sits
+// outside that layout's route tree and needs its own font instances.
+const fraunces = localFont({
+  src: [
+    { path: './invite/[slug]/fonts/fraunces-normal-variable.woff2', weight: '100 900', style: 'normal' },
+    { path: './invite/[slug]/fonts/fraunces-italic-variable.woff2', weight: '100 900', style: 'italic' },
+  ],
+  variable: '--font-fraunces',
+  display: 'swap',
+  adjustFontFallback: 'Times New Roman',
+});
+
+const bricolage = localFont({
+  src: './invite/[slug]/fonts/bricolage-grotesque-variable.woff2',
+  weight: '200 800',
+  style: 'normal',
+  variable: '--font-bricolage',
+  display: 'swap',
+});
+
+const dmMono = localFont({
+  src: [
+    { path: './invite/[slug]/fonts/dm-mono-400.woff2', weight: '400', style: 'normal' },
+    { path: './invite/[slug]/fonts/dm-mono-500.woff2', weight: '500', style: 'normal' },
+  ],
+  variable: '--font-dm-mono',
+  display: 'swap',
+});
 
 export default function Home() {
   return (
     <div
+      className={`${fraunces.variable} ${bricolage.variable} ${dmMono.variable} mr-v4`}
       style={{
-        position: 'relative',
         minHeight: '100dvh',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden',
-        backgroundColor: palette.bgPrimary,
-        color: palette.cream,
+        justifyContent: 'center',
+        backgroundColor: tokens.ink,
+        color: tokens.bone,
+        padding: 'clamp(2rem, 6vw, 4rem) max(1.25rem, 5vw)',
       }}
     >
-      {/* Ambience — restrained: one quiet ripple, one hero beam, one petal */}
-      <WaterRipple opacity={0.06} />
-      <LightBeam delay={0} opacity={0.05} />
-      <FloatingPetal delay={3} top="22%" duration={26} color={palette.goldChampagne} />
-
-      {/* Corner mark */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '1.75rem',
-          left: '1.75rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.6rem',
-          pointerEvents: 'none',
-        }}
-      >
-        <Parallelogram width={16} height={8} color={palette.goldBase} />
-        <span
+      <div style={{ width: '100%', maxWidth: '480px', margin: '0 auto', textAlign: 'center' }}>
+        {/* Wordmark — same Fraunces 900 / opsz 144 treatment as the sticky header logotype */}
+        <h1
           style={{
-            fontFamily: 'var(--font-dm-sans)',
-            fontSize: '0.55rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.35em',
-            color: palette.goldBase,
-            opacity: 0.8,
+            margin: '0 0 clamp(1rem, 3vw, 1.5rem)',
+            fontFamily: tokens.display,
+            fontWeight: 900,
+            fontVariationSettings: '"opsz" 144',
+            fontSize: 'clamp(2.6rem, 10vw, 5rem)',
+            lineHeight: 1,
+            letterSpacing: '-0.01em',
+            color: tokens.sand,
           }}
         >
-          M &amp; R · 2027
-        </span>
-      </div>
+          Matt <em style={{ fontStyle: 'italic' }}>&amp;</em> Raff
+        </h1>
 
-      {/* Main */}
-      <main
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          padding: 'clamp(5.5rem, 14vh, 7.5rem) max(1.5rem, 5vw) 3rem',
-        }}
-      >
-        <div style={{ width: '100%', maxWidth: '640px', margin: '0 auto' }}>
-          {/* Hero — staggered couple names, contained within margins */}
-          <h1 aria-label="Matt & Raff" style={{ margin: '0 0 clamp(3rem, 8vw, 5rem)' }}>
-            <span
-              aria-hidden="true"
-              style={{
-                display: 'block',
-                fontFamily: 'var(--font-cinzel)',
-                fontStyle: 'italic',
-                fontWeight: 400,
-                fontSize: 'clamp(2.5rem, 12vw, 6.5rem)',
-                lineHeight: 1,
-              }}
-            >
-              Matt
-            </span>
+        {/* Tagline */}
+        <p
+          style={{
+            margin: '0 0 clamp(2.5rem, 6vw, 4rem)',
+            fontFamily: tokens.display,
+            fontStyle: 'italic',
+            fontWeight: 400,
+            fontSize: 'clamp(1rem, 2.4vw, 1.2rem)',
+            lineHeight: 1.6,
+            color: tokens.bone,
+            opacity: 0.65,
+          }}
+        >
+          Cancel your plans. We&apos;ve made better ones.
+        </p>
 
-            {/* Hairline + ampersand jewel — the only bright emerald on the page */}
-            <span
-              aria-hidden="true"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                margin: 'clamp(0.75rem, 3vw, 1.5rem) 0',
-              }}
-            >
-              <span style={{ flex: 1, height: '1px', backgroundColor: palette.cream, opacity: 0.18 }} />
-              <EmeraldJewel />
-              <span style={{ flex: 1, height: '1px', backgroundColor: palette.cream, opacity: 0.18 }} />
-            </span>
-
-            <span
-              aria-hidden="true"
-              style={{
-                display: 'block',
-                textAlign: 'right',
-                fontFamily: 'var(--font-cinzel)',
-                fontStyle: 'italic',
-                fontWeight: 400,
-                fontSize: 'clamp(2.5rem, 12vw, 6.5rem)',
-                lineHeight: 1,
-              }}
-            >
-              Raff
-            </span>
-          </h1>
-
-          {/* Tagline */}
-          <p
+        {/* Pill-kicker */}
+        <div style={{ marginBottom: 'clamp(1.75rem, 4vw, 2.5rem)' }}>
+          <span
             style={{
-              fontFamily: 'var(--font-cinzel)',
-              fontStyle: 'italic',
-              fontSize: 'clamp(0.95rem, 2.2vw, 1.125rem)',
-              lineHeight: 1.6,
-              color: palette.cream,
-              opacity: 0.8,
-              textAlign: 'center',
-              maxWidth: '440px',
-              margin: '0 auto clamp(2.5rem, 6vw, 4rem)',
+              display: 'inline-block',
+              fontFamily: tokens.mono,
+              fontSize: '0.66rem',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: tokens.onPersimmon,
+              background: tokens.persimmon,
+              borderRadius: 999,
+              padding: '8px 18px',
             }}
           >
-            Cancel your plans. We&apos;ve made better ones.
-          </p>
-
-          {/* Find your invitation */}
-          <section style={{ width: '100%', maxWidth: '420px', margin: '0 auto', textAlign: 'center' }}>
-            <h2
-              style={{
-                fontFamily: 'var(--font-dm-sans)',
-                fontWeight: 400,
-                fontSize: '0.6rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.4em',
-                color: palette.goldBase,
-                opacity: 0.85,
-                margin: '0 0 0.75rem',
-              }}
-            >
-              Find Your Invitation
-            </h2>
-            <p
-              style={{
-                fontFamily: 'var(--font-dm-sans)',
-                fontSize: '0.85rem',
-                color: palette.cream,
-                opacity: 0.6,
-                lineHeight: 1.7,
-                marginBottom: '2rem',
-              }}
-            >
-              Enter your last name and email address and, if we have you on the list, we&apos;ll
-              send your personal invite link.
-            </p>
-            <FindInvitationForm />
-          </section>
+            Find your invitation
+          </span>
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          textAlign: 'center',
-          padding: '0 1.5rem 2.5rem',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }} aria-hidden="true">
-          <Parallelogram width={20} height={10} color={palette.goldBase} fillOpacity={0.7} />
-          <Parallelogram width={20} height={10} color={palette.forestAccent} fillOpacity={0.7} />
-        </div>
-      </footer>
+        <FindInvitationForm />
+      </div>
     </div>
   );
 }
