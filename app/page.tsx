@@ -48,7 +48,9 @@ export default function Home() {
       }}
     >
       <div style={{ width: '100%', maxWidth: '480px', margin: '0 auto', textAlign: 'center' }}>
-        {/* Wordmark — same Fraunces 900 / opsz 144 treatment as the sticky header logotype */}
+        {/* Wordmark — same Fraunces 900 / opsz 144 treatment as the sticky header logotype,
+            with the violet/persimmon colour split used on the Save the Date and
+            invitation hero names. */}
         <h1
           style={{
             margin: '0 0 clamp(1rem, 3vw, 1.5rem)',
@@ -58,10 +60,10 @@ export default function Home() {
             fontSize: 'clamp(2.6rem, 10vw, 5rem)',
             lineHeight: 1,
             letterSpacing: '-0.01em',
-            color: tokens.sand,
+            color: tokens.violet,
           }}
         >
-          Matt <em style={{ fontStyle: 'italic' }}>&amp;</em> Raff
+          Matt <em style={{ fontStyle: 'italic', fontWeight: 600, color: tokens.persimmon }}>&amp;</em> Raff
         </h1>
 
         {/* Tagline */}
