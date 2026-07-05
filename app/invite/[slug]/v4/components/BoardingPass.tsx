@@ -7,7 +7,6 @@ interface BoardingPassProps {
   date: string;
   doors: string;
   venue: string;
-  hashtag: string;
   stampLine?: string;
   stampSub?: string;
   // "10 · 07 · 27" — the stub's short date, kept distinct from `date` (which is
@@ -25,7 +24,6 @@ export default function BoardingPass({
   date,
   doors,
   venue,
-  hashtag,
   stampLine,
   stampSub,
   stubDate,
@@ -56,8 +54,6 @@ export default function BoardingPass({
             <div className="mr-pass-meta-v">{venue}</div>
           </div>
         </div>
-        <div className="mr-pass-barcode" aria-hidden="true" />
-        <div className="mr-pass-barcode-cap">{hashtag}</div>
         {stampLine && <Stamp line={stampLine} sub={stampSub} />}
       </div>
       <div className="mr-pass-perf">
