@@ -10,11 +10,13 @@ export default async function AdminGuestsPage({
   await requireAdminAuth();
   const params = searchParams instanceof Promise ? await searchParams : (searchParams ?? {});
 
-  const [householdsRes, tagsRes, guestsRes] = await Promise.all([
+  const [householdsRes, tagsRes, guestsRes, phaseRes] = await Promise.all([
     supabase.from('households').select('id,name,slug,short_code,personal_message,thank_you_message,thank_you_photo_url,link_open_count,link_first_opened_at').order('created_at', { ascending: false }),
     supabase.from('guest_tags').select('household_id,tag'),
     supabase.from('guests').select('household_id,first_name,last_name,rsvp_status,comms_email,comms_sms'),
+    supabase.from('phases').select('current_phase').order('created_at', { ascending: false }).limit(1),
   ]);
+  const currentPhase = phaseRes.data?.[0]?.current_phase ?? 'save_the_date';
 
   const households = householdsRes.data ?? [];
   const tags = tagsRes.data ?? [];
@@ -74,7 +76,7 @@ export default async function AdminGuestsPage({
           </div>
         </div>
       </div>
-      <GuestListTable rows={rows} initialQuery={params.tag} />
+      <GuestListTable rows={rows} initialQuery={params.tag} currentPhase={currentPhase} />
       <div className="rounded-3xl border border-admin-sand/20 bg-white p-8 text-admin-ink/70">
         <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Tip</p>
         <p className="mt-3 text-sm leading-7">Use the link buttons to copy invite URLs directly, then paste them into your communications or SMS messages.</p>

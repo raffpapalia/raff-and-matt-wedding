@@ -62,6 +62,16 @@ function ClipboardIcon({ className }: { className?: string }) {
   );
 }
 
+function ExternalLinkIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  );
+}
+
 function ChevronRightIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -205,7 +215,7 @@ function DeleteConfirmModal({
   );
 }
 
-export default function GuestListTable({ rows: initialRows, initialQuery }: { rows: GuestRow[]; initialQuery?: string }) {
+export default function GuestListTable({ rows: initialRows, initialQuery, currentPhase }: { rows: GuestRow[]; initialQuery?: string; currentPhase: string }) {
   const [rows, setRows] = useState(initialRows);
   const [query, setQuery] = useState(initialQuery ?? '');
   const [activeTab, setActiveTab] = useState<typeof tabKeys[number]>('all');
@@ -406,7 +416,18 @@ export default function GuestListTable({ rows: initialRows, initialQuery }: { ro
                     <RsvpSummary attending={row.attending} declined={row.declined} pending={row.pending} />
                   </td>
                   <td className="px-4 py-4 align-top">
-                    <CopyLinkButton url={`${SITE_URL}/invite/${row.slug}`} title="Copy invite link" />
+                    <div className="flex items-center gap-2">
+                      <CopyLinkButton url={`${SITE_URL}/invite/${row.slug}`} title="Copy invite link" />
+                      <a
+                        href={`/invite/${row.slug}?preview=${currentPhase}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Preview invite"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-admin-sand/40 text-admin-ink/60 transition hover:border-admin-green/40 hover:text-admin-green"
+                      >
+                        <ExternalLinkIcon className="h-4 w-4" />
+                      </a>
+                    </div>
                   </td>
                   <td className="px-4 py-4 align-top">
                     <div className="flex items-center justify-end gap-3">

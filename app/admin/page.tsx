@@ -102,7 +102,7 @@ function formatDietaryLabel(key: string): string {
 
 async function getDashboardData() {
   const [householdsRes, guestsRes, phaseRes, dietaryRes, tagsRes] = await Promise.all([
-    supabase.from('households').select('id').order('created_at', { ascending: false }),
+    supabase.from('households').select('id,slug').order('created_at', { ascending: false }),
     supabase.from('guests').select('household_id, rsvp_status'),
     supabase.from('phases').select('current_phase').order('created_at', { ascending: false }).limit(1),
     supabase.from('guests').select('dietary_requirement').eq('rsvp_status', 'attending').neq('dietary_requirement', 'none'),
@@ -171,7 +171,42 @@ async function getDashboardData() {
     })
     .sort((a, b) => b.households - a.households);
 
-  return { totalHouseholds, ...counts, activePhase, dietaryBreakdown, tagBreakdown };
+  const firstSlug = (householdsRes.data?.[0] as { slug?: string } | undefined)?.slug ?? '';
+  return { totalHouseholds, ...counts, activePhase, dietaryBreakdown, tagBreakdown, firstSlug };
+}
+
+const PHASE_OPTIONS = [
+  { value: 'save_the_date', label: 'Save the Date' },
+  { value: 'invitation',    label: 'Invitation'    },
+  { value: 'pre_wedding',   label: 'Pre-wedding'   },
+  { value: 'thank_you',     label: 'Thank You'     },
+] as const;
+
+function PhasePreview({ slug, activePhase }: { slug: string; activePhase: string }) {
+  if (!slug) return null;
+  return (
+    <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
+      <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Preview phases</p>
+      <p className="mt-1 text-xs text-admin-ink/50">Opens in a new tab — you must be logged in here first.</p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        {PHASE_OPTIONS.map(({ value, label }) => (
+          <a
+            key={value}
+            href={`/invite/${slug}?preview=${value}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`rounded-full border px-4 py-2 text-sm transition ${
+              value === activePhase
+                ? 'border-admin-green bg-admin-green/10 font-semibold text-admin-green'
+                : 'border-admin-sand/40 bg-admin-bone/40 text-admin-ink/70 hover:border-admin-green/40 hover:text-admin-green'
+            }`}
+          >
+            {label} ↗
+          </a>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function LoginForm({ error }: { error?: string }) {
@@ -222,7 +257,10 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
         </div>
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <StatusBar attending={dashboard.attending} declined={dashboard.declined} pending={dashboard.pending} />
-          <PhaseForm currentPhase={dashboard.activePhase} />
+          <div className="space-y-4">
+            <PhaseForm currentPhase={dashboard.activePhase} />
+            <PhasePreview slug={dashboard.firstSlug} activePhase={dashboard.activePhase} />
+          </div>
         </div>
         {Object.keys(dashboard.dietaryBreakdown).length > 0 && (
           <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
