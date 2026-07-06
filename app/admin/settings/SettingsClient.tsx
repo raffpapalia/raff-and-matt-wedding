@@ -427,41 +427,15 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       {/* Tab 2 — Save the Date */}
       {activeTab === 'save_the_date' && (
         <Section label="Photos" title="Save the Date">
-          <p className="-mt-2 text-xs text-admin-ink/50">All photos upload and save immediately.</p>
+          <p className="-mt-2 text-xs text-admin-ink/50">Uploads and saves immediately.</p>
 
           <Field
             label="Couple Photo"
-            helper="Used on the save the date and invitation pages. Crop ratio is fixed at 3:4."
+            helper="Shown on the save the date and invitation heroes. Crop ratio 3:4."
           >
             <CouplePhotoUpload
               currentUrl={settings.couple_photo_url}
               onSaved={url => update('couple_photo_url', url)}
-            />
-          </Field>
-
-          <Field
-            label="Story Photo"
-            helper="Used in the 'How we got here' section. Crop ratio 4:5."
-          >
-            <ImmediatePhotoUpload
-              settingsKey="story_photo_url"
-              pathPrefix="settings/story-photo"
-              aspectRatio={4 / 5}
-              currentUrl={settings.story_photo_url}
-              onSaved={url => update('story_photo_url', url)}
-            />
-          </Field>
-
-          <Field
-            label="Band Photo"
-            helper="The full-width photo band. Crop ratio 16:9."
-          >
-            <ImmediatePhotoUpload
-              settingsKey="band_photo_url"
-              pathPrefix="settings/band-photo"
-              aspectRatio={16 / 9}
-              currentUrl={settings.band_photo_url}
-              onSaved={url => update('band_photo_url', url)}
             />
           </Field>
         </Section>
@@ -546,6 +520,32 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
                 onChange={e => update('registry_url', e.target.value)}
                 placeholder="https://..."
                 className={INPUT_CLASS}
+              />
+            </Field>
+
+            <Field
+              label="Story Photo"
+              helper="Used in the 'How we got here' section. Crop ratio 4:5. Uploads and saves immediately."
+            >
+              <ImmediatePhotoUpload
+                settingsKey="story_photo_url"
+                pathPrefix="settings/story-photo"
+                aspectRatio={4 / 5}
+                currentUrl={settings.story_photo_url}
+                onSaved={url => update('story_photo_url', url)}
+              />
+            </Field>
+
+            <Field
+              label="Band Photo"
+              helper="The full-bleed photo band. Crop ratio 16:9. Uploads and saves immediately."
+            >
+              <ImmediatePhotoUpload
+                settingsKey="band_photo_url"
+                pathPrefix="settings/band-photo"
+                aspectRatio={16 / 9}
+                currentUrl={settings.band_photo_url}
+                onSaved={url => update('band_photo_url', url)}
               />
             </Field>
 
