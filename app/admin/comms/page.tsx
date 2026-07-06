@@ -27,6 +27,7 @@ export type CommsSummaryRow = {
   smsStatus: CommsStatus;
   emailStatus: CommsStatus;
   lastContacted: string | null;
+  hasPendingRsvp: boolean;
   guests: CommsSummaryGuest[];
 };
 
@@ -56,7 +57,7 @@ export default async function CommsPage() {
     supabase.from('guest_tags').select('household_id,tag'),
     supabase
       .from('guests')
-      .select('id,household_id,first_name,last_name,mobile,email,comms_email,comms_sms'),
+      .select('id,household_id,first_name,last_name,mobile,email,comms_email,comms_sms,rsvp_status'),
     supabaseServer
       .from('communications')
       .select('household_id,type,status,sent_at')
@@ -108,6 +109,10 @@ export default async function CommsPage() {
       lastContacted = sorted[0].sent_at;
     }
 
+    const hasPendingRsvp = householdGuests.some(
+      (g: any) => g.rsvp_status !== 'attending' && g.rsvp_status !== 'declined'
+    );
+
     return {
       id: household.id,
       name: household.name,
@@ -119,6 +124,7 @@ export default async function CommsPage() {
       smsStatus: deriveStatus(smsComms),
       emailStatus: deriveStatus(emailComms),
       lastContacted,
+      hasPendingRsvp,
       guests: householdGuests.map((g: any) => ({
         id: g.id,
         first_name: g.first_name,

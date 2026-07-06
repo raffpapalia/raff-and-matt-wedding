@@ -57,7 +57,7 @@ function StatusBadge({ status }: { status: CommsStatus }) {
 // --- Main component ---
 
 const PAGE_SIZE = 20;
-type FilterTab = 'all' | 'not_sent' | 'sent' | 'failed';
+type FilterTab = 'all' | 'not_sent' | 'sent' | 'failed' | 'awaiting_rsvp';
 type Channel = 'email' | 'sms';
 
 type ChooserTarget = {
@@ -136,6 +136,7 @@ export default function CommsClient({
       not_sent: rows.filter((r) => r.smsStatus === 'not_sent' && r.emailStatus === 'not_sent').length,
       sent: rows.filter((r) => r.smsStatus === 'sent' || r.emailStatus === 'sent').length,
       failed: rows.filter((r) => r.smsStatus === 'failed' || r.emailStatus === 'failed').length,
+      awaiting_rsvp: rows.filter((r) => r.lastContacted !== null && r.hasPendingRsvp).length,
     }),
     [rows]
   );
@@ -153,6 +154,7 @@ export default function CommsClient({
       if (tab === 'not_sent') return row.smsStatus === 'not_sent' && row.emailStatus === 'not_sent';
       if (tab === 'sent') return row.smsStatus === 'sent' || row.emailStatus === 'sent';
       if (tab === 'failed') return row.smsStatus === 'failed' || row.emailStatus === 'failed';
+      if (tab === 'awaiting_rsvp') return row.lastContacted !== null && row.hasPendingRsvp;
       return true;
     });
   }, [rows, query, tab, tagFilter]);
@@ -418,6 +420,7 @@ export default function CommsClient({
     not_sent: 'Not sent',
     sent: 'Sent',
     failed: 'Failed',
+    awaiting_rsvp: 'Awaiting RSVP',
   };
 
   return (
@@ -538,15 +541,19 @@ export default function CommsClient({
 
         {/* Tabs */}
         <div className="flex flex-wrap gap-3">
-          {(['all', 'not_sent', 'sent', 'failed'] as FilterTab[]).map((key) => (
+          {(['all', 'not_sent', 'sent', 'failed', 'awaiting_rsvp'] as FilterTab[]).map((key) => (
             <button
               key={key}
               type="button"
               onClick={() => { setTab(key); setPage(0); }}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                tab === key
-                  ? 'border-admin-green bg-admin-green/10 text-admin-green'
-                  : 'border-admin-sand/30 bg-admin-bone/40 text-admin-ink/70 hover:border-admin-green/40 hover:text-admin-green'
+                key === 'awaiting_rsvp'
+                  ? tab === key
+                    ? 'border-admin-warning bg-admin-warning-bg text-admin-warning'
+                    : 'border-admin-warning/40 bg-admin-warning-bg/40 text-admin-warning/80 hover:border-admin-warning hover:text-admin-warning'
+                  : tab === key
+                    ? 'border-admin-green bg-admin-green/10 text-admin-green'
+                    : 'border-admin-sand/30 bg-admin-bone/40 text-admin-ink/70 hover:border-admin-green/40 hover:text-admin-green'
               }`}
             >
               {tabLabels[key]} ({tabCounts[key]})
