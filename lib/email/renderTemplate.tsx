@@ -40,7 +40,7 @@ export type EmailTemplateRow = {
 };
 
 type GuestForRender = { first_name: string };
-type HouseholdForRender = { slug: string };
+type HouseholdForRender = { slug: string; name?: string };
 
 export type RenderedEmail = { subject: string; html: string };
 
@@ -109,12 +109,14 @@ async function renderWithWrapper(
   subject: string,
   body: string,
   firstName: string,
-  householdSlug: string
+  householdSlug: string,
+  householdName: string = ''
 ): Promise<RenderedEmail> {
   const settings = await getSettings();
   const weddingDate = formatWeddingDate(settings.wedding_date);
   const mergeValues: Record<string, string> = {
     first_name: firstName,
+    household_name: householdName,
     wedding_date: weddingDate,
     venue: settings.venue_name,
   };
@@ -148,7 +150,7 @@ export async function renderEmailTemplate(
     throw new Error(`No active template found for key: ${templateKey}`);
   }
 
-  return renderWithWrapper(templateKey, template.subject, template.body, guest.first_name, household.slug);
+  return renderWithWrapper(templateKey, template.subject, template.body, guest.first_name, household.slug, household.name ?? '');
 }
 
 // Admin-only preview: renders unsaved subject/body edits through the same wrapper
@@ -158,7 +160,7 @@ export async function renderEmailPreview(
   subject: string,
   body: string
 ): Promise<RenderedEmail> {
-  return renderWithWrapper(templateKey, subject, body, 'Jane', 'sample');
+  return renderWithWrapper(templateKey, subject, body, 'Jane', 'sample', 'Sample Household');
 }
 
 // One-off custom send: subject/body are typed by the admin for this send only and
@@ -172,7 +174,7 @@ export async function renderCustomEmail(
   household: HouseholdForRender,
   baseKey?: EmailTemplateKey
 ): Promise<RenderedEmail> {
-  return renderWithWrapper(baseKey ?? 'custom', subject, body, guest.first_name, household.slug);
+  return renderWithWrapper(baseKey ?? 'custom', subject, body, guest.first_name, household.slug, household.name ?? '');
 }
 
 // Live preview counterpart to renderCustomEmail, against sample guest data.
@@ -181,5 +183,5 @@ export async function renderCustomEmailPreview(
   body: string,
   baseKey?: EmailTemplateKey
 ): Promise<RenderedEmail> {
-  return renderWithWrapper(baseKey ?? 'custom', subject, body, 'Jane', 'sample');
+  return renderWithWrapper(baseKey ?? 'custom', subject, body, 'Jane', 'sample', 'Sample Household');
 }

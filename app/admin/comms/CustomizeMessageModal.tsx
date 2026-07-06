@@ -7,6 +7,7 @@ import MergeTagChips from './MergeTagChips';
 
 const EMAIL_MERGE_TAGS = [
   { tag: '{{first_name}}', hint: "Guest's first name" },
+  { tag: '{{household_name}}', hint: 'Household name' },
   { tag: '{{wedding_date}}', hint: 'Wedding date, formatted' },
   { tag: '{{venue}}', hint: 'Venue name' },
   { tag: '{{cta_button}}', hint: 'Invite button — must be on its own line' },

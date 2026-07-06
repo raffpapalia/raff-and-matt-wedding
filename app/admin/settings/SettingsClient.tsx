@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Settings, ScheduleItem, SectionOrderItem, PracticalitiesSection } from '@/lib/supabase';
+import type { Settings, ScheduleItem, SectionOrderItem } from '@/lib/supabase';
 import { DEFAULT_SECTION_ORDER } from '@/lib/supabase';
 import PhotoUpload from '../components/PhotoUpload';
 import CouplePhotoUpload from '../components/CouplePhotoUpload';
@@ -28,13 +28,6 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'rsvp', label: 'RSVP' },
 ];
 
-// Each practicality card's link button points at one of these existing flat settings keys,
-// matched by card id.
-const PRACTICALITIES_LINK_FIELD_BY_ID: Record<string, 'accommodation_url' | 'photos_upload_url' | 'registry_url'> = {
-  accommodation: 'accommodation_url',
-  culture: 'photos_upload_url',
-  registry: 'registry_url',
-};
 
 function Section({ label, title, children }: { label: string; title: string; children: React.ReactNode }) {
   return (
@@ -134,26 +127,16 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
     });
   }
 
-  function handleSaveSaveTheDate() {
-    saveTab('save_the_date', {
-      save_the_date_footer: settings.save_the_date_footer,
-    });
-  }
-
   function handleSaveInvitation() {
     saveTab('invitation', {
       dress_code_heading: settings.dress_code_heading,
       dress_code_description: settings.dress_code_description,
-      practicalities_sections: settings.practicalities_sections,
       accommodation_url: settings.accommodation_url,
       registry_url: settings.registry_url,
       photos_upload_url: settings.photos_upload_url,
       story_heading: settings.story_heading,
       story_body: settings.story_body,
       band_quote: settings.band_quote,
-      getting_there: settings.getting_there,
-      pass_stamp_line: settings.pass_stamp_line,
-      pass_stamp_sub: settings.pass_stamp_sub,
     });
   }
 
@@ -177,19 +160,6 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       default_plus_one_allowance: Number(settings.default_plus_one_allowance),
       dietary_options: settings.dietary_options.filter(o => o.trim()),
     });
-  }
-
-  // ── Practicalities cards ─────────────────────────────────────────────────────
-
-  function updatePracticalityCard<K extends keyof PracticalitiesSection>(
-    id: string,
-    key: K,
-    value: PracticalitiesSection[K]
-  ) {
-    update(
-      'practicalities_sections',
-      settings.practicalities_sections.map(card => (card.id === id ? { ...card, [key]: value } : card))
-    );
   }
 
   // ── Dietary options ──────────────────────────────────────────────────────────
@@ -456,19 +426,12 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
 
       {/* Tab 2 — Save the Date */}
       {activeTab === 'save_the_date' && (
-        <Section label="Guest-facing copy" title="Save the Date">
-          <Field label="Footer text" helper="Shown at the bottom of the save the date page">
-            <input
-              type="text"
-              value={settings.save_the_date_footer}
-              onChange={e => update('save_the_date_footer', e.target.value)}
-              className={INPUT_CLASS}
-            />
-          </Field>
+        <Section label="Photos" title="Save the Date">
+          <p className="-mt-2 text-xs text-admin-ink/50">All photos upload and save immediately.</p>
 
           <Field
             label="Couple Photo"
-            helper="Used on the save the date and invitation pages. Crop ratio is fixed at 3:4. Uploads and saves immediately."
+            helper="Used on the save the date and invitation pages. Crop ratio is fixed at 3:4."
           >
             <CouplePhotoUpload
               currentUrl={settings.couple_photo_url}
@@ -501,18 +464,6 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               onSaved={url => update('band_photo_url', url)}
             />
           </Field>
-
-          <SaveFeedback error={tabError.save_the_date} success={tabSuccess.save_the_date} />
-          <div>
-            <button
-              type="button"
-              onClick={handleSaveSaveTheDate}
-              disabled={savingTab === 'save_the_date'}
-              className="rounded-3xl bg-admin-green px-8 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
-            >
-              {savingTab === 'save_the_date' ? 'Saving…' : 'Save'}
-            </button>
-          </div>
         </Section>
       )}
 
@@ -568,145 +519,32 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               />
             </Field>
 
-            <div>
-              <p className="mb-1 text-xs uppercase tracking-[0.25em] text-admin-ink/60">Practicalities cards</p>
-              <p className="mb-4 text-xs text-admin-ink/50">
-                Controls the three cards in the &ldquo;The Practicalities&rdquo; section of the invitation.
-              </p>
-              <div className="space-y-3">
-                {settings.practicalities_sections.map(card => {
-                  const linkField = PRACTICALITIES_LINK_FIELD_BY_ID[card.id];
-                  return (
-                    <details
-                      key={card.id}
-                      className="group rounded-2xl border border-admin-sand/30 bg-admin-bone/50 px-5 py-4"
-                    >
-                      <summary className="flex cursor-pointer items-center justify-between text-sm text-admin-ink">
-                        <span>{card.title || card.id}</span>
-                        <span className={`text-xs ${card.enabled ? 'text-admin-green' : 'text-admin-ink/50'}`}>
-                          {card.enabled ? 'Enabled' : 'Hidden'}
-                        </span>
-                      </summary>
-
-                      <div className="mt-5 space-y-5">
-                        <Field label="Title" helper="This card's heading in the Practicalities section.">
-                          <input
-                            type="text"
-                            value={card.title}
-                            onChange={e => updatePracticalityCard(card.id, 'title', e.target.value)}
-                            className={INPUT_CLASS}
-                          />
-                        </Field>
-                        <Field label="Body" helper="This card's description text.">
-                          <textarea
-                            rows={3}
-                            value={card.body}
-                            onChange={e => updatePracticalityCard(card.id, 'body', e.target.value)}
-                            className={TEXTAREA_CLASS}
-                          />
-                        </Field>
-                        <Field label="Button label" helper="Text on the card's button. Leave blank to hide the button entirely.">
-                          <input
-                            type="text"
-                            value={card.link_label ?? ''}
-                            onChange={e =>
-                              updatePracticalityCard(card.id, 'link_label', e.target.value.trim() ? e.target.value : null)
-                            }
-                            placeholder="Optional — leave blank to hide the button"
-                            className={INPUT_CLASS}
-                          />
-                        </Field>
-                        {linkField && (
-                          <Field
-                            label="Button link URL"
-                            helper="Where the button links to. Edited here only — this is the single source of truth for this card's link."
-                          >
-                            <input
-                              type="text"
-                              value={settings[linkField]}
-                              onChange={e => update(linkField, e.target.value)}
-                              placeholder="https://..."
-                              className={INPUT_CLASS}
-                            />
-                          </Field>
-                        )}
-                        <div>
-                          <p className="mb-2 text-xs text-admin-ink/50">The photo shown on this card, cropped to 16:9.</p>
-                          <PhotoUpload
-                            value={card.image_url || null}
-                            onChange={url => updatePracticalityCard(card.id, 'image_url', url ?? '')}
-                            aspectRatio={16 / 9}
-                            label="Card photo"
-                            uploadPathPrefix={`settings/practicalities-${card.id}`}
-                          />
-                        </div>
-                        <label className="flex items-center gap-2 text-sm text-admin-ink/70">
-                          <input
-                            type="checkbox"
-                            checked={card.enabled}
-                            onChange={e => updatePracticalityCard(card.id, 'enabled', e.target.checked)}
-                            className="accent-admin-green"
-                          />
-                          <span>
-                            Enabled
-                            <span className="ml-1 text-xs text-admin-ink/50">— hides the card from guests without deleting its content</span>
-                          </span>
-                        </label>
-                      </div>
-                    </details>
-                  );
-                })}
-              </div>
-            </div>
-
-            <SaveFeedback error={tabError.invitation} success={tabSuccess.invitation} />
-            <div>
-              <button
-                type="button"
-                onClick={handleSaveInvitation}
-                disabled={savingTab === 'invitation'}
-                className="rounded-3xl bg-admin-green px-8 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
-              >
-                {savingTab === 'invitation' ? 'Saving…' : 'Save'}
-              </button>
-            </div>
-          </Section>
-
-          {/* Pre-wedding */}
-          <Section label="Invitation Page" title="Pre-wedding">
-            <Field
-              label="Getting there"
-              helper="Shown on the Pre-wedding page's 'Getting there' tab — transport, parking, travel notes."
-            >
-              <textarea
-                rows={4}
-                value={settings.getting_there}
-                onChange={e => update('getting_there', e.target.value)}
-                className={TEXTAREA_CLASS}
-                style={{ resize: 'vertical', minHeight: '120px' }}
-              />
-            </Field>
-
-            <Field
-              label="Pass stamp"
-              helper="The stamp on the confirmed boarding pass, e.g. 'You're in'. Leave blank to hide the stamp."
-            >
+            <Field label="Accommodation URL" helper="Where to stay — shown as the card button. Leave blank to hide the card.">
               <input
                 type="text"
-                value={settings.pass_stamp_line}
-                onChange={e => update('pass_stamp_line', e.target.value)}
+                value={settings.accommodation_url}
+                onChange={e => update('accommodation_url', e.target.value)}
+                placeholder="https://..."
                 className={INPUT_CLASS}
               />
             </Field>
 
-            <Field
-              label="Pass stamp sub-line"
-              helper="Small line under the stamp, e.g. 'dance floor: non-negotiable'."
-            >
+            <Field label="Photo upload URL" helper="Share photos link — shown as the card button. Leave blank to hide the card.">
               <input
                 type="text"
-                value={settings.pass_stamp_sub}
-                onChange={e => update('pass_stamp_sub', e.target.value)}
+                value={settings.photos_upload_url}
+                onChange={e => update('photos_upload_url', e.target.value)}
+                placeholder="https://..."
+                className={INPUT_CLASS}
+              />
+            </Field>
+
+            <Field label="Registry URL" helper="Registry link — shown as the card button. Leave blank to hide the card.">
+              <input
+                type="text"
+                value={settings.registry_url}
+                onChange={e => update('registry_url', e.target.value)}
+                placeholder="https://..."
                 className={INPUT_CLASS}
               />
             </Field>

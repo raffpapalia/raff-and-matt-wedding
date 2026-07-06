@@ -177,15 +177,6 @@ export const DEFAULT_SECTION_ORDER: SectionOrderItem[] = [
   { id: 'faqs', label: 'FAQs', order: 5, visible_phases: ['invitation', 'pre_wedding'] },
 ];
 
-export type PracticalitiesSection = {
-  id: string;
-  title: string;
-  body: string;
-  link_label: string | null;
-  image_url: string;
-  enabled: boolean;
-};
-
 export type Settings = {
   wedding_date: string;
   wedding_time: string;
@@ -193,7 +184,6 @@ export type Settings = {
   location: string;
   couple_names: string;
   tagline: string;
-  save_the_date_footer: string;
   dress_code_heading: string;
   dress_code_description: string;
   rsvp_cutoff_date: string;
@@ -210,14 +200,10 @@ export type Settings = {
   story_heading: string;
   story_body: string;
   band_quote: string;
-  pass_stamp_line: string;
-  pass_stamp_sub: string;
   contact_email: string;
-  getting_there: string;
   google_photos_url: string;
   wedding_schedule: ScheduleItem[];
   section_order: SectionOrderItem[];
-  practicalities_sections: PracticalitiesSection[];
   thank_you_attended_message: string;
   thank_you_not_attended_message: string;
 };
@@ -229,7 +215,6 @@ export const DEFAULT_SETTINGS: Settings = {
   location: '133 Russell St, Melbourne, Victoria, 3000',
   couple_names: 'Matt & Raff',
   tagline: "Cancel your plans. We've made better ones.",
-  save_the_date_footer: 'Full invitation coming soon',
   dress_code_heading: 'Elevated Cocktail',
   dress_code_description:
     "We'll be dressed up and we'd love you to be too. Think glamorous cocktail — dresses and suits. Black tie welcome if that's your vibe.",
@@ -247,10 +232,7 @@ export const DEFAULT_SETTINGS: Settings = {
   story_heading: 'Boy meets boy. Boy makes questionable dinner.',
   story_body: "A line or two in your own voice goes here — where you met, the date that shouldn't have worked but did.",
   band_quote: 'One afternoon that turns into a very good night.',
-  pass_stamp_line: "You're in",
-  pass_stamp_sub: 'dance floor: non-negotiable',
   contact_email: '',
-  getting_there: '',
   google_photos_url: '',
   wedding_schedule: [
     { time: '3:00 PM', label: 'Arrive', location: 'QT Melbourne', description: 'Doors open — come say hello.' },
@@ -259,32 +241,6 @@ export const DEFAULT_SETTINGS: Settings = {
     { time: '5:00 PM', label: 'Reception', location: 'QT Melbourne', description: '' },
   ],
   section_order: DEFAULT_SECTION_ORDER,
-  practicalities_sections: [
-    {
-      id: 'accommodation',
-      title: 'Accommodation',
-      body: "We've arranged a special rate at QT Hotel Melbourne. Plenty of other CBD hotels are nearby if you'd prefer.",
-      link_label: 'Book a room',
-      image_url: '',
-      enabled: true,
-    },
-    {
-      id: 'culture',
-      title: 'Culture',
-      body: 'Tag us on the day. Share your stories and photos.',
-      link_label: null,
-      image_url: '',
-      enabled: true,
-    },
-    {
-      id: 'registry',
-      title: 'Registry',
-      body: "Your presence is the greatest gift. If you'd like to give something more, we've put together a small wish list.",
-      link_label: 'View registry',
-      image_url: '',
-      enabled: true,
-    },
-  ],
   thank_you_attended_message:
     'Thank you so much for celebrating with us. Your presence made our day truly special.',
   thank_you_not_attended_message:

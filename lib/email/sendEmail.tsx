@@ -31,6 +31,7 @@ type GuestForEmail = {
 
 type HouseholdForEmail = {
   id: string;
+  name?: string;
   slug: string;
 };
 

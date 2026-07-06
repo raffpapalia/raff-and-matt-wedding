@@ -6,14 +6,14 @@ import type { LogRow } from './page';
 
 type Filters = { channel: string; status: string; from: string; to: string };
 
-function substitutePreviewTags(message: string, householdName: string, weddingDate: string): string {
+function substitutePreviewTags(message: string, householdName: string, weddingDate: string, venueName: string): string {
   const firstName = householdName.split(/[\s,&]+/)[0] || householdName;
   return message
     .replace(/\{\{first_name\}\}/g, firstName)
     .replace(/\{\{household_name\}\}/g, householdName)
     .replace(/\{\{invite_link\}\}/g, '[invite link]')
     .replace(/\{\{wedding_date\}\}/g, weddingDate)
-    .replace(/\{\{venue\}\}/g, 'QT Hotel Melbourne');
+    .replace(/\{\{venue\}\}/g, venueName);
 }
 
 export default function LogClient({
@@ -23,6 +23,7 @@ export default function LogClient({
   total,
   filters: initialFilters,
   weddingDate,
+  venueName,
 }: {
   rows: LogRow[];
   page: number;
@@ -30,6 +31,7 @@ export default function LogClient({
   total: number;
   filters: Filters;
   weddingDate: string;
+  venueName: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -141,7 +143,7 @@ export default function LogClient({
             ) : (
               rows.map((row) => {
                 const isExpanded = expandedId === row.id;
-                const resolvedPreview = substitutePreviewTags(row.message, row.householdName, weddingDate);
+                const resolvedPreview = substitutePreviewTags(row.message, row.householdName, weddingDate, venueName);
                 return (
                   <Fragment key={row.id}>
                     <tr className="border-t border-admin-sand/10 hover:bg-admin-bone/40">

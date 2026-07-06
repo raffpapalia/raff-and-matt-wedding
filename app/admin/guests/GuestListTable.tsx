@@ -17,7 +17,7 @@ type GuestRow = {
 };
 
 const PAGE_SIZE = 20;
-const SITE_URL = 'https://www.mattandraff.com';
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mattandraff.com').replace(/\/$/, '');
 
 const tabKeys = ['all', 'confirmed', 'pending', 'declined'] as const;
 const tabLabels: Record<typeof tabKeys[number], string> = {

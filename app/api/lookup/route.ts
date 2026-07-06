@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       if (household_id && first_name && guestEmail) {
         const { data: household } = await supabaseServer
           .from('households')
-          .select('id, slug')
+          .select('id, name, slug')
           .eq('id', household_id)
           .single();
 

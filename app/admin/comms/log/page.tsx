@@ -105,6 +105,7 @@ export default async function CommsLogPage({
         total={count ?? 0}
         filters={{ channel, status, from, to }}
         weddingDate={formatWeddingDate(settings.wedding_date)}
+        venueName={settings.venue_name}
       />
     </div>
   );
