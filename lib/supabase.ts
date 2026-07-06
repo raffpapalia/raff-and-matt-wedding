@@ -201,6 +201,7 @@ export type Settings = {
   story_body: string;
   band_quote: string;
   contact_email: string;
+  ai_message_style_prompt: string;
   google_photos_url: string;
   wedding_schedule: ScheduleItem[];
   section_order: SectionOrderItem[];
@@ -233,6 +234,7 @@ export const DEFAULT_SETTINGS: Settings = {
   story_body: "A line or two in your own voice goes here — where you met, the date that shouldn't have worked but did.",
   band_quote: 'One afternoon that turns into a very good night.',
   contact_email: '',
+  ai_message_style_prompt: '',
   google_photos_url: '',
   wedding_schedule: [
     { time: '3:00 PM', label: 'Arrive', location: 'QT Melbourne', description: 'Doors open — come say hello.' },

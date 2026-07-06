@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState, useTransition } from 'react';
+import React, { FormEvent, useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PhotoUpload from '../../../components/PhotoUpload';
@@ -94,6 +94,49 @@ function GuestDuplicateWarning({ matches }: { matches: GuestMatch[] }) {
 const fieldClass = 'w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green';
 const labelClass = 'block space-y-2 text-sm text-admin-ink/85';
 const helperClass = 'text-xs text-admin-ink/45';
+
+type SuggestState = { loading: boolean; text: string | null; error: string | null };
+const SUGGEST_IDLE: SuggestState = { loading: false, text: null, error: null };
+
+function SuggestionPanel({
+  state,
+  onReplace,
+  onAppend,
+}: {
+  state: SuggestState;
+  onReplace: (text: string) => void;
+  onAppend: (text: string) => void;
+}) {
+  if (!state.text && !state.error) return null;
+  return (
+    <div className="rounded-2xl border border-admin-sand/30 bg-admin-bone/60 p-4 space-y-3">
+      {state.error ? (
+        <p className="text-xs text-admin-persimmon">{state.error}</p>
+      ) : (
+        <>
+          <p className="text-xs uppercase tracking-[0.2em] text-admin-ink/45">AI suggestion</p>
+          <p className="text-sm text-admin-ink/85 whitespace-pre-wrap">{state.text}</p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => state.text && onReplace(state.text)}
+              className="flex-1 rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/85 transition hover:border-admin-green/40 hover:text-admin-green"
+            >
+              Replace
+            </button>
+            <button
+              type="button"
+              onClick={() => state.text && onAppend(state.text)}
+              className="flex-1 rounded-2xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/85 transition hover:border-admin-green/40 hover:text-admin-green"
+            >
+              Append
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 function SectionHeading({ title }: { title: string }) {
   return <h2 className="font-cinzel text-2xl font-semibold text-admin-green">{title}</h2>;
@@ -253,6 +296,8 @@ export default function EditHouseholdForm({
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const [personalSuggest, setPersonalSuggest] = useState<SuggestState>(SUGGEST_IDLE);
+  const [thankYouSuggest, setThankYouSuggest] = useState<SuggestState>(SUGGEST_IDLE);
 
   // Re-sync local state when navigating between households (prev/next), since
   // the form component itself is not remounted by Next.js client navigation.
@@ -275,6 +320,8 @@ export default function EditHouseholdForm({
     setHouseholdMatches([]);
     setGuestMatches(Array.from({ length: initialGuestErrors(initial).length }, () => []));
     setError('');
+    setPersonalSuggest(SUGGEST_IDLE);
+    setThankYouSuggest(SUGGEST_IDLE);
   }, [initial]);
 
   const previewSlug = useMemo(() => slugify(slug) || 'your-household', [slug]);
@@ -406,6 +453,26 @@ export default function EditHouseholdForm({
     setGuests((prev) => prev.filter((_, idx) => idx !== index));
     setGuestErrors((prev) => prev.filter((_, idx) => idx !== index));
     setGuestMatches((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const requestSuggestion = async (
+    field: 'personal_message' | 'thank_you_message',
+    currentText: string,
+    setSuggest: React.Dispatch<React.SetStateAction<SuggestState>>,
+  ) => {
+    setSuggest({ loading: true, text: null, error: null });
+    try {
+      const res = await fetch('/admin/api/generate-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ householdId: initial.id, field, currentText }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Failed to generate suggestion');
+      setSuggest({ loading: false, text: json.suggestion, error: null });
+    } catch (err) {
+      setSuggest({ loading: false, text: null, error: err instanceof Error ? err.message : 'Something went wrong' });
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -546,17 +613,32 @@ export default function EditHouseholdForm({
             </select>
           </label>
 
-          <label className={labelClass}>
-            Personal message
-            <textarea
-              value={personalMessage}
-              onChange={(event) => setPersonalMessage(event.target.value)}
-              rows={4}
-              className={fieldClass}
-              placeholder="Message for the household, optional."
+          <div className="space-y-2">
+            <label className={labelClass}>
+              Personal message
+              <textarea
+                value={personalMessage}
+                onChange={(event) => setPersonalMessage(event.target.value)}
+                rows={4}
+                className={fieldClass}
+                placeholder="Message for the household, optional."
+              />
+              <span className={`block ${helperClass}`}>Shown on their invitation page</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => requestSuggestion('personal_message', personalMessage, setPersonalSuggest)}
+              disabled={personalSuggest.loading}
+              className="text-xs text-admin-ink/45 transition hover:text-admin-green disabled:opacity-50"
+            >
+              {personalSuggest.loading ? 'Generating…' : '✨ Suggest a rewrite'}
+            </button>
+            <SuggestionPanel
+              state={personalSuggest}
+              onReplace={(text) => { setPersonalMessage(text); setPersonalSuggest(SUGGEST_IDLE); }}
+              onAppend={(text) => { setPersonalMessage(prev => prev.trim() ? `${prev.trim()}\n\n${text}` : text); setPersonalSuggest(SUGGEST_IDLE); }}
             />
-            <span className={`block ${helperClass}`}>Shown on their invitation page</span>
-          </label>
+          </div>
         </section>
 
         <SectionDivider />
@@ -816,17 +898,32 @@ export default function EditHouseholdForm({
             <p className={helperClass}>Optional. A photo of you with this household from the wedding day, shown on their thank you page.</p>
           </div>
 
-          <label className={labelClass}>
-            Thank you message
-            <textarea
-              value={thankYouMessage}
-              onChange={(event) => setThankYouMessage(event.target.value)}
-              rows={4}
-              className={fieldClass}
-              placeholder="Personalised thank you message for this household, optional."
+          <div className="space-y-2">
+            <label className={labelClass}>
+              Thank you message
+              <textarea
+                value={thankYouMessage}
+                onChange={(event) => setThankYouMessage(event.target.value)}
+                rows={4}
+                className={fieldClass}
+                placeholder="Personalised thank you message for this household, optional."
+              />
+              <span className={`block ${helperClass}`}>Personalised message shown on their thank you page. If left blank, a default message is used.</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => requestSuggestion('thank_you_message', thankYouMessage, setThankYouSuggest)}
+              disabled={thankYouSuggest.loading}
+              className="text-xs text-admin-ink/45 transition hover:text-admin-green disabled:opacity-50"
+            >
+              {thankYouSuggest.loading ? 'Generating…' : '✨ Suggest a rewrite'}
+            </button>
+            <SuggestionPanel
+              state={thankYouSuggest}
+              onReplace={(text) => { setThankYouMessage(text); setThankYouSuggest(SUGGEST_IDLE); }}
+              onAppend={(text) => { setThankYouMessage(prev => prev.trim() ? `${prev.trim()}\n\n${text}` : text); setThankYouSuggest(SUGGEST_IDLE); }}
             />
-            <span className={`block ${helperClass}`}>Personalised message shown on their thank you page. If left blank, a default message is used.</span>
-          </label>
+          </div>
         </section>
 
         {error ? <div className="rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">{error}</div> : null}

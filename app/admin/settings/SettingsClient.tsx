@@ -124,6 +124,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       tagline: settings.tagline,
       hashtag: settings.hashtag,
       contact_email: settings.contact_email,
+      ai_message_style_prompt: settings.ai_message_style_prompt,
     });
   }
 
@@ -407,6 +408,19 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               onChange={e => update('contact_email', e.target.value)}
               placeholder="you@example.com"
               className={INPUT_CLASS}
+            />
+          </Field>
+
+          <Field
+            label="AI message style guide"
+            helper="Tone and constraints sent to the AI when generating personal or thank you message suggestions in the household editor."
+          >
+            <textarea
+              rows={4}
+              value={settings.ai_message_style_prompt}
+              onChange={e => update('ai_message_style_prompt', e.target.value)}
+              placeholder="Warm, a little playful, not overly formal — high-end bar/restaurant vibe, not traditional wedding. Keep suggestions under 3 sentences. Always 'Matt & Raff', never reversed."
+              className={TEXTAREA_CLASS}
             />
           </Field>
 
