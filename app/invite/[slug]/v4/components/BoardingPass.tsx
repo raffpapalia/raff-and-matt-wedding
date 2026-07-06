@@ -12,6 +12,7 @@ interface BoardingPassProps {
   // "10 · 07 · 27" — the stub's short date, kept distinct from `date` (which is
   // the longer "Sat 10 Jul 2027" shown in the meta row).
   stubDate: string;
+  guestCount?: number;
 }
 
 // Smaller "boarding pass" card for the pre-wedding page — same bone/ink/persimmon
@@ -27,6 +28,7 @@ export default function BoardingPass({
   stampLine,
   stampSub,
   stubDate,
+  guestCount,
 }: BoardingPassProps) {
   const [name1, name2] = coupleNames.includes(' & ') ? coupleNames.split(' & ') : [coupleNames, ''];
   const seal = `${name1[0] || ''}&${name2[0] || ''}`;
@@ -63,6 +65,9 @@ export default function BoardingPass({
         <div className="mr-pass-seal">{seal}</div>
         <div className="mr-pass-conf">Confirmed ✓</div>
         <div className="mr-pass-sd">{stubDate}</div>
+        {guestCount !== undefined && guestCount > 0 && (
+          <div className="mr-pass-count">{guestCount} {guestCount === 1 ? 'guest' : 'guests'}</div>
+        )}
       </div>
     </div>
   );

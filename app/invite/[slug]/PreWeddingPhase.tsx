@@ -312,7 +312,7 @@ export default function PreWeddingPhase({
                     fontFamily: tokens.display,
                     fontWeight: 900,
                     fontSize: 'clamp(2rem, 7vw, 3.4rem)',
-                    color: tokens.greenDeep,
+                    color: tokens.bone,
                     lineHeight: 0.95,
                     margin: 0,
                   }}
@@ -357,7 +357,7 @@ export default function PreWeddingPhase({
     <div style={{ fontFamily: tokens.body, fontWeight: 300, lineHeight: 1.6 }}>
       <StickyBar coupleNames={coupleNames} rightHref={mailto} rightLabel="Get in touch" rightVariant="ghost" />
 
-      {/* Scoped styles: section-transition glows + hero gradient override */}
+      {/* Scoped styles: section-transition glows, hero gradient override, ref-section on green */}
       <style>{`
         #pre-hero {
           background:
@@ -381,14 +381,19 @@ export default function PreWeddingPhase({
             radial-gradient(80% 120% at 15% 120%, rgba(242,96,60,.38), rgba(242,96,60,0) 60%),
             radial-gradient(70% 100% at 85% 130%, rgba(142,124,195,.32), rgba(142,124,195,0) 55%);
         }
-        .mr-pre-bone-glow { position: relative; overflow: hidden; }
-        .mr-pre-bone-glow::before {
-          content: ""; position: absolute; top: 0; left: 0; right: 0;
-          height: 120px; pointer-events: none;
-          background:
-            radial-gradient(90% 100% at 20% -20%, rgba(242,96,60,.22), rgba(242,96,60,0) 65%),
-            radial-gradient(70% 90% at 80% -10%, rgba(142,124,195,.18), rgba(142,124,195,0) 60%);
-        }
+        /* Tab colours on the deep-green reference section */
+        #pre-ref .mr-tabs { border-bottom-color: rgba(246,238,221,0.18); }
+        #pre-ref .mr-tab { border-color: rgba(246,238,221,0.28); color: rgba(246,238,221,0.72); }
+        #pre-ref .mr-tab:hover { border-color: rgba(246,238,221,0.65); color: #F6EEDD; }
+        #pre-ref .mr-tab.is-active { background: ${tokens.persimmon}; border-color: ${tokens.persimmon}; color: #F6EEDD; }
+        /* Panel content colours on green */
+        #pre-ref .mr-ref-order-row { border-top-color: rgba(246,238,221,0.14); }
+        #pre-ref .mr-ref-order-row:last-child { border-bottom-color: rgba(246,238,221,0.14); }
+        #pre-ref .mr-ref-order-name { color: #F6EEDD; }
+        #pre-ref .mr-ref-gt h4 { color: #F6EEDD; }
+        #pre-ref .mr-ref-gt p { color: rgba(246,238,221,0.78); }
+        #pre-ref .mr-ref-faq dt { color: #F6EEDD; border-top-color: rgba(246,238,221,0.14); }
+        #pre-ref .mr-ref-faq dd { color: rgba(246,238,221,0.75); }
       `}</style>
 
       {/* ── HERO ── */}
@@ -408,19 +413,6 @@ export default function PreWeddingPhase({
           }}
         />
         <Reveal style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
-          <p
-            style={{
-              fontFamily: tokens.grotesque,
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.15em',
-              fontSize: 'clamp(0.95rem, 3vw, 1.4rem)',
-              color: tokens.sand,
-              margin: '0 0 clamp(20px, 5vw, 34px)',
-            }}
-          >
-            Before the night
-          </p>
           <h1
             style={{
               fontFamily: tokens.display,
@@ -432,20 +424,10 @@ export default function PreWeddingPhase({
               margin: 0,
             }}
           >
-            The wait&apos;s nearly over.
+            The wait is nearly over.
           </h1>
-          <p
-            style={{
-              fontFamily: tokens.display,
-              fontStyle: 'italic',
-              fontSize: 'clamp(1.05rem, 3vw, 1.4rem)',
-              color: tokens.sand,
-              marginTop: 16,
-              marginBottom: 0,
-            }}
-          >
-            Here&apos;s everything you need to know.
-          </p>
+
+          <CountdownTimer weddingDate={settings.wedding_date} weddingTime={settings.wedding_time} />
 
           {confirmedGuests.length > 0 ? (
             <BoardingPass
@@ -455,9 +437,8 @@ export default function PreWeddingPhase({
               date={formatShortWeekday(settings.wedding_date)}
               doors={formatDisplayTime(settings.wedding_time)}
               venue={settings.venue_name}
-              stampLine={settings.pass_stamp_line}
-              stampSub={settings.pass_stamp_sub}
               stubDate={formatDotted(settings.wedding_date, { year: '2', spaced: false })}
+              guestCount={confirmedGuests.length}
             />
           ) : (
             <div
@@ -478,13 +459,23 @@ export default function PreWeddingPhase({
             </div>
           )}
 
-          <CountdownTimer weddingDate={settings.wedding_date} weddingTime={settings.wedding_time} />
+          <p
+            style={{
+              fontFamily: tokens.display,
+              fontStyle: 'italic',
+              fontSize: 'clamp(1.05rem, 3vw, 1.4rem)',
+              color: tokens.sand,
+              marginTop: 'clamp(28px, 4vw, 44px)',
+              marginBottom: 0,
+            }}
+          >
+            Here&apos;s everything you need to know.
+          </p>
         </Reveal>
       </Section>
 
       {/* ── REFERENCE ── */}
-      <style>{`#pre-ref { background: ${tokens.sand} !important; }`}</style>
-      <Section variant="bone" id="pre-ref" className="mr-pre-bone-glow">
+      <Section variant="deep" id="pre-ref">
         <Reveal>
           <SectionPill label="For reference" />
           <div style={{ marginTop: 'clamp(26px, 4vw, 40px)' }}>
@@ -496,7 +487,6 @@ export default function PreWeddingPhase({
       {/* ── CONTACT ── */}
       <Section variant="deep" id="contact" className="mr-pre-green-glow">
         <Reveal style={{ textAlign: 'center' }}>
-          <SectionPill label="Stay in touch" />
           <h2
             style={{
               fontFamily: tokens.display,
@@ -538,20 +528,21 @@ export default function PreWeddingPhase({
             <em style={{ fontStyle: 'italic', color: tokens.persimmon }}>&amp;</em>{' '}
             <span style={{ color: tokens.violet }}>{name2}</span>
           </div>
-          <p
-            style={{
-              fontFamily: tokens.mono,
-              fontSize: '0.6rem',
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: tokens.sand,
-              opacity: 0.7,
-              marginTop: 14,
-            }}
-          >
-            {settings.hashtag}
-            {weddingDay !== undefined && <> · See you on the {ordinal(weddingDay)}</>}
-          </p>
+          {weddingDay !== undefined && (
+            <p
+              style={{
+                fontFamily: tokens.mono,
+                fontSize: '0.6rem',
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: tokens.sand,
+                opacity: 0.7,
+                marginTop: 14,
+              }}
+            >
+              See you on the {ordinal(weddingDay)}
+            </p>
+          )}
         </div>
       </Section>
     </div>

@@ -672,6 +672,14 @@
   text-transform: uppercase;
   color: var(--muted);
 }
+.mr-v4 .mr-pass-count {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.75;
+}
 
 /* Tabbed reference section (RefTabs) */
 .mr-v4 .mr-tabs {
