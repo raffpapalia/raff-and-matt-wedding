@@ -9,6 +9,7 @@ import Section from './v4/components/Section';
 import Reveal from './v4/components/Reveal';
 import Button from './v4/components/Button';
 import BoardingPass from './v4/components/BoardingPass';
+import RunningOrder from './v4/components/RunningOrder';
 import RefTabs from './v4/components/RefTabs';
 import { tokens } from './v4/tokens';
 
@@ -23,8 +24,6 @@ interface PreWeddingPhaseProps {
   sectionOrder: SectionOrderItem[];
   currentPhase: Phase['current_phase'];
 }
-
-const DRESS_SWATCH_COLORS = [tokens.greenDeep, tokens.greenBright, tokens.pine, tokens.gold, tokens.persimmon];
 
 const HERO_GRAIN_URL =
   "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='heroGrain'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23heroGrain)' opacity='0.5'/></svg>\")";
@@ -45,10 +44,6 @@ function formatGuestNames(names: string[]): string {
   if (names.length === 1) return names[0];
   if (names.length === 2) return `${names[0]} & ${names[1]}`;
   return `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`;
-}
-
-function scheduleTimeValue(time: string): string {
-  return time.trim().replace(/\s*(am|pm)$/i, '');
 }
 
 function buildMailto(email: string, householdName: string): string {
@@ -73,6 +68,18 @@ function buildTargetDate(dateStr: string, timeStr?: string): Date {
     target.setHours(h, m, 0, 0);
   }
   return target;
+}
+
+function scheduleTimeTo24h(time: string): string {
+  const trimmed = time.trim();
+  const legacy = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!legacy) return trimmed;
+  let hours = parseInt(legacy[1], 10);
+  const minutes = legacy[2];
+  const meridiem = legacy[3].toUpperCase();
+  if (meridiem === 'PM' && hours !== 12) hours += 12;
+  if (meridiem === 'AM' && hours === 12) hours = 0;
+  return `${String(hours).padStart(2, '0')}:${minutes}`;
 }
 
 function CountdownTimer({ weddingDate, weddingTime }: { weddingDate: string; weddingTime?: string }) {
@@ -190,46 +197,95 @@ function SectionPill({ num, label }: { num?: string; label: string }) {
   );
 }
 
-function GtBlock({
-  label,
-  heading,
-  body,
-  href,
-  linkLabel,
-}: {
-  label: string;
-  heading?: string;
-  body?: string;
-  href?: string;
-  linkLabel?: string;
-}) {
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false);
   return (
-    <div>
-      <div className="mr-ref-gt-label">{label}</div>
-      {heading && <h4>{heading}</h4>}
-      {body && <p>{body}</p>}
-      {href && linkLabel && (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
+    <div style={{ borderTop: '1px solid rgba(246,238,221,0.18)' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 16,
+          padding: 'clamp(16px, 2.4vw, 22px) 0',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+        }}
+      >
+        <span style={{ fontFamily: tokens.display, fontSize: 18, fontWeight: 600, color: tokens.bone }}>
+          {question}
+        </span>
+        <span
+          aria-hidden="true"
           style={{
-            display: 'inline-block',
-            marginTop: 10,
-            fontFamily: tokens.grotesque,
-            fontWeight: 700,
-            fontSize: '0.62rem',
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
+            flex: '0 0 auto',
+            fontSize: 24,
+            lineHeight: 1,
             color: tokens.persimmon,
-            textDecoration: 'none',
-            borderBottom: `1.5px solid ${tokens.persimmon}`,
-            paddingBottom: 3,
+            transform: open ? 'rotate(45deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s ease',
           }}
         >
-          {linkLabel}
-        </a>
+          +
+        </span>
+      </button>
+      {open && (
+        <p style={{ margin: '0 0 clamp(16px, 2.4vw, 22px)', paddingRight: 40, fontFamily: tokens.body, fontSize: 14, color: tokens.sand }}>
+          {answer}
+        </p>
       )}
+    </div>
+  );
+}
+
+function ConciergeCard({
+  num,
+  category,
+  title,
+  body,
+  ctaLabel,
+  href,
+}: {
+  num: string;
+  category: string;
+  title: string;
+  body: string;
+  ctaLabel: string;
+  href: string;
+}) {
+  return (
+    <div style={{ background: tokens.greenDeep, color: tokens.bone, padding: '30px 26px' }}>
+      <div style={{ fontFamily: tokens.grotesque, fontWeight: 700, textTransform: 'uppercase', fontSize: '0.6rem', letterSpacing: '0.18em', color: tokens.sand }}>
+        <span style={{ color: tokens.violet }}>{num} /</span> {category}
+      </div>
+      <h3 style={{ fontFamily: tokens.grotesque, fontWeight: 700, fontSize: '1.5rem', margin: '12px 0 8px', color: tokens.sand }}>{title}</h3>
+      <p style={{ fontFamily: tokens.grotesque, fontWeight: 400, color: tokens.sand, opacity: 0.78, fontSize: '0.95rem', margin: 0 }}>{body}</p>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'inline-block',
+          marginTop: 14,
+          fontFamily: tokens.grotesque,
+          fontWeight: 600,
+          fontSize: '0.62rem',
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          color: tokens.sand,
+          textDecoration: 'none',
+          borderBottom: `1.5px solid ${tokens.persimmon}`,
+          paddingBottom: 3,
+        }}
+      >
+        {ctaLabel}
+      </a>
     </div>
   );
 }
@@ -257,15 +313,13 @@ export default function PreWeddingPhase({
     return item ? item.visible_phases?.includes(currentPhase) ?? true : true;
   };
 
-  const gtBlocks: { label: string; heading?: string; body?: string; href?: string; linkLabel?: string }[] = [
-    { label: 'The venue', heading: settings.venue_name, body: settings.location },
-  ];
-  if (settings.getting_there) {
-    gtBlocks.push({ label: 'Getting there', body: settings.getting_there });
-  }
-  if (settings.accommodation_url) {
-    gtBlocks.push({ label: 'Staying over', href: settings.accommodation_url, linkLabel: 'Book a room' });
-  }
+  const hasGoodToKnowContent = Boolean(settings.accommodation_url || settings.photos_upload_url || settings.registry_url);
+  const runningOrderItems = weddingSchedule.map((item, i) => ({
+    num: String(i + 1).padStart(2, '0'),
+    name: item.label,
+    note: item.description,
+    time: scheduleTimeTo24h(item.time),
+  }));
 
   const tabs: { id: string; label: string; content: React.ReactNode }[] = [
     ...(isVisible('on_the_day')
@@ -274,29 +328,54 @@ export default function PreWeddingPhase({
             id: 'order',
             label: 'Running order',
             content:
-              weddingSchedule.length > 0 ? (
-                <div>
-                  {weddingSchedule.map((item, i) => (
-                    <div key={i} className="mr-ref-order-row">
-                      <div className="mr-ref-order-time">{scheduleTimeValue(item.time)}</div>
-                      <div className="mr-ref-order-name">{item.label}</div>
-                    </div>
-                  ))}
-                </div>
+              runningOrderItems.length > 0 ? (
+                <RunningOrder items={runningOrderItems} />
               ) : (
-                <p style={{ opacity: 0.6, fontStyle: 'italic' }}>Running order coming soon.</p>
+                <p style={{ color: tokens.sand, opacity: 0.6, fontStyle: 'italic' }}>Running order coming soon.</p>
               ),
           },
         ]
       : []),
     {
-      id: 'gt',
-      label: 'Getting there',
-      content: (
-        <div className="mr-ref-gt">
-          {gtBlocks.map((block, i) => (
-            <GtBlock key={i} {...block} />
-          ))}
+      id: 'good-to-know',
+      label: 'Good to know',
+      content: hasGoodToKnowContent ? (
+        <div className="mr-conc">
+          {settings.accommodation_url && (
+            <ConciergeCard
+              num="01"
+              category="Stay"
+              title="Where to sleep"
+              body="A special rate nearby, plus plenty of CBD options a short walk away."
+              ctaLabel="Book a room"
+              href={settings.accommodation_url}
+            />
+          )}
+          {settings.photos_upload_url && (
+            <ConciergeCard
+              num="02"
+              category="Photos"
+              title="Share the night"
+              body={`Snap away and tag us. Everything lands in one place.`}
+              ctaLabel="Upload yours"
+              href={settings.photos_upload_url}
+            />
+          )}
+          {settings.registry_url && (
+            <ConciergeCard
+              num="03"
+              category="Gifts"
+              title="The registry"
+              body="Your presence is the gift. If you'd like to give more, we've made a small list."
+              ctaLabel="View registry"
+              href={settings.registry_url}
+            />
+          )}
+        </div>
+      ) : (
+        <div>
+          <p style={{ fontFamily: tokens.display, fontWeight: 600, fontSize: '1.2rem', color: tokens.bone, margin: '0 0 6px' }}>{settings.venue_name}</p>
+          <p style={{ color: tokens.sand, opacity: 0.8, margin: 0 }}>{settings.location}</p>
         </div>
       ),
     },
@@ -307,24 +386,10 @@ export default function PreWeddingPhase({
             label: 'Dress code',
             content: (
               <div>
-                <h3
-                  style={{
-                    fontFamily: tokens.display,
-                    fontWeight: 900,
-                    fontSize: 'clamp(2rem, 7vw, 3.4rem)',
-                    color: tokens.bone,
-                    lineHeight: 0.95,
-                    margin: 0,
-                  }}
-                >
+                <h3 style={{ fontFamily: tokens.display, fontWeight: 900, fontSize: 'clamp(2rem, 7vw, 3.4rem)', color: tokens.bone, lineHeight: 0.95, margin: 0 }}>
                   {settings.dress_code_heading}
                 </h3>
-                <div style={{ display: 'flex', gap: 12, margin: '22px 0', flexWrap: 'wrap' }} aria-hidden="true">
-                  {DRESS_SWATCH_COLORS.map((c, i) => (
-                    <span key={i} style={{ width: 46, height: 46, borderRadius: '50%', boxShadow: '0 5px 14px rgba(11,33,24,.18)', background: c, display: 'block' }} />
-                  ))}
-                </div>
-                <p style={{ maxWidth: '44ch', opacity: 0.82, margin: 0, whiteSpace: 'pre-wrap' }}>{settings.dress_code_description}</p>
+                <p style={{ maxWidth: '44ch', color: tokens.sand, margin: '22px 0 0', whiteSpace: 'pre-wrap' }}>{settings.dress_code_description}</p>
               </div>
             ),
           },
@@ -337,16 +402,13 @@ export default function PreWeddingPhase({
             label: 'Questions',
             content:
               faqs.length > 0 ? (
-                <dl className="mr-ref-faq">
+                <div style={{ borderBottom: '1px solid rgba(246,238,221,0.18)' }}>
                   {faqs.map(f => (
-                    <div key={f.id}>
-                      <dt>{f.question}</dt>
-                      <dd>{f.answer}</dd>
-                    </div>
+                    <FaqItem key={f.id} question={f.question} answer={f.answer} />
                   ))}
-                </dl>
+                </div>
               ) : (
-                <p style={{ opacity: 0.6, fontStyle: 'italic' }}>Frequently asked questions coming soon.</p>
+                <p style={{ color: tokens.sand, opacity: 0.6, fontStyle: 'italic' }}>Frequently asked questions coming soon.</p>
               ),
           },
         ]
@@ -357,7 +419,7 @@ export default function PreWeddingPhase({
     <div style={{ fontFamily: tokens.body, fontWeight: 300, lineHeight: 1.6 }}>
       <StickyBar coupleNames={coupleNames} rightHref={mailto} rightLabel="Get in touch" rightVariant="ghost" />
 
-      {/* Scoped styles: section-transition glows, hero gradient override, ref-section on green */}
+      {/* Scoped styles: glows, hero gradient, section spacing, tab colours on green */}
       <style>{`
         #pre-hero {
           background:
@@ -381,19 +443,16 @@ export default function PreWeddingPhase({
             radial-gradient(80% 120% at 15% 120%, rgba(242,96,60,.38), rgba(242,96,60,0) 60%),
             radial-gradient(70% 100% at 85% 130%, rgba(142,124,195,.32), rgba(142,124,195,0) 55%);
         }
+        /* Tighten padding + add hairline dividers between same-colour sections */
+        #pre-ref, #contact { padding-top: clamp(56px, 8vw, 90px); border-top: 1px solid rgba(246,238,221,0.1); }
+        #pre-footer { padding-top: clamp(56px, 8vw, 90px); padding-bottom: clamp(56px, 8vw, 90px); border-top: 1px solid rgba(246,238,221,0.1); }
         /* Tab colours on the deep-green reference section */
         #pre-ref .mr-tabs { border-bottom-color: rgba(246,238,221,0.18); }
         #pre-ref .mr-tab { border-color: rgba(246,238,221,0.28); color: rgba(246,238,221,0.72); }
         #pre-ref .mr-tab:hover { border-color: rgba(246,238,221,0.65); color: #F6EEDD; }
         #pre-ref .mr-tab.is-active { background: ${tokens.persimmon}; border-color: ${tokens.persimmon}; color: #F6EEDD; }
-        /* Panel content colours on green */
-        #pre-ref .mr-ref-order-row { border-top-color: rgba(246,238,221,0.14); }
-        #pre-ref .mr-ref-order-row:last-child { border-bottom-color: rgba(246,238,221,0.14); }
-        #pre-ref .mr-ref-order-name { color: #F6EEDD; }
-        #pre-ref .mr-ref-gt h4 { color: #F6EEDD; }
-        #pre-ref .mr-ref-gt p { color: rgba(246,238,221,0.78); }
-        #pre-ref .mr-ref-faq dt { color: #F6EEDD; border-top-color: rgba(246,238,221,0.14); }
-        #pre-ref .mr-ref-faq dd { color: rgba(246,238,221,0.75); }
+        /* Running order row dividers on green */
+        #pre-ref .mr-act { border-top-color: rgba(168,140,96,0.2); }
       `}</style>
 
       {/* ── HERO ── */}
@@ -420,11 +479,11 @@ export default function PreWeddingPhase({
               fontSize: 'clamp(2.4rem, 8vw, 4rem)',
               lineHeight: 1.0,
               letterSpacing: '-0.01em',
-              color: tokens.bone,
+              color: tokens.persimmon,
               margin: 0,
             }}
           >
-            The wait is nearly over.
+            The wait is nearly over
           </h1>
 
           <CountdownTimer weddingDate={settings.wedding_date} weddingTime={settings.wedding_time} />
