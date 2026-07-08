@@ -134,6 +134,7 @@ export default function EmailWrapper({
           maxHeight: 0,
           maxWidth: 0,
         }}
+        data-skip-in-text={true}
       >
         {previewText.substring(0, PREVIEW_MAX)}{previewPadding(previewText)}
       </div>
