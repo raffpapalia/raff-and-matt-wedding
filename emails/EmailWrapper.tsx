@@ -1,7 +1,6 @@
 import {
   Html,
   Head,
-  Preview,
   Body,
   Container,
   Section,
@@ -11,6 +10,20 @@ import {
   Button,
   Hr,
 } from 'react-email';
+
+// react-email's built-in <Preview> has a bug: it repeats the 7-char invisible
+// sequence N times (producing 7N chars) instead of producing exactly N chars of
+// padding. For a typical ~50-char subject line that's ~1,000 invisible characters
+// — a known spam-filter signal. We replicate the same hidden-div pattern with
+// correct math: ceil(needed / seqLen) repeats, then trim to exact needed length.
+const PREVIEW_MAX = 150;
+const PREVIEW_WHITESPACE = '\xA0‌​‍‎‏﻿'; // 7 invisible chars
+
+function previewPadding(text: string): string {
+  const needed = Math.max(0, PREVIEW_MAX - text.length);
+  if (needed === 0) return '';
+  return PREVIEW_WHITESPACE.repeat(Math.ceil(needed / PREVIEW_WHITESPACE.length)).substring(0, needed);
+}
 
 export type BodyBlock = { type: 'text'; content: string } | { type: 'cta' };
 
@@ -110,8 +123,20 @@ export default function EmailWrapper({
     <Html lang="en">
       <Head>
         <style dangerouslySetInnerHTML={{ __html: fontFaceStyle }} />
+        <title>{previewText.substring(0, PREVIEW_MAX)}</title>
       </Head>
-      <Preview>{previewText}</Preview>
+      <div
+        style={{
+          display: 'none',
+          overflow: 'hidden',
+          lineHeight: '1px',
+          opacity: 0,
+          maxHeight: 0,
+          maxWidth: 0,
+        }}
+      >
+        {previewText.substring(0, PREVIEW_MAX)}{previewPadding(previewText)}
+      </div>
       <Body style={{ backgroundColor: bone, margin: 0, padding: '40px 0' }}>
         <Container style={{ maxWidth: '560px', margin: '0 auto', backgroundColor: bone }}>
 
