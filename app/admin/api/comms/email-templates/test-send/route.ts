@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: to.trim(),
-      subject: `[TEST] ${rendered.subject}`,
+      subject: rendered.subject,
       html: rendered.html,
     });
 
