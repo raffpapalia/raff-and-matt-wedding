@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
 import { renderEmailTemplate, type EmailTemplateKey } from '@/lib/email/renderTemplate';
-import { FROM_EMAIL, REPLY_TO } from '@/lib/email/sendEmail';
+import { FROM_EMAIL } from '@/lib/email/sendEmail';
 
 const VALID_KEYS: EmailTemplateKey[] = [
   'save_the_date',
@@ -48,7 +48,6 @@ export async function POST(request: Request) {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
-      replyTo: REPLY_TO,
       to: to.trim(),
       subject: `[TEST] ${rendered.subject}`,
       html: rendered.html,

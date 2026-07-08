@@ -6,7 +6,6 @@ import { PHASE_TEMPLATE_MAP } from './templateInfo';
 export type CustomEmailContent = { subject: string; body: string; baseKey?: EmailTemplateKey };
 
 export const FROM_EMAIL = 'ten7twenty7@mattandraff.com';
-export const REPLY_TO = 'ten7twenty7@gmail.com';
 
 export type EmailTemplate = EmailTemplateKey;
 
@@ -81,7 +80,6 @@ export async function sendGuestEmail(
 
   const { data: sendData, error: sendError } = await resend.emails.send({
     from: FROM_EMAIL,
-    replyTo: REPLY_TO,
     to: guest.email,
     subject: rendered.subject,
     html: rendered.html,
