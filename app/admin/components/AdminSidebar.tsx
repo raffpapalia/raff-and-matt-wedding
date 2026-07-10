@@ -4,6 +4,7 @@ import { useEffect, useState, type ComponentType, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  CalendarClock,
   ClipboardList,
   LayoutDashboard,
   LogOut,
@@ -37,6 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/comms', label: 'Comms', icon: Send },
   { href: '/admin/responses', label: 'Responses', icon: ClipboardList },
   { href: '/admin/budget', label: 'Budget', icon: Wallet },
+  { href: '/admin/runsheet', label: 'Run sheet', icon: CalendarClock },
   {
     href: '/admin/setup',
     label: 'Setup',

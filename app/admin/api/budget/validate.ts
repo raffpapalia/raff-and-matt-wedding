@@ -32,7 +32,7 @@ export function parseItemFields(
     fields.pricing_mode = mode as BudgetPricingMode;
   }
 
-  for (const key of ['description', 'notes'] as const) {
+  for (const key of ['description', 'notes', 'contact_name', 'contact_phone'] as const) {
     if (key in body) {
       const value = body[key];
       if (value === null || value === '') fields[key] = null;

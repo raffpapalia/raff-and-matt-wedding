@@ -104,6 +104,8 @@ interface ItemForm {
   per_head_price: string;
   expected_heads: string;
   minimum_spend: string;
+  contact_name: string;
+  contact_phone: string;
   is_booked: boolean;
   notes: string;
 }
@@ -118,6 +120,8 @@ const EMPTY_ITEM_FORM: ItemForm = {
   per_head_price: '',
   expected_heads: '',
   minimum_spend: '',
+  contact_name: '',
+  contact_phone: '',
   is_booked: false,
   notes: '',
 };
@@ -261,6 +265,8 @@ export default function BudgetClient({
       per_head_price: item.per_head_price?.toString() ?? '',
       expected_heads: item.expected_heads?.toString() ?? '',
       minimum_spend: item.minimum_spend?.toString() ?? '',
+      contact_name: item.contact_name ?? '',
+      contact_phone: item.contact_phone ?? '',
       is_booked: item.is_booked,
       notes: item.notes ?? '',
     });
@@ -293,6 +299,8 @@ export default function BudgetClient({
       per_head_price: itemForm.per_head_price || null,
       expected_heads: itemForm.expected_heads || null,
       minimum_spend: itemForm.minimum_spend || null,
+      contact_name: itemForm.contact_name.trim() || null,
+      contact_phone: itemForm.contact_phone.trim() || null,
       is_booked: itemForm.is_booked,
     };
 
@@ -1207,6 +1215,28 @@ export default function BudgetClient({
                   If the total falls below this, the minimum is charged instead.
                 </span>
               </label>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <label className="block">
+                  <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-bone/60">Contact name</span>
+                  <input
+                    value={itemForm.contact_name}
+                    onChange={e => setField('contact_name', e.target.value)}
+                    placeholder="e.g. Sarah — events manager"
+                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-admin-bone placeholder-admin-bone/30 outline-none transition focus:border-admin-green"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-bone/60">Contact phone</span>
+                  <input
+                    value={itemForm.contact_phone}
+                    onChange={e => setField('contact_phone', e.target.value)}
+                    type="tel"
+                    placeholder="e.g. 0412 345 678"
+                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-admin-bone placeholder-admin-bone/30 outline-none transition focus:border-admin-green"
+                  />
+                </label>
+              </div>
 
               <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
                 <div>

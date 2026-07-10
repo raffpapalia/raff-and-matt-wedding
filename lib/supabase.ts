@@ -265,6 +265,8 @@ export type BudgetItem = {
   per_head_price: number | null;
   expected_heads: number | null;
   minimum_spend: number | null;
+  contact_name: string | null;
+  contact_phone: string | null;
   is_booked: boolean;
   created_at: string;
   updated_at: string;
@@ -299,6 +301,38 @@ export type BudgetPayment = {
 export type BudgetSettings = {
   id: number;
   total_budget: number;
+  updated_at: string;
+};
+
+// ── Day-of run sheet (admin-only tables; share page validates its token server-side) ──
+
+export type RunsheetSection = {
+  id: string;
+  title: string;
+  day_date: string | null;
+  display_order: number;
+  created_at: string;
+};
+
+export type RunsheetItem = {
+  id: string;
+  section_id: string;
+  title: string;
+  description: string | null;
+  location: string | null;
+  owner: string | null;
+  start_time: string | null; // 'HH:MM:SS'
+  end_time: string | null;
+  vendor_ids: string[]; // budget_items ids, resolved app-side
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RunsheetSettings = {
+  id: number;
+  share_token: string | null;
+  share_enabled: boolean;
   updated_at: string;
 };
 
