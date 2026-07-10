@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { supabaseServer, type BudgetItem, type BudgetPayment } from '@/lib/supabase';
+import { supabaseServer, type BudgetItem, type BudgetLineItem, type BudgetPayment } from '@/lib/supabase';
 import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
 
 async function requireAuth() {
@@ -28,13 +28,15 @@ export async function GET() {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const [itemsRes, paymentsRes, attendingRes] = await Promise.all([
+  const [itemsRes, linesRes, paymentsRes, attendingRes] = await Promise.all([
     supabaseServer.from('budget_items').select('*').order('category').order('supplier_name'),
+    supabaseServer.from('budget_line_items').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true }),
     supabaseServer.from('budget_payments').select('*').order('due_date', { ascending: true, nullsFirst: false }),
     supabaseServer.from('guests').select('id', { count: 'exact', head: true }).eq('rsvp_status', 'attending'),
   ]);
 
   const items = (itemsRes.data ?? []) as BudgetItem[];
+  const allLines = (linesRes.data ?? []) as BudgetLineItem[];
   const payments = (paymentsRes.data ?? []) as BudgetPayment[];
   const attending = attendingRes.count ?? 0;
 
@@ -45,6 +47,13 @@ export async function GET() {
     paymentsByItem.set(p.item_id, list);
   }
 
+  const linesByItem = new Map<string, BudgetLineItem[]>();
+  for (const l of allLines) {
+    const list = linesByItem.get(l.item_id) ?? [];
+    list.push(l);
+    linesByItem.set(l.item_id, list);
+  }
+
   const lines: string[] = [
     row(
       'Supplier', 'Category', 'Pricing', 'Estimated', 'Agreed / Planned', 'Actual (RSVP-based)',
@@ -53,17 +62,34 @@ export async function GET() {
   ];
 
   for (const item of items) {
+    const itemLines = linesByItem.get(item.id) ?? [];
+    const hasLines = itemLines.length > 0;
     const perHead = item.pricing_mode === 'per_head';
-    const planned = perHead
-      ? (item.per_head_price ?? 0) * (item.expected_heads ?? 0)
-      : item.agreed_cost ?? item.estimated_cost ?? 0;
-    const actual = perHead ? (item.per_head_price ?? 0) * attending : planned;
+
+    // Planned/actual mirror the app: sum of lines when present, else item-level
+    // pricing, both floored at the minimum spend.
+    const basePlanned = hasLines
+      ? itemLines.reduce((s, l) => s + l.unit_price * (l.quantity ?? 0), 0)
+      : perHead
+        ? (item.per_head_price ?? 0) * (item.expected_heads ?? 0)
+        : item.agreed_cost ?? item.estimated_cost ?? 0;
+    const baseActual = hasLines
+      ? itemLines.reduce((s, l) => s + l.unit_price * (l.quantity_mode === 'per_head' ? attending : (l.quantity ?? 0)), 0)
+      : perHead
+        ? (item.per_head_price ?? 0) * attending
+        : basePlanned;
+    const planned = Math.max(basePlanned, item.minimum_spend ?? 0);
+    const actual = Math.max(baseActual, item.minimum_spend ?? 0);
+
     const itemPayments = paymentsByItem.get(item.id) ?? [];
     const paid = itemPayments.reduce((sum, p) => sum + (p.paid_date ? p.amount : 0), 0);
 
-    const pricingLabel = perHead
-      ? `$${money(item.per_head_price)} per head x ${item.expected_heads ?? 0} expected (${attending} confirmed)`
-      : 'Fixed';
+    const minNote = item.minimum_spend != null ? `; min spend $${money(item.minimum_spend)}` : '';
+    const pricingLabel = hasLines
+      ? `${itemLines.length} line items${minNote}`
+      : perHead
+        ? `$${money(item.per_head_price)} per head x ${item.expected_heads ?? 0} expected (${attending} confirmed)${minNote}`
+        : `Fixed${minNote}`;
 
     const base = [
       item.supplier_name,
@@ -71,7 +97,7 @@ export async function GET() {
       pricingLabel,
       money(item.estimated_cost),
       money(planned),
-      perHead ? money(actual) : '',
+      perHead || actual !== planned ? money(actual) : '',
       money(paid),
       money(Math.max(actual - paid, 0)),
     ];
@@ -83,6 +109,30 @@ export async function GET() {
         const prefix = i === 0 ? base : base.map(() => '');
         lines.push(row(...prefix, p.label || `Payment ${i + 1}`, money(p.amount), p.due_date ?? '', p.paid_date ?? ''));
       });
+    }
+  }
+
+  // Line-item breakdown for quotes that were split into components.
+  if (allLines.length > 0) {
+    const itemName = new Map(items.map(i => [i.id, i.supplier_name]));
+    lines.push('');
+    lines.push(row('Line Item Breakdown'));
+    lines.push(row('Supplier', 'Line', 'Pricing', 'Unit Price', 'Quantity', 'Planned', 'Actual (RSVP-based)'));
+    for (const l of allLines) {
+      const ph = l.quantity_mode === 'per_head';
+      const linePlanned = l.unit_price * (l.quantity ?? 0);
+      const lineActual = l.unit_price * (ph ? attending : (l.quantity ?? 0));
+      lines.push(
+        row(
+          itemName.get(l.item_id) ?? '',
+          l.label,
+          ph ? 'Per head' : 'Fixed qty',
+          money(l.unit_price),
+          String(l.quantity ?? 0),
+          money(linePlanned),
+          ph ? money(lineActual) : ''
+        )
+      );
     }
   }
 

@@ -1,23 +1,49 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { BudgetItem, BudgetPayment, BudgetPricingMode } from '@/lib/supabase';
+import type { BudgetItem, BudgetLineItem, BudgetLineQuantityMode, BudgetPayment, BudgetPricingMode } from '@/lib/supabase';
 import { BUDGET_CATEGORIES } from '@/lib/supabase';
 
 // ── Derived-value helpers ──────────────────────────────────────────────────
 
-function plannedCost(item: BudgetItem): number {
+// A single line's planned cost: unit price × its quantity (for per-head lines,
+// `quantity` is the expected head count).
+function linePlanned(line: BudgetLineItem): number {
+  return line.unit_price * (line.quantity ?? 0);
+}
+
+// A line's live actual cost. Per-head lines recalculate against the confirmed
+// attending count; fixed lines stay at their literal quantity.
+function lineActual(line: BudgetLineItem, attendingCount: number): number {
+  const qty = line.quantity_mode === 'per_head' ? attendingCount : (line.quantity ?? 0);
+  return line.unit_price * qty;
+}
+
+// The un-floored cost of an item. With lines, it's the sum of the lines;
+// otherwise it falls back to the item's own fixed/per-head pricing.
+function baseCost(
+  item: BudgetItem,
+  lines: BudgetLineItem[],
+  attendingCount: number,
+  which: 'planned' | 'actual'
+): number {
+  if (lines.length > 0) {
+    return lines.reduce((sum, l) => sum + (which === 'planned' ? linePlanned(l) : lineActual(l, attendingCount)), 0);
+  }
   if (item.pricing_mode === 'per_head') {
-    return (item.per_head_price ?? 0) * (item.expected_heads ?? 0);
+    return (item.per_head_price ?? 0) * (which === 'planned' ? item.expected_heads ?? 0 : attendingCount);
   }
   return item.agreed_cost ?? item.estimated_cost ?? 0;
 }
 
-function actualCost(item: BudgetItem, attendingCount: number): number {
-  if (item.pricing_mode === 'per_head') {
-    return (item.per_head_price ?? 0) * attendingCount;
-  }
-  return plannedCost(item);
+// Planned/actual apply the contractual minimum spend as a floor — if the lines
+// (or per-head count) fall below it, you still pay the minimum.
+function plannedCost(item: BudgetItem, lines: BudgetLineItem[]): number {
+  return Math.max(baseCost(item, lines, 0, 'planned'), item.minimum_spend ?? 0);
+}
+
+function actualCost(item: BudgetItem, lines: BudgetLineItem[], attendingCount: number): number {
+  return Math.max(baseCost(item, lines, attendingCount, 'actual'), item.minimum_spend ?? 0);
 }
 
 function paidTotal(payments: BudgetPayment[]): number {
@@ -48,9 +74,9 @@ function todayIso(): string {
 
 type ItemStatus = 'estimate' | 'not_started' | 'partial' | 'overdue' | 'paid';
 
-function itemStatus(item: BudgetItem, payments: BudgetPayment[], attendingCount: number, today: string): ItemStatus {
+function itemStatus(item: BudgetItem, lines: BudgetLineItem[], payments: BudgetPayment[], attendingCount: number, today: string): ItemStatus {
   if (!item.is_booked) return 'estimate';
-  const target = actualCost(item, attendingCount);
+  const target = actualCost(item, lines, attendingCount);
   const paid = paidTotal(payments);
   if (payments.some(p => isOverdue(p, today))) return 'overdue';
   if (target > 0 && paid >= target) return 'paid';
@@ -77,6 +103,7 @@ interface ItemForm {
   agreed_cost: string;
   per_head_price: string;
   expected_heads: string;
+  minimum_spend: string;
   is_booked: boolean;
   notes: string;
 }
@@ -90,9 +117,19 @@ const EMPTY_ITEM_FORM: ItemForm = {
   agreed_cost: '',
   per_head_price: '',
   expected_heads: '',
+  minimum_spend: '',
   is_booked: false,
   notes: '',
 };
+
+interface LineForm {
+  label: string;
+  quantity_mode: BudgetLineQuantityMode;
+  unit_price: string;
+  quantity: string;
+}
+
+const EMPTY_LINE_FORM: LineForm = { label: '', quantity_mode: 'fixed', unit_price: '', quantity: '' };
 
 interface PaymentForm {
   label: string;
@@ -105,6 +142,7 @@ const EMPTY_PAYMENT_FORM: PaymentForm = { label: '', amount: '', due_date: '', a
 
 interface Props {
   initialItems: BudgetItem[];
+  initialLines: BudgetLineItem[];
   initialPayments: BudgetPayment[];
   initialTotalBudget: number;
   attendingCount: number;
@@ -113,12 +151,14 @@ interface Props {
 
 export default function BudgetClient({
   initialItems,
+  initialLines,
   initialPayments,
   initialTotalBudget,
   attendingCount,
   invitedCount,
 }: Props) {
   const [items, setItems] = useState<BudgetItem[]>(initialItems);
+  const [lines, setLines] = useState<BudgetLineItem[]>(initialLines);
   const [payments, setPayments] = useState<BudgetPayment[]>(initialPayments);
   const [totalBudget, setTotalBudget] = useState(initialTotalBudget);
 
@@ -130,6 +170,11 @@ export default function BudgetClient({
   const [budgetInput, setBudgetInput] = useState('');
   const [paymentForm, setPaymentForm] = useState<PaymentForm>(EMPTY_PAYMENT_FORM);
   const [paymentFormItemId, setPaymentFormItemId] = useState<string | null>(null);
+  // Inline line-item editor: which item's "add line" form is open, and which
+  // existing line (if any) is being edited.
+  const [lineFormItemId, setLineFormItemId] = useState<string | null>(null);
+  const [editingLineId, setEditingLineId] = useState<string | null>(null);
+  const [lineForm, setLineForm] = useState<LineForm>(EMPTY_LINE_FORM);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -145,12 +190,26 @@ export default function BudgetClient({
     return map;
   }, [payments]);
 
+  const linesByItem = useMemo(() => {
+    const map = new Map<string, BudgetLineItem[]>();
+    for (const l of lines) {
+      const list = map.get(l.item_id) ?? [];
+      list.push(l);
+      map.set(l.item_id, list);
+    }
+    return map;
+  }, [lines]);
+
+  const linesFor = (itemId: string) => linesByItem.get(itemId) ?? [];
+
   // ── Totals ──
-  const committed = items.reduce((sum, i) => sum + plannedCost(i), 0);
-  const projected = items.reduce((sum, i) => sum + actualCost(i, attendingCount), 0);
+  const committed = items.reduce((sum, i) => sum + plannedCost(i, linesFor(i.id)), 0);
+  const projected = items.reduce((sum, i) => sum + actualCost(i, linesFor(i.id), attendingCount), 0);
   const paid = paidTotal(payments);
   const leftToPay = Math.max(committed - paid, 0);
-  const hasPerHead = items.some(i => i.pricing_mode === 'per_head');
+  const hasPerHead =
+    items.some(i => i.pricing_mode === 'per_head' && linesFor(i.id).length === 0) ||
+    lines.some(l => l.quantity_mode === 'per_head');
 
   const barBase = Math.max(totalBudget, committed, 1);
   const paidPct = Math.min((paid / barBase) * 100, 100);
@@ -170,10 +229,10 @@ export default function BudgetClient({
   const byCategory = useMemo(() => {
     const map = new Map<string, number>();
     for (const item of items) {
-      map.set(item.category, (map.get(item.category) ?? 0) + plannedCost(item));
+      map.set(item.category, (map.get(item.category) ?? 0) + plannedCost(item, linesFor(item.id)));
     }
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-  }, [items]);
+  }, [items, lines]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const itemName = (id: string) => items.find(i => i.id === id)?.supplier_name ?? '';
 
@@ -201,6 +260,7 @@ export default function BudgetClient({
       agreed_cost: item.agreed_cost?.toString() ?? '',
       per_head_price: item.per_head_price?.toString() ?? '',
       expected_heads: item.expected_heads?.toString() ?? '',
+      minimum_spend: item.minimum_spend?.toString() ?? '',
       is_booked: item.is_booked,
       notes: item.notes ?? '',
     });
@@ -232,6 +292,7 @@ export default function BudgetClient({
       agreed_cost: itemForm.agreed_cost || null,
       per_head_price: itemForm.per_head_price || null,
       expected_heads: itemForm.expected_heads || null,
+      minimum_spend: itemForm.minimum_spend || null,
       is_booked: itemForm.is_booked,
     };
 
@@ -261,8 +322,78 @@ export default function BudgetClient({
     if (res.ok) {
       setItems(prev => prev.filter(i => i.id !== id));
       setPayments(prev => prev.filter(p => p.item_id !== id));
+      setLines(prev => prev.filter(l => l.item_id !== id));
       if (expandedId === id) setExpandedId(null);
     }
+  }
+
+  // ── Line-item handlers ──
+
+  function openAddLine(itemId: string) {
+    setEditingLineId(null);
+    setLineForm(EMPTY_LINE_FORM);
+    setLineFormItemId(itemId);
+    setFormError(null);
+  }
+
+  function openEditLine(line: BudgetLineItem) {
+    setEditingLineId(line.id);
+    setLineForm({
+      label: line.label,
+      quantity_mode: line.quantity_mode,
+      unit_price: line.unit_price?.toString() ?? '',
+      quantity: line.quantity?.toString() ?? '',
+    });
+    setLineFormItemId(line.item_id);
+    setFormError(null);
+  }
+
+  function closeLineForm() {
+    setLineFormItemId(null);
+    setEditingLineId(null);
+    setFormError(null);
+  }
+
+  async function submitLine(e: React.FormEvent, itemId: string) {
+    e.preventDefault();
+    if (!lineForm.label.trim()) {
+      setFormError('Line needs a label.');
+      return;
+    }
+
+    setSaving(true);
+    setFormError(null);
+
+    const body = {
+      item_id: itemId,
+      label: lineForm.label.trim(),
+      quantity_mode: lineForm.quantity_mode,
+      unit_price: lineForm.unit_price || 0,
+      quantity: lineForm.quantity || null,
+    };
+
+    const url = editingLineId ? `/admin/api/budget/lines/${editingLineId}` : '/admin/api/budget/lines';
+    const res = await fetch(url, {
+      method: editingLineId ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    setSaving(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setFormError(data.message || 'Failed to save line. Please try again.');
+      return;
+    }
+
+    const saved: BudgetLineItem = await res.json();
+    setLines(prev => (editingLineId ? prev.map(l => (l.id === editingLineId ? saved : l)) : [...prev, saved]));
+    closeLineForm();
+  }
+
+  async function deleteLine(id: string) {
+    const res = await fetch(`/admin/api/budget/lines/${id}`, { method: 'DELETE' });
+    if (res.ok) setLines(prev => prev.filter(l => l.id !== id));
   }
 
   // ── Payment handlers ──
@@ -474,12 +605,20 @@ export default function BudgetClient({
                 <tbody>
                   {items.map(item => {
                     const itemPayments = paymentsByItem.get(item.id) ?? [];
-                    const planned = plannedCost(item);
-                    const actual = actualCost(item, attendingCount);
+                    const itemLines = linesFor(item.id);
+                    const hasLines = itemLines.length > 0;
+                    const planned = plannedCost(item, itemLines);
+                    const actual = actualCost(item, itemLines, attendingCount);
                     const itemPaid = paidTotal(itemPayments);
-                    const status = STATUS_META[itemStatus(item, itemPayments, attendingCount, today)];
+                    const status = STATUS_META[itemStatus(item, itemLines, itemPayments, attendingCount, today)];
                     const expanded = expandedId === item.id;
-                    const perHead = item.pricing_mode === 'per_head';
+                    // "actual differs from planned" — true for per-head suppliers and any
+                    // quote that contains per-head lines.
+                    const scalesWithRsvp = hasLines
+                      ? itemLines.some(l => l.quantity_mode === 'per_head')
+                      : item.pricing_mode === 'per_head';
+                    const belowMin =
+                      item.minimum_spend != null && baseCost(item, itemLines, attendingCount, 'actual') < item.minimum_spend;
 
                     return (
                       <FragmentRow key={item.id}>
@@ -498,15 +637,22 @@ export default function BudgetClient({
                           </td>
                           <td className="px-3 py-4 text-right tabular-nums">
                             <p className="text-admin-ink">{planned > 0 ? fmt(planned) : '—'}</p>
-                            {perHead && (
+                            {hasLines ? (
+                              <p className="mt-0.5 text-xs text-admin-ink/55">
+                                {itemLines.length} line{itemLines.length === 1 ? '' : 's'}
+                              </p>
+                            ) : scalesWithRsvp && (
                               <p className="mt-0.5 text-xs text-admin-ink/55">
                                 {fmt(item.per_head_price ?? 0)}/head × {item.expected_heads ?? 0} expected
                               </p>
                             )}
+                            {belowMin && (
+                              <p className="mt-0.5 text-xs text-admin-warning">min spend {fmt(item.minimum_spend ?? 0)}</p>
+                            )}
                             {!item.is_booked && planned > 0 && <p className="mt-0.5 text-xs text-admin-ink/55">estimate</p>}
                           </td>
                           <td className="px-3 py-4 text-right tabular-nums">
-                            {perHead ? (
+                            {scalesWithRsvp ? (
                               <>
                                 <p className="text-admin-ink">{fmt(actual)}</p>
                                 <p className="mt-0.5 text-xs text-admin-ink/55">× {attendingCount} confirmed</p>
@@ -527,6 +673,158 @@ export default function BudgetClient({
                         {expanded && (
                           <tr className="border-b border-admin-sand/15 bg-admin-bone/40">
                             <td colSpan={7} className="px-6 py-5">
+                              {/* Line items (quote breakdown) */}
+                              {(hasLines || lineFormItemId === item.id) && (
+                                <div className="mb-5">
+                                  <div className="flex items-center justify-between">
+                                    <p className="text-[11px] uppercase tracking-[0.18em] text-admin-ink/50">Quote breakdown</p>
+                                    {scalesWithRsvp && (
+                                      <p className="text-[11px] text-admin-ink/45">per-head lines × {attendingCount} confirmed</p>
+                                    )}
+                                  </div>
+                                  <div className="mt-2 space-y-1.5">
+                                    {itemLines.map(line => {
+                                      const lp = linePlanned(line);
+                                      const la = lineActual(line, attendingCount);
+                                      const ph = line.quantity_mode === 'per_head';
+                                      return (
+                                        <div key={line.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                                          <span className="min-w-0 flex-1 text-admin-ink/80">{line.label}</span>
+                                          <span className="text-xs text-admin-ink/50">
+                                            {fmt(line.unit_price)}{' '}
+                                            {ph ? `/head × ${line.quantity ?? 0} exp` : `× ${line.quantity ?? 0}`}
+                                          </span>
+                                          <span className="w-24 text-right font-medium tabular-nums text-admin-ink">
+                                            {ph && la !== lp ? (
+                                              <>
+                                                {fmt(la)}
+                                                <span className="ml-1 text-xs font-normal text-admin-ink/45 line-through">{fmt(lp)}</span>
+                                              </>
+                                            ) : (
+                                              fmt(lp)
+                                            )}
+                                          </span>
+                                          <span className="flex gap-2">
+                                            <button
+                                              type="button"
+                                              onClick={() => openEditLine(line)}
+                                              className="rounded-full border border-admin-ink/10 px-2.5 py-0.5 text-xs text-admin-ink/55 transition hover:bg-admin-ink/5"
+                                            >
+                                              Edit
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => deleteLine(line.id)}
+                                              className="rounded-full border border-admin-persimmon/20 px-2.5 py-0.5 text-xs text-admin-persimmon transition hover:bg-admin-persimmon/10"
+                                            >
+                                              Delete
+                                            </button>
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {hasLines && (
+                                    <div className="mt-2 flex items-center justify-between border-t border-admin-sand/25 pt-2 text-sm">
+                                      <span className="font-medium text-admin-ink/70">Quote subtotal</span>
+                                      <span className="font-semibold tabular-nums text-admin-ink">
+                                        {fmt(itemLines.reduce((s, l) => s + lineActual(l, attendingCount), 0))}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {belowMin && (
+                                    <p className="mt-2 rounded-xl bg-admin-warning-bg px-3 py-2 text-xs text-admin-warning">
+                                      Below the {fmt(item.minimum_spend ?? 0)} minimum spend — you&apos;ll be charged the minimum.
+                                    </p>
+                                  )}
+
+                                  {/* Add / edit line form */}
+                                  {lineFormItemId === item.id ? (
+                                    <form onSubmit={e => submitLine(e, item.id)} className="mt-3 flex flex-wrap items-end gap-3 rounded-2xl border border-admin-sand/30 bg-white p-3">
+                                      <label className="block">
+                                        <span className="mb-1 block text-[11px] uppercase tracking-[0.18em] text-admin-ink/50">Line</span>
+                                        <input
+                                          value={lineForm.label}
+                                          onChange={e => setLineForm(prev => ({ ...prev, label: e.target.value }))}
+                                          placeholder="e.g. 5-hour canapé package"
+                                          className="w-52 rounded-xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink outline-none transition focus:border-admin-green"
+                                        />
+                                      </label>
+                                      <div className="flex gap-1.5 pb-0.5">
+                                        {(['fixed', 'per_head'] as const).map(mode => (
+                                          <button
+                                            key={mode}
+                                            type="button"
+                                            onClick={() => setLineForm(prev => ({ ...prev, quantity_mode: mode }))}
+                                            className={`rounded-full px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] transition ${
+                                              lineForm.quantity_mode === mode
+                                                ? 'bg-admin-green text-admin-bone'
+                                                : 'bg-admin-ink/5 text-admin-ink/50 hover:text-admin-ink'
+                                            }`}
+                                          >
+                                            {mode === 'fixed' ? 'Fixed qty' : 'Per head'}
+                                          </button>
+                                        ))}
+                                      </div>
+                                      <label className="block">
+                                        <span className="mb-1 block text-[11px] uppercase tracking-[0.18em] text-admin-ink/50">Unit price</span>
+                                        <input
+                                          value={lineForm.unit_price}
+                                          onChange={e => setLineForm(prev => ({ ...prev, unit_price: e.target.value }))}
+                                          type="number"
+                                          min="0"
+                                          step="0.01"
+                                          placeholder="0.00"
+                                          className="w-24 rounded-xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink outline-none transition focus:border-admin-green"
+                                        />
+                                      </label>
+                                      <label className="block">
+                                        <span className="mb-1 block text-[11px] uppercase tracking-[0.18em] text-admin-ink/50">
+                                          {lineForm.quantity_mode === 'per_head' ? 'Exp. heads' : 'Quantity'}
+                                        </span>
+                                        <input
+                                          value={lineForm.quantity}
+                                          onChange={e => setLineForm(prev => ({ ...prev, quantity: e.target.value }))}
+                                          type="number"
+                                          min="0"
+                                          step="1"
+                                          placeholder={lineForm.quantity_mode === 'per_head' ? String(invitedCount) : '1'}
+                                          className="w-24 rounded-xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink outline-none transition focus:border-admin-green"
+                                        />
+                                      </label>
+                                      <span className="pb-2 text-sm tabular-nums text-admin-ink/70">
+                                        = <span className="font-semibold text-admin-ink">{fmt((Number(lineForm.unit_price) || 0) * (Number(lineForm.quantity) || 0))}</span>
+                                      </span>
+                                      <button
+                                        type="submit"
+                                        disabled={saving}
+                                        className="rounded-full bg-admin-green px-4 py-2 text-xs font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
+                                      >
+                                        {editingLineId ? 'Save' : 'Add'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={closeLineForm}
+                                        className="rounded-full border border-admin-ink/10 px-4 py-2 text-xs text-admin-ink/60 transition hover:bg-admin-ink/5"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </form>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => openAddLine(item.id)}
+                                      className="mt-3 text-sm font-semibold text-admin-green transition hover:text-admin-green/75"
+                                    >
+                                      + Add line
+                                    </button>
+                                  )}
+                                  <div className="mt-5 border-t border-admin-sand/25" />
+                                </div>
+                              )}
+
                               {/* Payment schedule */}
                               {itemPayments.length === 0 && paymentFormItemId !== item.id && (
                                 <p className="text-sm text-admin-ink/55">No payments logged yet.</p>
@@ -649,6 +947,15 @@ export default function BudgetClient({
                                   >
                                     + Add payment
                                   </button>
+                                  {!hasLines && lineFormItemId !== item.id && (
+                                    <button
+                                      type="button"
+                                      onClick={() => openAddLine(item.id)}
+                                      className="text-sm font-semibold text-admin-green transition hover:text-admin-green/75"
+                                    >
+                                      + Break into line items
+                                    </button>
+                                  )}
                                   <button
                                     type="button"
                                     onClick={() => openEditItem(item)}
@@ -878,7 +1185,28 @@ export default function BudgetClient({
                     </div>
                   </>
                 )}
+                {editingItemId && linesFor(editingItemId).length > 0 && (
+                  <p className="mt-4 text-xs text-admin-bone/45">
+                    This supplier has line items — its total comes from those, so the pricing above is ignored.
+                  </p>
+                )}
               </div>
+
+              <label className="block">
+                <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-bone/60">Minimum spend (optional)</span>
+                <input
+                  value={itemForm.minimum_spend}
+                  onChange={e => setField('minimum_spend', e.target.value)}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g. 20000 — venue package floor"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-admin-bone placeholder-admin-bone/30 outline-none transition focus:border-admin-green"
+                />
+                <span className="mt-1.5 block text-xs text-admin-bone/45">
+                  If the total falls below this, the minimum is charged instead.
+                </span>
+              </label>
 
               <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
                 <div>

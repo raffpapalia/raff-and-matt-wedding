@@ -264,9 +264,26 @@ export type BudgetItem = {
   agreed_cost: number | null;
   per_head_price: number | null;
   expected_heads: number | null;
+  minimum_spend: number | null;
   is_booked: boolean;
   created_at: string;
   updated_at: string;
+};
+
+// A priced component of a quote. 'fixed' quantity is a literal count; 'per_head'
+// quantity is the expected head count for planning, while the live actual
+// recalculates from the confirmed-attending guest count.
+export type BudgetLineQuantityMode = 'fixed' | 'per_head';
+
+export type BudgetLineItem = {
+  id: string;
+  item_id: string;
+  label: string;
+  quantity_mode: BudgetLineQuantityMode;
+  unit_price: number;
+  quantity: number | null;
+  sort_order: number;
+  created_at: string;
 };
 
 export type BudgetPayment = {

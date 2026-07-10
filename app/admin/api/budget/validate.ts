@@ -41,7 +41,7 @@ export function parseItemFields(
     }
   }
 
-  for (const key of ['estimated_cost', 'agreed_cost', 'per_head_price'] as const) {
+  for (const key of ['estimated_cost', 'agreed_cost', 'per_head_price', 'minimum_spend'] as const) {
     if (key in body) {
       const parsed = parseMoney(body[key]);
       if (parsed === undefined) return { error: `${key} must be a non-negative amount` };
@@ -64,6 +64,56 @@ export function parseItemFields(
 
   if ('is_booked' in body) {
     fields.is_booked = Boolean(body.is_booked);
+  }
+
+  return { fields };
+}
+
+// Shared field parsing for budget line-item create/update. Like parseItemFields,
+// returns only the keys present in `body` so PATCH callers can send partials.
+export function parseLineFields(
+  body: Record<string, unknown>,
+  { requireCore }: { requireCore: boolean }
+): { fields: Record<string, unknown> } | { error: string } {
+  const fields: Record<string, unknown> = {};
+
+  if ('label' in body || requireCore) {
+    const label = typeof body.label === 'string' ? body.label.trim() : '';
+    if (!label) return { error: 'label is required' };
+    if (label.length > 300) return { error: 'label is too long' };
+    fields.label = label;
+  }
+
+  if ('quantity_mode' in body || requireCore) {
+    const mode = body.quantity_mode ?? 'fixed';
+    if (mode !== 'fixed' && mode !== 'per_head') {
+      return { error: "quantity_mode must be 'fixed' or 'per_head'" };
+    }
+    fields.quantity_mode = mode;
+  }
+
+  if ('unit_price' in body || requireCore) {
+    const parsed = parseMoney(body.unit_price);
+    if (parsed === undefined) return { error: 'unit_price must be a non-negative amount' };
+    fields.unit_price = parsed ?? 0;
+  }
+
+  if ('quantity' in body || requireCore) {
+    const value = body.quantity;
+    if (value === null || value === '' || value === undefined) {
+      fields.quantity = null;
+    } else {
+      const n = Number(value);
+      if (!Number.isFinite(n) || n < 0 || n > 1000000) {
+        return { error: 'quantity must be a non-negative number' };
+      }
+      fields.quantity = Math.round(n * 100) / 100;
+    }
+  }
+
+  if ('sort_order' in body) {
+    const n = Number(body.sort_order);
+    fields.sort_order = Number.isInteger(n) && n >= 0 && n <= 100000 ? n : 0;
   }
 
   return { fields };
