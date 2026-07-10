@@ -249,6 +249,63 @@ export const DEFAULT_SETTINGS: Settings = {
     'We missed you on our special day. Thank you for your kind wishes — it meant the world to us.',
 };
 
+// ── Budget tracking (admin-only; tables have no anon RLS policies) ──
+
+export type BudgetPricingMode = 'fixed' | 'per_head';
+
+export type BudgetItem = {
+  id: string;
+  supplier_name: string;
+  category: string;
+  description: string | null;
+  notes: string | null;
+  pricing_mode: BudgetPricingMode;
+  estimated_cost: number | null;
+  agreed_cost: number | null;
+  per_head_price: number | null;
+  expected_heads: number | null;
+  is_booked: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BudgetPayment = {
+  id: string;
+  item_id: string;
+  label: string;
+  amount: number;
+  due_date: string | null;
+  paid_date: string | null;
+  created_at: string;
+};
+
+export type BudgetSettings = {
+  id: number;
+  total_budget: number;
+  updated_at: string;
+};
+
+export const BUDGET_CATEGORIES = [
+  'Venue',
+  'Catering',
+  'Beverage',
+  'Photography',
+  'Videography',
+  'Flowers',
+  'Music',
+  'Attire',
+  'Beauty',
+  'Ceremony',
+  'Stationery',
+  'Cake',
+  'Decor',
+  'Transport',
+  'Accommodation',
+  'Rings',
+  'Honeymoon',
+  'Other',
+] as const;
+
 export async function getSettings(): Promise<Settings> {
   // settings has no anon-SELECT RLS policy — the anon client silently returns
   // zero rows (no error), so this must use the service-role client.

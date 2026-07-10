@@ -12,6 +12,7 @@ import {
   Send,
   Settings,
   Users,
+  Wallet,
 } from 'lucide-react';
 
 const STORAGE_KEY = 'admin-sidebar-collapsed';
@@ -35,6 +36,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/guests', label: 'Guests', icon: Users },
   { href: '/admin/comms', label: 'Comms', icon: Send },
   { href: '/admin/responses', label: 'Responses', icon: ClipboardList },
+  { href: '/admin/budget', label: 'Budget', icon: Wallet },
   {
     href: '/admin/setup',
     label: 'Setup',
