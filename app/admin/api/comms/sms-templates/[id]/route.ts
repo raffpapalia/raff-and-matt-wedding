@@ -1,11 +1,11 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 
 async function requireAuth() {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  return authCookie === 'true';
+  return verifyAdminSession(authCookie);
 }
 
 // Only body/is_active are editable from the UI — key/phase/channel/trigger_type are

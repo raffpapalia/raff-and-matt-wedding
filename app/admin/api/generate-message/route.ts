@@ -2,11 +2,11 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { supabaseServer, getSettings } from '@/lib/supabase';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 
 export async function POST(request: NextRequest) {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  if (authCookie !== 'true') {
+  if (!verifyAdminSession(authCookie)) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 

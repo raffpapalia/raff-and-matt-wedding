@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 import { renderEmailPreview, type EmailTemplateKey } from '@/lib/email/renderTemplate';
 
 const VALID_KEYS: EmailTemplateKey[] = [
@@ -15,7 +15,7 @@ const VALID_KEYS: EmailTemplateKey[] = [
 
 async function requireAuth() {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  return authCookie === 'true';
+  return verifyAdminSession(authCookie);
 }
 
 export async function POST(request: Request) {

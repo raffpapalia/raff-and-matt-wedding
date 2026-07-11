@@ -1,12 +1,12 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 import { getQualifyingGuestsForSms, getGuestsTextedForPhase } from '@/lib/sms/sendSms';
 import { getCurrentPhase, type PhaseName } from '@/lib/supabase';
 
 export async function GET(request: Request) {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  if (authCookie !== 'true') {
+  if (!verifyAdminSession(authCookie)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

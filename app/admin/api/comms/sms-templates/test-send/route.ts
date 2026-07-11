@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 import { sendTestSms, type SmsTemplate } from '@/lib/sms/sendSms';
 
 const VALID_KEYS: SmsTemplate[] = [
@@ -15,7 +15,7 @@ const VALID_KEYS: SmsTemplate[] = [
 
 async function requireAuth() {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  return authCookie === 'true';
+  return verifyAdminSession(authCookie);
 }
 
 // Test sends use the real engine against the currently SAVED template content, but

@@ -1,11 +1,11 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 
 export async function GET(request: Request) {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  if (authCookie !== 'true') {
+  if (!verifyAdminSession(authCookie)) {
     return NextResponse.redirect(new URL('/admin', request.url));
   }
 

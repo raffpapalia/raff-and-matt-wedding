@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 import { sendHouseholdSms, type SmsTemplate } from '@/lib/sms/sendSms';
 import { getCurrentPhase, type PhaseName } from '@/lib/supabase';
 
@@ -20,7 +20,7 @@ const VALID_KEYS: SmsTemplate[] = [
 // the current phase's template — same resolution order as /admin/api/send-email.
 export async function POST(request: Request) {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  if (authCookie !== 'true') {
+  if (!verifyAdminSession(authCookie)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

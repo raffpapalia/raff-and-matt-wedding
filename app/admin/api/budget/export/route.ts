@@ -1,11 +1,11 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { supabaseServer, type BudgetItem, type BudgetLineItem, type BudgetPayment } from '@/lib/supabase';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 
 async function requireAuth() {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  return authCookie === 'true';
+  return verifyAdminSession(authCookie);
 }
 
 function escapeCSV(value: string): string {

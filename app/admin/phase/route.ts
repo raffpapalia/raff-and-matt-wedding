@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 
 const VALID_PHASES = ['save_the_date', 'invitation', 'pre_wedding', 'thank_you'];
 
@@ -13,7 +13,7 @@ function adminRedirect(request: Request): Response {
 
 export async function POST(request: Request) {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  if (authCookie !== 'true') {
+  if (!verifyAdminSession(authCookie)) {
     return adminRedirect(request);
   }
 

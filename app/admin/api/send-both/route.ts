@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 import { sendHouseholdEmail, type EmailTemplate } from '@/lib/email/sendEmail';
 import { sendHouseholdSms, type SmsTemplate } from '@/lib/sms/sendSms';
 import { getCurrentPhase, type PhaseName } from '@/lib/supabase';
@@ -12,7 +12,7 @@ import { getCurrentPhase, type PhaseName } from '@/lib/supabase';
 // only, SMS only, both, or neither, with no extra logic needed here.
 export async function POST(request: Request) {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  if (authCookie !== 'true') {
+  if (!verifyAdminSession(authCookie)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

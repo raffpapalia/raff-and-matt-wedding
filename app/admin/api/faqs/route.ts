@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 
 function logErr(op: string, err: any) {
   console.error(`[admin:faqs] ${op} failed`, {
@@ -13,7 +13,7 @@ function logErr(op: string, err: any) {
 
 async function requireAuth() {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  return authCookie === 'true';
+  return verifyAdminSession(authCookie);
 }
 
 export async function GET() {

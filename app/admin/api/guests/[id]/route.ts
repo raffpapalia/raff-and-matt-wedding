@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 
 const PHOTO_BUCKET = 'household-photos';
 
@@ -14,7 +14,7 @@ function storagePathFromUrl(url: string): string | null {
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  if (authCookie !== 'true') return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  if (!verifyAdminSession(authCookie)) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return NextResponse.json({ message: 'Server not configured for writes: SUPABASE_SERVICE_ROLE_KEY missing' }, { status: 500 });
@@ -167,7 +167,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  if (authCookie !== 'true') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!verifyAdminSession(authCookie)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return NextResponse.json({ error: 'Server not configured for writes: SUPABASE_SERVICE_ROLE_KEY missing' }, { status: 500 });

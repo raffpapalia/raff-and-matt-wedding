@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 import { getQualifyingGuestsForEmail } from '@/lib/email/sendEmail';
 import { getQualifyingGuestsForSms } from '@/lib/sms/sendSms';
 
@@ -9,7 +9,7 @@ import { getQualifyingGuestsForSms } from '@/lib/sms/sendSms';
 // rather than trusting whatever the page happened to render on load.
 export async function GET(request: Request) {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  if (authCookie !== 'true') {
+  if (!verifyAdminSession(authCookie)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

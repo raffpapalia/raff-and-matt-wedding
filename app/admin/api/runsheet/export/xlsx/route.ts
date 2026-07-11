@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import ExcelJS from 'exceljs';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 import { getSettings } from '@/lib/supabase';
 import { fetchRunsheetData, usedVendors } from '@/lib/runsheetData';
 import { fmtDay, fmtTime, groupByDay, sortItems } from '@/lib/runsheet';
@@ -14,7 +14,7 @@ const GREEN = 'FF0F7A52';
 
 async function requireAuth() {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  return authCookie === 'true';
+  return verifyAdminSession(authCookie);
 }
 
 export async function GET() {

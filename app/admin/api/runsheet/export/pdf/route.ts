@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { renderToBuffer } from '@react-pdf/renderer';
-import { ADMIN_COOKIE_NAME } from '@/lib/adminAuth';
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 import { getSettings } from '@/lib/supabase';
 import { fetchRunsheetData, usedVendors } from '@/lib/runsheetData';
 import { RunsheetPdf } from './RunsheetPdf';
@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 
 async function requireAuth() {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
-  return authCookie === 'true';
+  return verifyAdminSession(authCookie);
 }
 
 export async function GET() {
