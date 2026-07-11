@@ -420,7 +420,7 @@ export default function GuestListTable({ rows: initialRows, initialQuery, curren
                   {sortKey === 'rsvp' ? <SortArrow direction={sortDir} /> : null}
                 </button>
               </th>
-              <th className="px-4 py-3 font-cinzel font-semibold">Invite link</th>
+              <th className="hidden px-4 py-3 font-cinzel font-semibold md:table-cell">Invite link</th>
               <th className="px-4 py-3 font-cinzel font-semibold">
                 <span className="sr-only">Actions</span>
               </th>
@@ -467,6 +467,18 @@ export default function GuestListTable({ rows: initialRows, initialQuery, curren
                     <div className="mt-2 sm:hidden">
                       <RsvpSummary attending={row.attending} declined={row.declined} pending={row.pending} />
                     </div>
+                    {/* Invite-link actions move inline on phones (column hidden below md) */}
+                    <div className="mt-2 flex items-center gap-2 md:hidden">
+                      <CopyLinkButton url={`${SITE_URL}/invite/${row.slug}`} title="Copy invite link" />
+                      <button
+                        type="button"
+                        onClick={() => setPreviewTarget(row)}
+                        title="Preview invite"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-admin-sand/40 text-admin-ink/60 transition hover:border-admin-green/40 hover:text-admin-green"
+                      >
+                        <ExternalLinkIcon className="h-4 w-4" />
+                      </button>
+                    </div>
                   </td>
                   <td className="px-4 py-4 align-top">
                     <GuestCountCell count={row.invited} names={row.guestNames} />
@@ -474,7 +486,7 @@ export default function GuestListTable({ rows: initialRows, initialQuery, curren
                   <td className="hidden px-4 py-4 align-top sm:table-cell">
                     <RsvpSummary attending={row.attending} declined={row.declined} pending={row.pending} />
                   </td>
-                  <td className="px-4 py-4 align-top">
+                  <td className="hidden px-4 py-4 align-top md:table-cell">
                     <div className="flex items-center gap-2">
                       <CopyLinkButton url={`${SITE_URL}/invite/${row.slug}`} title="Copy invite link" />
                       <button

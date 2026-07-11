@@ -525,7 +525,7 @@ export default function CommsClient({
               value={query}
               onChange={(e) => { setQuery(e.target.value); setPage(0); }}
               placeholder="Search households…"
-              className="w-56 rounded-3xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink outline-none transition focus:border-admin-green"
+              className="w-full rounded-3xl border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink outline-none transition focus:border-admin-green sm:w-56"
             />
             {allTags.length > 0 && (
               <select
@@ -542,14 +542,14 @@ export default function CommsClient({
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-3">
+        {/* Tabs — single scrollable row on phones, wrapping row from sm up */}
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
           {(['all', 'not_sent', 'sent', 'sent_not_opened', 'failed', 'awaiting_rsvp'] as FilterTab[]).map((key) => (
             <button
               key={key}
               type="button"
               onClick={() => { setTab(key); setPage(0); }}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+              className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition ${
                 key === 'awaiting_rsvp'
                   ? tab === key
                     ? 'border-admin-warning bg-admin-warning-bg text-admin-warning'
@@ -660,8 +660,75 @@ export default function CommsClient({
           </button>
         </div>
 
+        {/* Mobile cards (md- gets the table) */}
+        <div className="space-y-3 md:hidden">
+          {pageRows.length === 0 ? (
+            <p className="py-8 text-center text-sm text-admin-ink/60">No households match this filter.</p>
+          ) : (
+            pageRows.map((row) => (
+              <div key={row.id} className="rounded-2xl border border-admin-sand/25 bg-white p-4">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(row.id)}
+                    onChange={() => toggleSelect(row.id)}
+                    className="mt-1 h-5 w-5 rounded border-admin-sand/60 bg-white accent-admin-green"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-admin-ink">{row.name}</p>
+                    <p className="mt-0.5 text-xs text-admin-ink/55">
+                      {row.guestCount} guest{row.guestCount === 1 ? '' : 's'} · {row.smsReadyCount} SMS · {row.emailReadyCount} email
+                      {' · '}
+                      {row.lastContacted ? relativeTime(row.lastContacted) : 'never contacted'}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+                      <span className="text-admin-ink/45">SMS</span>
+                      <StatusBadge status={row.smsStatus} />
+                      <span className="ml-2 text-admin-ink/45">Email</span>
+                      <StatusBadge status={row.emailStatus} />
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-4 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/admin/comms/${row.id}`)}
+                    className="min-h-[40px] rounded-xl border border-admin-sand/40 bg-white text-xs font-semibold text-admin-ink/80"
+                  >
+                    View
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openChooser([row.id], row.name, `${row.id}-sms`, 'all', 'sms')}
+                    disabled={previewLoadingId === `${row.id}-sms` || sending}
+                    className="min-h-[40px] rounded-xl border border-admin-violet/40 bg-admin-violet/15 text-xs font-semibold text-admin-ink/80 disabled:opacity-50"
+                  >
+                    {previewLoadingId === `${row.id}-sms` ? '…' : 'SMS'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openChooser([row.id], row.name, row.id, 'all', 'email')}
+                    disabled={previewLoadingId === row.id || sending}
+                    className="min-h-[40px] rounded-xl border border-admin-sand/50 bg-admin-sand/15 text-xs font-semibold text-admin-ink/80 disabled:opacity-50"
+                  >
+                    {previewLoadingId === row.id ? '…' : 'Email'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openBothChooser([row.id], row.name, `${row.id}-both`)}
+                    disabled={previewLoadingId === `${row.id}-both` || bothSending}
+                    className="min-h-[40px] rounded-xl bg-admin-green text-xs font-semibold text-admin-bone disabled:opacity-50"
+                  >
+                    {previewLoadingId === `${row.id}-both` ? '…' : 'Both'}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto md:block">
           <table className="min-w-full border-separate border-spacing-0 text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-[0.35em] text-admin-ink/50">

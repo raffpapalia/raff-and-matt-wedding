@@ -117,10 +117,8 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
     e.dataTransfer.dropEffect = 'move';
   }
 
-  async function handleDrop(e: React.DragEvent, toIndex: number) {
-    e.preventDefault();
-    const fromIndex = Number(e.dataTransfer.getData('text/plain'));
-    if (fromIndex === toIndex) return;
+  async function applyOrder(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex || toIndex < 0 || toIndex >= questions.length) return;
 
     const reordered = Array.from(questions);
     const [moved] = reordered.splice(fromIndex, 1);
@@ -138,6 +136,11 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
         })
       )
     );
+  }
+
+  async function handleDrop(e: React.DragEvent, toIndex: number) {
+    e.preventDefault();
+    await applyOrder(Number(e.dataTransfer.getData('text/plain')), toIndex);
   }
 
   // ── Active toggle (optimistic) ───────────────────────────────────────────────
@@ -239,9 +242,28 @@ export default function QuestionsClient({ questions: initial, availableTags }: P
                 onDrop={e => handleDrop(e, index)}
                 className="flex items-start gap-4 border-b border-admin-sand/10 px-6 py-5 last:border-b-0 transition hover:bg-admin-bone/40 cursor-default"
               >
-                {/* Drag handle */}
-                <div className="cursor-move select-none pt-0.5 text-admin-ink/50 text-lg leading-none shrink-0">
+                {/* Drag handle (desktop) */}
+                <div className="hidden cursor-move select-none pt-0.5 text-admin-ink/50 text-lg leading-none shrink-0 lg:block">
                   ⠿
+                </div>
+                {/* Touch fallback — HTML5 drag doesn't fire on touchscreens */}
+                <div className="flex shrink-0 flex-col lg:hidden">
+                  <button
+                    type="button"
+                    onClick={() => applyOrder(index, index - 1)}
+                    className="px-1 text-xs leading-4 text-admin-ink/40 active:text-admin-ink"
+                    aria-label="Move up"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyOrder(index, index + 1)}
+                    className="px-1 text-xs leading-4 text-admin-ink/40 active:text-admin-ink"
+                    aria-label="Move down"
+                  >
+                    ▼
+                  </button>
                 </div>
 
                 {/* Content */}

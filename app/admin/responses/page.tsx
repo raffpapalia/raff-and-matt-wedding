@@ -168,7 +168,7 @@ export default async function AdminResponsesPage() {
                 className="overflow-hidden rounded-3xl border border-admin-sand/20 bg-white"
               >
                 {/* Question header */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-admin-sand/10 px-8 py-5">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-admin-sand/10 px-5 py-5 sm:px-8">
                   <h2 className="text-base font-semibold text-admin-ink">{q.question_text}</h2>
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-medium ${
@@ -183,14 +183,14 @@ export default async function AdminResponsesPage() {
 
                 {/* Answers list */}
                 {qAnswers.length === 0 ? (
-                  <p className="px-8 py-6 text-sm text-admin-ink/50 italic">No responses yet.</p>
+                  <p className="px-5 py-6 sm:px-8 text-sm text-admin-ink/50 italic">No responses yet.</p>
                 ) : (
                   <ul className="divide-y divide-admin-sand/10">
                     {qAnswers.map(answer => {
                       const guest = guestMap.get(answer.guest_id);
                       const household = guest ? householdMap.get(guest.household_id) : undefined;
                       return (
-                        <li key={answer.id} className="px-8 py-5">
+                        <li key={answer.id} className="px-5 py-5 sm:px-8">
                           <p className="mb-2 text-sm">
                             <span className="font-medium text-admin-ink">
                               {household?.name ?? '—'}

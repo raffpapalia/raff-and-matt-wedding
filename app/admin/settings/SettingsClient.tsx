@@ -316,14 +316,14 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
 
   return (
     <div className="space-y-8">
-      {/* Tab nav */}
-      <div className="flex flex-wrap gap-2 rounded-3xl border border-admin-sand/20 bg-white p-2">
+      {/* Tab nav — single scrollable row on phones, wrapping from sm up */}
+      <div className="flex gap-2 overflow-x-auto rounded-3xl border border-admin-sand/20 bg-white p-2 sm:flex-wrap sm:overflow-visible">
         {TABS.map(tab => (
           <button
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`rounded-2xl px-5 py-2.5 text-sm font-medium transition ${
+            className={`shrink-0 whitespace-nowrap rounded-2xl px-5 py-2.5 text-sm font-medium transition ${
               activeTab === tab.key
                 ? 'bg-admin-green/15 text-admin-green'
                 : 'text-admin-ink/60 hover:bg-admin-bone/60 hover:text-admin-ink'

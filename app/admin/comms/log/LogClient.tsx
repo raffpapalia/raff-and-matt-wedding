@@ -128,8 +128,8 @@ export default function LogClient({
               <th className="px-4 py-3">Household</th>
               <th className="px-4 py-3">Channel</th>
               <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Message preview</th>
-              <th className="px-4 py-3">Sent at</th>
+              <th className="hidden px-4 py-3 md:table-cell">Message preview</th>
+              <th className="hidden px-4 py-3 md:table-cell">Sent at</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
@@ -172,10 +172,10 @@ export default function LogClient({
                           {row.status}
                         </span>
                       </td>
-                      <td className="max-w-xs px-4 py-3">
+                      <td className="hidden max-w-xs px-4 py-3 md:table-cell">
                         <p className="truncate text-admin-ink/70">{resolvedPreview}</p>
                       </td>
-                      <td className="px-4 py-3 text-xs text-admin-ink/60">
+                      <td className="hidden px-4 py-3 text-xs text-admin-ink/60 md:table-cell">
                         {new Date(row.sentAt).toLocaleDateString('en-AU', {
                           day: 'numeric',
                           month: 'short',

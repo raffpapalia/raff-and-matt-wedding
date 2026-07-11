@@ -59,7 +59,7 @@ function PhaseForm({ currentPhase }: { currentPhase: string }) {
           <p className="mt-2 text-2xl font-semibold text-admin-ink">{phaseLabels[currentPhase] || 'Save the Date'}</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <label className="min-w-[200px] rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink">
+          <label className="w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink sm:w-auto sm:min-w-[200px]">
             <span className="block text-xs uppercase tracking-[0.25em] text-admin-ink/50">Choose phase</span>
             <select name="phase" defaultValue={currentPhase} className="mt-2 w-full bg-transparent text-admin-ink outline-none">
               {Object.entries(phaseLabels).map(([value, label]) => (
@@ -270,7 +270,7 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
               {Object.entries(dashboard.dietaryBreakdown)
                 .sort((a, b) => b[1] - a[1])
                 .map(([key, count]) => (
-                  <div key={key} className="rounded-2xl border border-admin-sand/30 bg-admin-bone/40 px-5 py-4 min-w-[120px]">
+                  <div key={key} className="min-w-[100px] flex-1 rounded-2xl border border-admin-sand/30 bg-admin-bone/40 px-5 py-4 sm:flex-none sm:min-w-[120px]">
                     <p className="text-xs uppercase tracking-[0.2em] text-admin-green">{formatDietaryLabel(key)}</p>
                     <p className="mt-2 text-3xl font-semibold text-admin-ink">{count}</p>
                   </div>
@@ -287,7 +287,7 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
                 <Link
                   key={t.tag}
                   href={`/admin/guests?tag=${encodeURIComponent(t.tag)}`}
-                  className="min-w-[180px] rounded-2xl border border-admin-sand/30 bg-admin-bone/40 px-5 py-4 transition hover:border-admin-green/40 hover:bg-admin-bone/70"
+                  className="w-full rounded-2xl border border-admin-sand/30 bg-admin-bone/40 px-5 py-4 transition hover:border-admin-green/40 hover:bg-admin-bone/70 sm:w-auto sm:min-w-[180px]"
                 >
                   <p className="text-xs uppercase tracking-[0.2em] text-admin-green">{t.tag}</p>
                   <p className="mt-2 text-3xl font-semibold text-admin-ink">{t.households}</p>

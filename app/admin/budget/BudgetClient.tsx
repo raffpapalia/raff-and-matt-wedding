@@ -648,9 +648,42 @@ export default function BudgetClient({
               <p className="mt-1 text-sm text-admin-ink/50">Add your venue, caterer, photographer — anyone you&apos;re paying.</p>
             </div>
           ) : (
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
+            <div className="mt-4 overflow-x-auto px-4 pb-4 md:px-0 md:pb-0">
+              {/* Mobile sort control — the table headers do this from md up */}
+              <div className="mb-3 flex items-center gap-2 md:hidden">
+                <label className="text-xs uppercase tracking-[0.15em] text-admin-ink/50">Sort</label>
+                <select
+                  value={sortKey ?? ''}
+                  onChange={e => {
+                    setSortKey((e.target.value || null) as SortKey | null);
+                    setSortDir('asc');
+                  }}
+                  className="flex-1 rounded-xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink outline-none"
+                >
+                  <option value="">Added order</option>
+                  <option value="supplier">Supplier</option>
+                  <option value="category">Category</option>
+                  <option value="planned">Planned</option>
+                  <option value="actual">Actual</option>
+                  <option value="paid">Paid</option>
+                  <option value="remaining">Remaining</option>
+                  <option value="next_due">Next due</option>
+                  <option value="status">Status</option>
+                </select>
+                {sortKey && (
+                  <button
+                    type="button"
+                    onClick={() => setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))}
+                    className="rounded-xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink/70"
+                    aria-label="Toggle sort direction"
+                  >
+                    {sortDir === 'asc' ? '▲' : '▼'}
+                  </button>
+                )}
+              </div>
+              {/* block on phones renders each row as a card; md:table restores the desktop table */}
+              <table className="block w-full text-sm md:table">
+                <thead className="hidden md:table-header-group">
                   <tr className="border-b border-admin-sand/25 text-left text-[11px] uppercase tracking-[0.18em] text-admin-ink/50">
                     <SortableTh label="Supplier" k="supplier" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} className="px-6" />
                     <SortableTh label="Category" k="category" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
@@ -663,7 +696,7 @@ export default function BudgetClient({
                     <th className="px-3 py-3" />
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="block md:table-row-group">
                   {rows.map(({ item, itemLines, itemPayments, planned, actual, itemPaid, remaining, nextDueDate, status: rowStatus }) => {
                     const hasLines = itemLines.length > 0;
                     const status = STATUS_META[rowStatus];
@@ -680,18 +713,33 @@ export default function BudgetClient({
                       <FragmentRow key={item.id}>
                         <tr
                           onClick={() => setExpandedId(expanded ? null : item.id)}
-                          className="cursor-pointer border-b border-admin-sand/15 transition hover:bg-admin-bone/40"
+                          className={`block cursor-pointer border border-admin-sand/25 px-4 py-3 transition hover:bg-admin-bone/40 md:table-row md:border-x-0 md:border-t-0 md:border-b md:border-admin-sand/15 md:p-0 ${
+                            expanded ? 'rounded-t-2xl border-b-0 md:border-b' : 'mb-3 rounded-2xl'
+                          } md:mb-0 md:rounded-none`}
                         >
-                          <td className="px-6 py-4">
-                            <p className="font-medium text-admin-ink">{item.supplier_name}</p>
-                            {item.description && <p className="mt-0.5 text-xs text-admin-ink/55">{item.description}</p>}
+                          <td className="block p-0 md:table-cell md:px-6 md:py-4">
+                            <div className="flex items-start justify-between gap-3 md:block">
+                              <div className="min-w-0">
+                                <p className="font-medium text-admin-ink">{item.supplier_name}</p>
+                                {item.description && <p className="mt-0.5 text-xs text-admin-ink/55">{item.description}</p>}
+                                <span className="mt-1.5 inline-block rounded-full bg-admin-ink/5 px-2.5 py-0.5 text-[10px] font-medium text-admin-ink/70 md:hidden">
+                                  {item.category}
+                                </span>
+                              </div>
+                              <span
+                                className={`inline-block shrink-0 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[10px] font-medium md:hidden ${status.className}`}
+                              >
+                                {status.label}
+                              </span>
+                            </div>
                           </td>
-                          <td className="px-3 py-4">
+                          <td className="hidden md:table-cell md:px-3 md:py-4">
                             <span className="inline-block rounded-full bg-admin-ink/5 px-3 py-1 text-xs font-medium text-admin-ink/70">
                               {item.category}
                             </span>
                           </td>
-                          <td className="px-3 py-4 text-right tabular-nums">
+                          <td className="mt-3 inline-block w-1/2 pr-2 align-top tabular-nums md:mt-0 md:table-cell md:w-auto md:px-3 md:py-4 md:text-right">
+                            <span className="block text-[10px] uppercase tracking-[0.12em] text-admin-ink/45 md:hidden">Planned</span>
                             <p className="text-admin-ink">{planned > 0 ? fmt(planned) : '—'}</p>
                             {hasLines ? (
                               <p className="mt-0.5 text-xs text-admin-ink/55">
@@ -707,7 +755,8 @@ export default function BudgetClient({
                             )}
                             {!item.is_booked && planned > 0 && <p className="mt-0.5 text-xs text-admin-ink/55">estimate</p>}
                           </td>
-                          <td className="px-3 py-4 text-right tabular-nums">
+                          <td className="mt-3 inline-block w-1/2 align-top tabular-nums md:mt-0 md:table-cell md:w-auto md:px-3 md:py-4 md:text-right">
+                            <span className="block text-[10px] uppercase tracking-[0.12em] text-admin-ink/45 md:hidden">Actual</span>
                             {scalesWithRsvp ? (
                               <>
                                 <p className="text-admin-ink">{fmt(actual)}</p>
@@ -717,34 +766,41 @@ export default function BudgetClient({
                               <p className="text-admin-ink/45">{planned > 0 ? fmt(actual) : '—'}</p>
                             )}
                           </td>
-                          <td className="px-3 py-4 text-right tabular-nums text-admin-ink">{itemPaid > 0 ? fmt(itemPaid) : '—'}</td>
-                          <td className="px-3 py-4 text-right tabular-nums">
+                          <td className="mt-2 inline-block w-1/2 pr-2 align-top tabular-nums text-admin-ink md:mt-0 md:table-cell md:w-auto md:px-3 md:py-4 md:text-right">
+                            <span className="block text-[10px] uppercase tracking-[0.12em] text-admin-ink/45 md:hidden">Paid</span>
+                            {itemPaid > 0 ? fmt(itemPaid) : '—'}
+                          </td>
+                          <td className="mt-2 inline-block w-1/2 align-top tabular-nums md:mt-0 md:table-cell md:w-auto md:px-3 md:py-4 md:text-right">
+                            <span className="block text-[10px] uppercase tracking-[0.12em] text-admin-ink/45 md:hidden">Remaining</span>
                             {remaining > 0 ? (
                               <span className={itemPaid > 0 ? 'text-admin-warning' : 'text-admin-ink/70'}>{fmt(remaining)}</span>
                             ) : (
                               <span className="text-admin-ink/40">—</span>
                             )}
                           </td>
-                          <td className="px-3 py-4 whitespace-nowrap">
+                          <td className={`${nextDueDate ? 'mt-2 block' : 'hidden'} whitespace-nowrap p-0 md:mt-0 md:table-cell md:px-3 md:py-4`}>
                             {nextDueDate ? (
-                              <span className={nextDueDate < today ? 'font-medium text-admin-persimmon' : 'text-admin-ink/70'}>
-                                {fmtDate(nextDueDate)}
-                              </span>
+                              <>
+                                <span className="mr-1.5 text-[10px] uppercase tracking-[0.12em] text-admin-ink/45 md:hidden">Next due</span>
+                                <span className={nextDueDate < today ? 'font-medium text-admin-persimmon' : 'text-admin-ink/70'}>
+                                  {fmtDate(nextDueDate)}
+                                </span>
+                              </>
                             ) : (
                               <span className="text-admin-ink/40">—</span>
                             )}
                           </td>
-                          <td className="px-3 py-4">
+                          <td className="hidden md:table-cell md:px-3 md:py-4">
                             <span className={`inline-block whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium ${status.className}`}>
                               {status.label}
                             </span>
                           </td>
-                          <td className="px-3 py-4 text-right text-admin-ink/40">{expanded ? '▾' : '▸'}</td>
+                          <td className="hidden text-right text-admin-ink/40 md:table-cell md:px-3 md:py-4">{expanded ? '▾' : '▸'}</td>
                         </tr>
 
                         {expanded && (
-                          <tr className="border-b border-admin-sand/15 bg-admin-bone/40">
-                            <td colSpan={9} className="px-6 py-5">
+                          <tr className="mb-3 block rounded-b-2xl border border-t-0 border-admin-sand/25 bg-admin-bone/40 md:mb-0 md:table-row md:rounded-none md:border-x-0 md:border-b md:border-admin-sand/15">
+                            <td colSpan={9} className="block px-4 py-4 md:table-cell md:px-6 md:py-5">
                               {/* Line items (quote breakdown) */}
                               {(hasLines || lineFormItemId === item.id) && (
                                 <div className="mb-5">
@@ -815,13 +871,13 @@ export default function BudgetClient({
                                   {/* Add / edit line form */}
                                   {lineFormItemId === item.id ? (
                                     <form onSubmit={e => submitLine(e, item.id)} className="mt-3 flex flex-wrap items-end gap-3 rounded-2xl border border-admin-sand/30 bg-white p-3">
-                                      <label className="block">
+                                      <label className="block w-full sm:w-auto">
                                         <span className="mb-1 block text-[11px] uppercase tracking-[0.18em] text-admin-ink/50">Line</span>
                                         <input
                                           value={lineForm.label}
                                           onChange={e => setLineForm(prev => ({ ...prev, label: e.target.value }))}
                                           placeholder="e.g. 5-hour canapé package"
-                                          className="w-52 rounded-xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink outline-none transition focus:border-admin-green"
+                                          className="w-full rounded-xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink outline-none transition focus:border-admin-green sm:w-52"
                                         />
                                       </label>
                                       <div className="flex gap-1.5 pb-0.5">
@@ -962,13 +1018,13 @@ export default function BudgetClient({
                               {/* Add payment */}
                               {paymentFormItemId === item.id ? (
                                 <form onSubmit={e => submitPayment(e, item.id)} className="mt-4 flex flex-wrap items-end gap-3">
-                                  <label className="block">
+                                  <label className="block w-full sm:w-auto">
                                     <span className="mb-1 block text-[11px] uppercase tracking-[0.18em] text-admin-ink/50">Label</span>
                                     <input
                                       value={paymentForm.label}
                                       onChange={e => setPaymentForm(prev => ({ ...prev, label: e.target.value }))}
                                       placeholder="e.g. Booking deposit"
-                                      className="w-44 rounded-xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink outline-none transition focus:border-admin-green"
+                                      className="w-full rounded-xl border border-admin-sand/40 bg-white px-3 py-2 text-sm text-admin-ink outline-none transition focus:border-admin-green sm:w-44"
                                     />
                                   </label>
                                   <label className="block">

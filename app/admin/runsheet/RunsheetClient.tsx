@@ -178,8 +178,23 @@ export default function RunsheetClient({
     }
   }
 
-  // Drag-reorder within a day (same pattern as FaqsClient): splice, reassign
-  // display_order, optimistic setState, one PATCH per moved section.
+  // Persist a new within-day ordering: reassign display_order, optimistic
+  // setState, one PATCH per section (same pattern as FaqsClient).
+  function persistSectionOrder(reordered: RunsheetSection[]) {
+    const updates = reordered.map((s, i) => ({ ...s, display_order: i }));
+    setSections(prev => prev.map(s => updates.find(u => u.id === s.id) ?? s));
+    void Promise.all(
+      updates.map(s =>
+        fetch(`/admin/api/runsheet/sections/${s.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ display_order: s.display_order }),
+        })
+      )
+    );
+  }
+
+  // Desktop drag-reorder within a day.
   function handleSectionDrop(day: string | null, targetId: string) {
     if (!dragSectionId || dragSectionId === targetId) return;
     const dayGroup = days.find(d => d.day === day);
@@ -192,19 +207,21 @@ export default function RunsheetClient({
     const to = reordered.findIndex(s => s.id === targetId);
     const [moved] = reordered.splice(from, 1);
     reordered.splice(to, 0, moved);
-
-    const updates = reordered.map((s, i) => ({ ...s, display_order: i }));
-    setSections(prev => prev.map(s => updates.find(u => u.id === s.id) ?? s));
-    void Promise.all(
-      updates.map(s =>
-        fetch(`/admin/api/runsheet/sections/${s.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ display_order: s.display_order }),
-        })
-      )
-    );
+    persistSectionOrder(reordered);
     setDragSectionId(null);
+  }
+
+  // Touch fallback — HTML5 drag doesn't fire on touchscreens.
+  function moveSection(day: string | null, sectionId: string, dir: -1 | 1) {
+    const dayGroup = days.find(d => d.day === day);
+    if (!dayGroup) return;
+    const from = dayGroup.sections.findIndex(s => s.id === sectionId);
+    const to = from + dir;
+    if (from < 0 || to < 0 || to >= dayGroup.sections.length) return;
+    const reordered = [...dayGroup.sections];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+    persistSectionOrder(reordered);
   }
 
   // ── Item handlers ──
@@ -503,7 +520,26 @@ export default function RunsheetClient({
                   style={{ borderLeftWidth: 4, borderLeftColor: color }}
                 >
                   <div className="flex flex-wrap items-center gap-3 px-5 py-4 sm:px-6">
-                    <span className="cursor-move text-admin-ink/30" title="Drag to reorder">⠿</span>
+                    <span className="hidden cursor-move text-admin-ink/30 lg:inline" title="Drag to reorder">⠿</span>
+                    {/* Touch fallback for reordering — drag doesn't work on touchscreens */}
+                    <span className="flex flex-col lg:hidden">
+                      <button
+                        type="button"
+                        onClick={() => moveSection(day.day, section.id, -1)}
+                        className="px-1 text-xs leading-4 text-admin-ink/40 active:text-admin-ink"
+                        aria-label="Move section up"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveSection(day.day, section.id, 1)}
+                        className="px-1 text-xs leading-4 text-admin-ink/40 active:text-admin-ink"
+                        aria-label="Move section down"
+                      >
+                        ▼
+                      </button>
+                    </span>
                     <h3 className="text-base font-semibold text-admin-ink">{section.title}</h3>
                     <span className="text-xs text-admin-ink/45">
                       {sectionItems.length} item{sectionItems.length === 1 ? '' : 's'}
@@ -597,7 +633,7 @@ export default function RunsheetClient({
                                     </div>
                                   )}
                                 </div>
-                                <div className="flex shrink-0 gap-2 sm:opacity-0 sm:transition sm:group-hover:opacity-100">
+                                <div className="flex shrink-0 gap-2 lg:opacity-0 lg:transition lg:group-hover:opacity-100">
                                   <button
                                     type="button"
                                     onClick={() => openEditItem(item)}
