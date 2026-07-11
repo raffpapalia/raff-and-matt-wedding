@@ -298,12 +298,6 @@ export type BudgetPayment = {
   created_at: string;
 };
 
-export type BudgetSettings = {
-  id: number;
-  total_budget: number;
-  updated_at: string;
-};
-
 // ── Day-of run sheet (admin-only tables; share page validates its token server-side) ──
 
 export type RunsheetSection = {

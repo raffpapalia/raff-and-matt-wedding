@@ -144,11 +144,12 @@ interface PaymentForm {
 
 const EMPTY_PAYMENT_FORM: PaymentForm = { label: '', amount: '', due_date: '', already_paid: false };
 
+type SortKey = 'supplier' | 'category' | 'planned' | 'actual' | 'paid' | 'remaining' | 'next_due' | 'status';
+
 interface Props {
   initialItems: BudgetItem[];
   initialLines: BudgetLineItem[];
   initialPayments: BudgetPayment[];
-  initialTotalBudget: number;
   attendingCount: number;
   invitedCount: number;
 }
@@ -157,23 +158,22 @@ export default function BudgetClient({
   initialItems,
   initialLines,
   initialPayments,
-  initialTotalBudget,
   attendingCount,
   invitedCount,
 }: Props) {
   const [items, setItems] = useState<BudgetItem[]>(initialItems);
   const [lines, setLines] = useState<BudgetLineItem[]>(initialLines);
   const [payments, setPayments] = useState<BudgetPayment[]>(initialPayments);
-  const [totalBudget, setTotalBudget] = useState(initialTotalBudget);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [itemFormOpen, setItemFormOpen] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [itemForm, setItemForm] = useState<ItemForm>(EMPTY_ITEM_FORM);
-  const [budgetFormOpen, setBudgetFormOpen] = useState(false);
-  const [budgetInput, setBudgetInput] = useState('');
   const [paymentForm, setPaymentForm] = useState<PaymentForm>(EMPTY_PAYMENT_FORM);
   const [paymentFormItemId, setPaymentFormItemId] = useState<string | null>(null);
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   // Inline line-item editor: which item's "add line" form is open, and which
   // existing line (if any) is being edited.
   const [lineFormItemId, setLineFormItemId] = useState<string | null>(null);
@@ -215,7 +215,7 @@ export default function BudgetClient({
     items.some(i => i.pricing_mode === 'per_head' && linesFor(i.id).length === 0) ||
     lines.some(l => l.quantity_mode === 'per_head');
 
-  const barBase = Math.max(totalBudget, committed, 1);
+  const barBase = Math.max(committed, paid, 1);
   const paidPct = Math.min((paid / barBase) * 100, 100);
   const committedUnpaidPct = Math.min((leftToPay / barBase) * 100, 100 - paidPct);
 
@@ -229,6 +229,74 @@ export default function BudgetClient({
   );
 
   const nextDue = upcoming.find(p => !isOverdue(p, today));
+
+  // Per-supplier derived values, computed once for the table + sorting.
+  const STATUS_ORDER: Record<ItemStatus, number> = { overdue: 0, partial: 1, not_started: 2, estimate: 3, paid: 4 };
+
+  const rows = useMemo(() => {
+    const derived = items.map(item => {
+      const itemLines = linesByItem.get(item.id) ?? [];
+      const itemPayments = paymentsByItem.get(item.id) ?? [];
+      const planned = plannedCost(item, itemLines);
+      const actual = actualCost(item, itemLines, attendingCount);
+      const itemPaid = paidTotal(itemPayments);
+      const nextDueDate = itemPayments
+        .filter(p => !p.paid_date && p.due_date)
+        .reduce<string | null>((min, p) => (min === null || p.due_date! < min ? p.due_date : min), null);
+      return {
+        item,
+        itemLines,
+        itemPayments,
+        planned,
+        actual,
+        itemPaid,
+        remaining: Math.max(actual - itemPaid, 0),
+        nextDueDate,
+        status: itemStatus(item, itemLines, itemPayments, attendingCount, today),
+      };
+    });
+
+    if (!sortKey) return derived;
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...derived].sort((a, b) => {
+      switch (sortKey) {
+        case 'supplier':
+          return dir * a.item.supplier_name.localeCompare(b.item.supplier_name);
+        case 'category':
+          return dir * a.item.category.localeCompare(b.item.category);
+        case 'planned':
+          return dir * (a.planned - b.planned);
+        case 'actual':
+          return dir * (a.actual - b.actual);
+        case 'paid':
+          return dir * (a.itemPaid - b.itemPaid);
+        case 'remaining':
+          return dir * (a.remaining - b.remaining);
+        case 'next_due':
+          // Undated always sinks, regardless of direction.
+          if (a.nextDueDate === b.nextDueDate) return 0;
+          if (a.nextDueDate === null) return 1;
+          if (b.nextDueDate === null) return -1;
+          return dir * a.nextDueDate.localeCompare(b.nextDueDate);
+        case 'status':
+          return dir * (STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+      }
+    });
+  }, [items, linesByItem, paymentsByItem, attendingCount, today, sortKey, sortDir]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      if (sortDir === 'asc') setSortDir('desc');
+      else {
+        // Third click returns to the natural (added) order.
+        setSortKey(null);
+        setSortDir('asc');
+      }
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  }
 
   const byCategory = useMemo(() => {
     const map = new Map<string, number>();
@@ -408,7 +476,24 @@ export default function BudgetClient({
 
   function openPaymentForm(itemId: string) {
     setPaymentFormItemId(itemId);
+    setEditingPaymentId(null);
     setPaymentForm(EMPTY_PAYMENT_FORM);
+  }
+
+  function openEditPayment(payment: BudgetPayment) {
+    setPaymentFormItemId(payment.item_id);
+    setEditingPaymentId(payment.id);
+    setPaymentForm({
+      label: payment.label,
+      amount: String(payment.amount),
+      due_date: payment.due_date ?? '',
+      already_paid: !!payment.paid_date,
+    });
+  }
+
+  function closePaymentForm() {
+    setPaymentFormItemId(null);
+    setEditingPaymentId(null);
   }
 
   async function submitPayment(e: React.FormEvent, itemId: string) {
@@ -416,23 +501,29 @@ export default function BudgetClient({
     if (!paymentForm.amount) return;
 
     setSaving(true);
-    const res = await fetch('/admin/api/budget/payments', {
-      method: 'POST',
+    const editing = editingPaymentId ? payments.find(p => p.id === editingPaymentId) : null;
+    const body = {
+      ...(editing ? {} : { item_id: itemId }),
+      label: paymentForm.label.trim(),
+      amount: paymentForm.amount,
+      due_date: paymentForm.due_date || null,
+      // Keep an existing paid date when still ticked; stamp today when newly ticked.
+      paid_date: paymentForm.already_paid ? (editing?.paid_date ?? todayIso()) : null,
+    };
+    const url = editingPaymentId ? `/admin/api/budget/payments/${editingPaymentId}` : '/admin/api/budget/payments';
+    const res = await fetch(url, {
+      method: editingPaymentId ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        item_id: itemId,
-        label: paymentForm.label.trim(),
-        amount: paymentForm.amount,
-        due_date: paymentForm.due_date || null,
-        paid_date: paymentForm.already_paid ? todayIso() : null,
-      }),
+      body: JSON.stringify(body),
     });
     setSaving(false);
 
     if (res.ok) {
       const saved: BudgetPayment = await res.json();
-      setPayments(prev => [...prev, saved]);
-      setPaymentFormItemId(null);
+      setPayments(prev =>
+        editingPaymentId ? prev.map(p => (p.id === editingPaymentId ? saved : p)) : [...prev, saved]
+      );
+      closePaymentForm();
     }
   }
 
@@ -452,29 +543,6 @@ export default function BudgetClient({
     if (!confirm('Delete this payment?')) return;
     const res = await fetch(`/admin/api/budget/payments/${id}`, { method: 'DELETE' });
     if (res.ok) setPayments(prev => prev.filter(p => p.id !== id));
-  }
-
-  // ── Budget target ──
-
-  function openBudgetForm() {
-    setBudgetInput(totalBudget ? String(totalBudget) : '');
-    setBudgetFormOpen(true);
-  }
-
-  async function submitBudget(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    const res = await fetch('/admin/api/budget/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ total_budget: budgetInput || 0 }),
-    });
-    setSaving(false);
-    if (res.ok) {
-      const saved = await res.json();
-      setTotalBudget(Number(saved.total_budget) || 0);
-      setBudgetFormOpen(false);
-    }
   }
 
   // Live preview numbers inside the item form
@@ -502,13 +570,6 @@ export default function BudgetClient({
             </a>
             <button
               type="button"
-              onClick={openBudgetForm}
-              className="rounded-full border border-admin-sand/40 bg-white px-4 py-2.5 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green"
-            >
-              Set budget
-            </button>
-            <button
-              type="button"
               onClick={openAddItem}
               className="rounded-full bg-admin-green px-5 py-2.5 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90"
             >
@@ -521,26 +582,19 @@ export default function BudgetClient({
       {/* ── Summary cards ── */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
-          <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Total budget</p>
-          <p className="mt-4 text-4xl font-semibold text-admin-ink">{totalBudget > 0 ? fmt(totalBudget) : '—'}</p>
-          <p className="mt-2 text-sm text-admin-ink/70">
-            {totalBudget > 0 ? (
-              committed > totalBudget
-                ? <span className="text-admin-persimmon">{fmt(committed - totalBudget)} over target</span>
-                : `${fmt(totalBudget - committed)} unallocated`
-            ) : (
-              'No target set yet'
-            )}
-          </p>
-        </div>
-        <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
           <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Committed</p>
           <p className="mt-4 text-4xl font-semibold text-admin-ink">{fmt(committed)}</p>
           <p className="mt-2 text-sm text-admin-ink/70">
-            {items.length} supplier{items.length === 1 ? '' : 's'}
-            {hasPerHead && projected !== committed && (
-              <> · projected {fmt(projected)} at current RSVPs</>
-            )}
+            {items.length} supplier{items.length === 1 ? '' : 's'} planned
+          </p>
+        </div>
+        <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
+          <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Projected</p>
+          <p className="mt-4 text-4xl font-semibold text-admin-ink">{fmt(projected)}</p>
+          <p className="mt-2 text-sm text-admin-ink/70">
+            {hasPerHead
+              ? `At ${attendingCount} confirmed RSVP${attendingCount === 1 ? '' : 's'} — updates live`
+              : 'No per-head pricing yet'}
           </p>
         </div>
         <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
@@ -568,10 +622,9 @@ export default function BudgetClient({
       {/* ── Progress bar ── */}
       <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
         <div className="flex items-center justify-between text-sm text-admin-ink/70">
-          <p>Budget progress</p>
+          <p>Payment progress</p>
           <p>
             {fmt(paid)} paid · {fmt(leftToPay)} committed &amp; unpaid
-            {totalBudget > committed && <> · {fmt(totalBudget - committed)} unallocated</>}
           </p>
         </div>
         <div className="mt-3 flex h-4 overflow-hidden rounded-full bg-admin-ink/10">
@@ -581,13 +634,11 @@ export default function BudgetClient({
         <div className="mt-3 flex flex-wrap gap-5 text-xs text-admin-ink/70">
           <span><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-admin-green align-[-1px]" />Paid</span>
           <span><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-admin-warning/75 align-[-1px]" />Committed, not yet paid</span>
-          <span><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-admin-ink/10 align-[-1px]" />Unallocated</span>
         </div>
       </div>
 
-      <div className="grid items-start gap-6 xl:grid-cols-[2fr_1fr]">
-        {/* ── Suppliers table ── */}
-        <div className="rounded-3xl border border-admin-sand/20 bg-white overflow-hidden">
+      {/* ── Suppliers table (full width) ── */}
+      <div className="rounded-3xl border border-admin-sand/20 bg-white overflow-hidden">
           <div className="px-6 pt-6">
             <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Suppliers</p>
           </div>
@@ -601,24 +652,21 @@ export default function BudgetClient({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-admin-sand/25 text-left text-[11px] uppercase tracking-[0.18em] text-admin-ink/50">
-                    <th className="px-6 py-3 font-medium">Supplier</th>
-                    <th className="px-3 py-3 font-medium">Category</th>
-                    <th className="px-3 py-3 text-right font-medium">Planned</th>
-                    <th className="px-3 py-3 text-right font-medium">Actual</th>
-                    <th className="px-3 py-3 text-right font-medium">Paid</th>
-                    <th className="px-3 py-3 font-medium">Status</th>
+                    <SortableTh label="Supplier" k="supplier" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} className="px-6" />
+                    <SortableTh label="Category" k="category" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                    <SortableTh label="Planned" k="planned" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
+                    <SortableTh label="Actual" k="actual" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
+                    <SortableTh label="Paid" k="paid" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
+                    <SortableTh label="Remaining" k="remaining" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
+                    <SortableTh label="Next due" k="next_due" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                    <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                     <th className="px-3 py-3" />
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map(item => {
-                    const itemPayments = paymentsByItem.get(item.id) ?? [];
-                    const itemLines = linesFor(item.id);
+                  {rows.map(({ item, itemLines, itemPayments, planned, actual, itemPaid, remaining, nextDueDate, status: rowStatus }) => {
                     const hasLines = itemLines.length > 0;
-                    const planned = plannedCost(item, itemLines);
-                    const actual = actualCost(item, itemLines, attendingCount);
-                    const itemPaid = paidTotal(itemPayments);
-                    const status = STATUS_META[itemStatus(item, itemLines, itemPayments, attendingCount, today)];
+                    const status = STATUS_META[rowStatus];
                     const expanded = expandedId === item.id;
                     // "actual differs from planned" — true for per-head suppliers and any
                     // quote that contains per-head lines.
@@ -670,6 +718,22 @@ export default function BudgetClient({
                             )}
                           </td>
                           <td className="px-3 py-4 text-right tabular-nums text-admin-ink">{itemPaid > 0 ? fmt(itemPaid) : '—'}</td>
+                          <td className="px-3 py-4 text-right tabular-nums">
+                            {remaining > 0 ? (
+                              <span className={itemPaid > 0 ? 'text-admin-warning' : 'text-admin-ink/70'}>{fmt(remaining)}</span>
+                            ) : (
+                              <span className="text-admin-ink/40">—</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-4 whitespace-nowrap">
+                            {nextDueDate ? (
+                              <span className={nextDueDate < today ? 'font-medium text-admin-persimmon' : 'text-admin-ink/70'}>
+                                {fmtDate(nextDueDate)}
+                              </span>
+                            ) : (
+                              <span className="text-admin-ink/40">—</span>
+                            )}
+                          </td>
                           <td className="px-3 py-4">
                             <span className={`inline-block whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium ${status.className}`}>
                               {status.label}
@@ -680,7 +744,7 @@ export default function BudgetClient({
 
                         {expanded && (
                           <tr className="border-b border-admin-sand/15 bg-admin-bone/40">
-                            <td colSpan={7} className="px-6 py-5">
+                            <td colSpan={9} className="px-6 py-5">
                               {/* Line items (quote breakdown) */}
                               {(hasLines || lineFormItemId === item.id) && (
                                 <div className="mb-5">
@@ -877,6 +941,13 @@ export default function BudgetClient({
                                         )}
                                         <button
                                           type="button"
+                                          onClick={() => openEditPayment(p)}
+                                          className="rounded-full border border-admin-ink/10 px-3 py-1 text-xs text-admin-ink/60 transition hover:bg-admin-ink/5"
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          type="button"
                                           onClick={() => deletePayment(p.id)}
                                           className="rounded-full border border-admin-persimmon/20 px-3 py-1 text-xs text-admin-persimmon transition hover:bg-admin-persimmon/10"
                                         >
@@ -936,11 +1007,11 @@ export default function BudgetClient({
                                     disabled={saving}
                                     className="rounded-full bg-admin-green px-4 py-2 text-xs font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
                                   >
-                                    Add
+                                    {editingPaymentId ? 'Save' : 'Add'}
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => setPaymentFormItemId(null)}
+                                    onClick={closePaymentForm}
                                     className="rounded-full border border-admin-ink/10 px-4 py-2 text-xs text-admin-ink/60 transition hover:bg-admin-ink/5"
                                   >
                                     Cancel
@@ -996,62 +1067,79 @@ export default function BudgetClient({
           )}
         </div>
 
-        {/* ── Side panels ── */}
-        <div className="space-y-6">
-          <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
-            <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Upcoming payments</p>
-            {upcoming.length === 0 ? (
-              <p className="mt-4 text-sm text-admin-ink/55">Nothing scheduled. Add due dates to payments to see them here.</p>
-            ) : (
-              <div className="mt-2 divide-y divide-admin-sand/15">
-                {upcoming.map(p => {
-                  const overdue = isOverdue(p, today);
-                  return (
-                    <div key={p.id} className="flex items-center justify-between gap-3 py-3">
-                      <div>
-                        <p className="text-sm font-medium text-admin-ink">{itemName(p.item_id)}</p>
-                        {p.label && <p className="mt-0.5 text-xs text-admin-ink/55">{p.label}</p>}
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold tabular-nums text-admin-ink">{fmt(p.amount)}</p>
-                        <p className={`mt-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${overdue ? 'text-admin-persimmon' : 'text-admin-warning'}`}>
-                          {overdue ? 'Overdue' : `Due ${fmtDate(p.due_date!)}`}
-                        </p>
-                      </div>
+      {/* ── Insight panels ── */}
+      <div className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
+          <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Upcoming payments</p>
+          {upcoming.length === 0 ? (
+            <p className="mt-4 text-sm text-admin-ink/55">Nothing scheduled. Add due dates to payments to see them here.</p>
+          ) : (
+            <div className="mt-2 divide-y divide-admin-sand/15">
+              {upcoming.map(p => {
+                const overdue = isOverdue(p, today);
+                return (
+                  <div key={p.id} className="flex items-center justify-between gap-3 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-admin-ink">{itemName(p.item_id)}</p>
+                      {p.label && <p className="mt-0.5 text-xs text-admin-ink/55">{p.label}</p>}
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
-            <p className="text-sm uppercase tracking-[0.3em] text-admin-green">By category</p>
-            {byCategory.length === 0 ? (
-              <p className="mt-4 text-sm text-admin-ink/55">Totals appear as you add suppliers.</p>
-            ) : (
-              <div className="mt-2 divide-y divide-admin-sand/15">
-                {byCategory.map(([category, total]) => (
-                  <div key={category} className="flex items-center justify-between py-3">
-                    <p className="text-sm font-medium text-admin-ink">{category}</p>
-                    <p className="text-sm font-semibold tabular-nums text-admin-ink">{fmt(total)}</p>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold tabular-nums text-admin-ink">{fmt(p.amount)}</p>
+                      <p className={`mt-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${overdue ? 'text-admin-persimmon' : 'text-admin-warning'}`}>
+                        {overdue ? 'Overdue' : `Due ${fmtDate(p.due_date!)}`}
+                      </p>
+                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {hasPerHead && (
-            <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
-              <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Per-head basis</p>
-              <p className="mt-3 text-sm leading-relaxed text-admin-ink/70">
-                <span className="font-semibold text-admin-ink">{attendingCount}</span> guest{attendingCount === 1 ? '' : 's'} confirmed attending ·{' '}
-                <span className="font-semibold text-admin-ink">{invitedCount}</span> invited &amp; not declined.
-                Per-head “Actual” updates automatically as RSVPs come in.
-              </p>
+                );
+              })}
             </div>
           )}
         </div>
+
+        <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
+          <p className="text-sm uppercase tracking-[0.3em] text-admin-green">By category</p>
+          {byCategory.length === 0 ? (
+            <p className="mt-4 text-sm text-admin-ink/55">Totals appear as you add suppliers.</p>
+          ) : (
+            <div className="mt-2 divide-y divide-admin-sand/15">
+              {byCategory.map(([category, total]) => {
+                const share = committed > 0 ? (total / committed) * 100 : 0;
+                return (
+                  <div key={category} className="py-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-admin-ink">{category}</p>
+                      <p className="text-sm font-semibold tabular-nums text-admin-ink">
+                        {fmt(total)}
+                        <span className="ml-2 text-xs font-normal text-admin-ink/45">{Math.round(share)}%</span>
+                      </p>
+                    </div>
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-admin-ink/8">
+                      <div className="h-full rounded-full bg-admin-green/70" style={{ width: `${share}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {hasPerHead && (
+          <div className="rounded-3xl border border-admin-sand/20 bg-white p-6">
+            <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Per-head basis</p>
+            <p className="mt-3 text-sm leading-relaxed text-admin-ink/70">
+              <span className="font-semibold text-admin-ink">{attendingCount}</span> guest{attendingCount === 1 ? '' : 's'} confirmed attending ·{' '}
+              <span className="font-semibold text-admin-ink">{invitedCount}</span> invited &amp; not declined.
+              Per-head “Actual” updates automatically as RSVPs come in.
+            </p>
+            {projected !== committed && (
+              <p className="mt-3 border-t border-admin-sand/20 pt-3 text-sm text-admin-ink/70">
+                If every non-declined guest attends, per-head costs move the total from{' '}
+                <span className="font-semibold text-admin-ink">{fmt(projected)}</span> towards{' '}
+                <span className="font-semibold text-admin-ink">{fmt(committed)}</span>.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Supplier modal ── */}
@@ -1289,47 +1377,6 @@ export default function BudgetClient({
         </div>
       )}
 
-      {/* ── Set budget modal ── */}
-      {budgetFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setBudgetFormOpen(false)} />
-          <div className="relative w-full max-w-sm rounded-[2rem] border border-white/10 bg-admin-ink p-8 shadow-2xl shadow-black/60">
-            <p className="text-sm uppercase tracking-[0.3em] text-admin-sand">Budget target</p>
-            <h2 className="mt-2 mb-6 text-2xl font-semibold text-admin-bone">Set your total budget</h2>
-            <form onSubmit={submitBudget} className="space-y-5">
-              <label className="block">
-                <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-bone/60">Total budget (AUD)</span>
-                <input
-                  value={budgetInput}
-                  onChange={e => setBudgetInput(e.target.value)}
-                  type="number"
-                  min="0"
-                  step="1"
-                  autoFocus
-                  placeholder="e.g. 60000"
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-admin-bone placeholder-admin-bone/30 outline-none transition focus:border-admin-green"
-                />
-              </label>
-              <div className="flex gap-3">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 rounded-3xl bg-admin-green px-5 py-3 text-sm font-semibold text-admin-bone transition hover:bg-admin-green/90 disabled:opacity-60"
-                >
-                  {saving ? 'Saving…' : 'Save'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBudgetFormOpen(false)}
-                  className="rounded-3xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-admin-bone transition hover:bg-white/10"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -1338,4 +1385,39 @@ export default function BudgetClient({
 // lets each supplier render its main row plus an optional expanded row.
 function FragmentRow({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
+}
+
+// Clickable column header: asc → desc → back to natural order.
+function SortableTh({
+  label,
+  k,
+  sortKey,
+  sortDir,
+  onSort,
+  align = 'left',
+  className = 'px-3',
+}: {
+  label: string;
+  k: SortKey;
+  sortKey: SortKey | null;
+  sortDir: 'asc' | 'desc';
+  onSort: (key: SortKey) => void;
+  align?: 'left' | 'right';
+  className?: string;
+}) {
+  const active = sortKey === k;
+  return (
+    <th className={`${className} py-3 font-medium ${align === 'right' ? 'text-right' : 'text-left'}`}>
+      <button
+        type="button"
+        onClick={() => onSort(k)}
+        className={`inline-flex items-center gap-1 uppercase tracking-[0.18em] transition hover:text-admin-green ${
+          active ? 'text-admin-green' : ''
+        }`}
+      >
+        {label}
+        <span className={`text-[9px] ${active ? '' : 'opacity-30'}`}>{active ? (sortDir === 'asc' ? '▲' : '▼') : '▲▼'}</span>
+      </button>
+    </th>
+  );
 }
