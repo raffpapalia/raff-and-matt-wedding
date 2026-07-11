@@ -57,7 +57,7 @@ function StatusBadge({ status }: { status: CommsStatus }) {
 // --- Main component ---
 
 const PAGE_SIZE = 20;
-type FilterTab = 'all' | 'not_sent' | 'sent' | 'failed' | 'awaiting_rsvp';
+type FilterTab = 'all' | 'not_sent' | 'sent' | 'sent_not_opened' | 'failed' | 'awaiting_rsvp';
 type Channel = 'email' | 'sms';
 
 type ChooserTarget = {
@@ -135,6 +135,7 @@ export default function CommsClient({
       all: rows.length,
       not_sent: rows.filter((r) => r.smsStatus === 'not_sent' && r.emailStatus === 'not_sent').length,
       sent: rows.filter((r) => r.smsStatus === 'sent' || r.emailStatus === 'sent').length,
+      sent_not_opened: rows.filter((r) => (r.smsStatus === 'sent' || r.emailStatus === 'sent') && !r.linkOpened).length,
       failed: rows.filter((r) => r.smsStatus === 'failed' || r.emailStatus === 'failed').length,
       awaiting_rsvp: rows.filter((r) => r.lastContacted !== null && r.hasPendingRsvp).length,
     }),
@@ -153,6 +154,7 @@ export default function CommsClient({
       if (tagFilter && !row.tags.includes(tagFilter)) return false;
       if (tab === 'not_sent') return row.smsStatus === 'not_sent' && row.emailStatus === 'not_sent';
       if (tab === 'sent') return row.smsStatus === 'sent' || row.emailStatus === 'sent';
+      if (tab === 'sent_not_opened') return (row.smsStatus === 'sent' || row.emailStatus === 'sent') && !row.linkOpened;
       if (tab === 'failed') return row.smsStatus === 'failed' || row.emailStatus === 'failed';
       if (tab === 'awaiting_rsvp') return row.lastContacted !== null && row.hasPendingRsvp;
       return true;
@@ -419,6 +421,7 @@ export default function CommsClient({
     all: 'All',
     not_sent: 'Not sent',
     sent: 'Sent',
+    sent_not_opened: 'Sent Not Opened',
     failed: 'Failed',
     awaiting_rsvp: 'Awaiting RSVP',
   };
@@ -541,7 +544,7 @@ export default function CommsClient({
 
         {/* Tabs */}
         <div className="flex flex-wrap gap-3">
-          {(['all', 'not_sent', 'sent', 'failed', 'awaiting_rsvp'] as FilterTab[]).map((key) => (
+          {(['all', 'not_sent', 'sent', 'sent_not_opened', 'failed', 'awaiting_rsvp'] as FilterTab[]).map((key) => (
             <button
               key={key}
               type="button"

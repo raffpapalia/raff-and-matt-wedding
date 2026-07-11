@@ -28,6 +28,8 @@ export type CommsSummaryRow = {
   emailStatus: CommsStatus;
   lastContacted: string | null;
   hasPendingRsvp: boolean;
+  // Whether anyone in the household has ever opened their invite link.
+  linkOpened: boolean;
   guests: CommsSummaryGuest[];
 };
 
@@ -53,7 +55,7 @@ export default async function CommsPage() {
   await requireAdminAuth();
 
   const [householdsRes, tagsRes, guestsRes, commsRes, phaseRes, templatesRes, smsTemplatesRes] = await Promise.all([
-    supabase.from('households').select('id,name,slug').order('created_at', { ascending: false }),
+    supabase.from('households').select('id,name,slug,link_first_opened_at').order('created_at', { ascending: false }),
     supabase.from('guest_tags').select('household_id,tag'),
     supabase
       .from('guests')
@@ -125,6 +127,7 @@ export default async function CommsPage() {
       emailStatus: deriveStatus(emailComms),
       lastContacted,
       hasPendingRsvp,
+      linkOpened: !!(household as { link_first_opened_at?: string | null }).link_first_opened_at,
       guests: householdGuests.map((g: any) => ({
         id: g.id,
         first_name: g.first_name,
