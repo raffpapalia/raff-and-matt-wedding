@@ -60,14 +60,14 @@ function validateMobile(mobile: string, commsSms: boolean, firstName: string): s
 type GuestErrors = { email?: string; mobile?: string };
 type SlugStatus = 'idle' | 'checking' | 'available' | 'taken';
 
-type HouseholdMatch = { id: string; name: string; slug: string };
+type HouseholdMatch = { id: string; name: string; slug: string; exact: boolean };
 type GuestMatch = {
   guestId: string;
   guestName: string;
   householdId: string;
   householdName: string;
   slug: string;
-  matchType: 'name' | 'email' | 'mobile';
+  matchType: 'name' | 'similar_name' | 'email' | 'mobile';
 };
 
 const fieldClass = 'w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink placeholder-admin-ink/30 outline-none transition focus:border-admin-green';
@@ -82,7 +82,7 @@ function SectionDivider() {
   return <div className="border-t border-admin-sand/20" />;
 }
 
-const matchTypeLabel: Record<GuestMatch['matchType'], string> = {
+const matchTypeLabel: Record<Exclude<GuestMatch['matchType'], 'similar_name'>, string> = {
   name: 'name',
   email: 'email address',
   mobile: 'mobile number',
@@ -91,11 +91,21 @@ const matchTypeLabel: Record<GuestMatch['matchType'], string> = {
 function HouseholdDuplicateWarning({ matches }: { matches: HouseholdMatch[] }) {
   if (!matches.length) return null;
   return (
-    <div className="rounded-2xl bg-admin-warning/10 px-4 py-3 text-sm text-admin-warning">
-      ⚠ A household named &ldquo;{matches[0].name}&rdquo; already exists —{' '}
-      <Link href={`/admin/guests/${matches[0].id}/edit`} className="underline hover:no-underline" target="_blank">
-        view household
-      </Link>
+    <div className="space-y-1 rounded-2xl bg-admin-warning/10 px-4 py-3 text-sm text-admin-warning">
+      {matches.slice(0, 3).map((match) => (
+        <p key={match.id}>
+          ⚠{' '}
+          {match.exact ? (
+            <>A household named &ldquo;{match.name}&rdquo; already exists</>
+          ) : (
+            <>Similar household exists: &ldquo;{match.name}&rdquo;</>
+          )}{' '}
+          —{' '}
+          <Link href={`/admin/guests/${match.id}/edit`} className="underline hover:no-underline" target="_blank">
+            view household
+          </Link>
+        </p>
+      ))}
     </div>
   );
 }
@@ -106,7 +116,12 @@ function GuestDuplicateWarning({ matches }: { matches: GuestMatch[] }) {
     <div className="space-y-1">
       {matches.map((match) => (
         <p key={`${match.guestId}-${match.matchType}`} className="text-xs text-admin-warning">
-          ⚠ Matches the {matchTypeLabel[match.matchType]} of {match.guestName} in{' '}
+          ⚠{' '}
+          {match.matchType === 'similar_name' ? (
+            <>Similar name to {match.guestName} in</>
+          ) : (
+            <>Matches the {matchTypeLabel[match.matchType]} of {match.guestName} in</>
+          )}{' '}
           <Link href={`/admin/guests/${match.householdId}/edit`} className="underline hover:no-underline" target="_blank">
             {match.householdName || 'another household'}
           </Link>
