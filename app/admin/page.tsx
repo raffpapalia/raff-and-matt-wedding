@@ -343,7 +343,10 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
             ))}
 
             {dashboard.untagged.households > 0 && (
-              <div className="w-full rounded-2xl border border-dashed border-admin-warning/50 bg-admin-warning-bg/40 px-5 py-4 sm:w-auto sm:min-w-[180px]">
+              <Link
+                href="/admin/guests?tag=untagged"
+                className="w-full rounded-2xl border border-dashed border-admin-warning/50 bg-admin-warning-bg/40 px-5 py-4 transition hover:border-admin-warning hover:bg-admin-warning-bg/70 sm:w-auto sm:min-w-[180px]"
+              >
                 <p className="text-xs uppercase tracking-[0.2em] text-admin-warning">No tags</p>
                 <p className="mt-2 text-3xl font-semibold text-admin-ink">{dashboard.untagged.households}</p>
                 <p className="text-xs text-admin-ink/60">
@@ -352,7 +355,7 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
                 <p className="mt-2 text-xs text-admin-warning">
                   Tag-targeted sends will miss these.
                 </p>
-              </div>
+              </Link>
             )}
           </div>
         </div>

@@ -320,11 +320,17 @@ export default function GuestListTable({ rows: initialRows, initialQuery, curren
   const filteredRows = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return rows.filter((row) => {
-      const matchesQuery =
-        row.name.toLowerCase().includes(normalizedQuery) ||
-        row.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery)) ||
-        row.guestNames.some((guestName) => guestName.toLowerCase().includes(normalizedQuery));
-      if (!matchesQuery) return false;
+      // Special keyword: "untagged" shows households with no tags at all
+      // (linked from the dashboard's "No tags" card).
+      if (normalizedQuery === 'untagged') {
+        if (row.tags.length > 0) return false;
+      } else {
+        const matchesQuery =
+          row.name.toLowerCase().includes(normalizedQuery) ||
+          row.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery)) ||
+          row.guestNames.some((guestName) => guestName.toLowerCase().includes(normalizedQuery));
+        if (!matchesQuery) return false;
+      }
 
       if (activeTab === 'confirmed') {
         return row.attending > 0;
