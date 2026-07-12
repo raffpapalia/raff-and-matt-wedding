@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ComponentType, type ReactNode } from 'react';
-import Link from 'next/link';
+import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   CalendarClock,
@@ -59,6 +59,21 @@ function isActive(pathname: string, item: NavItem): boolean {
 // Bottom tab bar fits five tabs comfortably; the rest live in the "More" sheet.
 const MOBILE_PRIMARY = NAV_ITEMS.filter((i) => i.label !== 'Responses' && i.label !== 'Setup');
 const MOBILE_MORE = NAV_ITEMS.filter((i) => i.label === 'Responses' || i.label === 'Setup');
+
+// Fixed-size dot that lights up on the tapped link while its navigation is
+// pending — instant feedback before the route-level skeleton takes over.
+// Must render as a descendant of the <Link> it reports on.
+function PendingDot({ className = '' }: { className?: string }) {
+  const { pending } = useLinkStatus();
+  return (
+    <span
+      aria-hidden
+      className={`pointer-events-none absolute h-1.5 w-1.5 rounded-full bg-admin-persimmon ${
+        pending ? 'animate-ping opacity-100' : 'opacity-0'
+      } ${className}`}
+    />
+  );
+}
 
 function itemClass(active: boolean, collapsed: boolean): string {
   const base = `flex w-full items-center gap-3 border-l-[3px] py-2.5 text-sm transition ${
@@ -126,7 +141,10 @@ export default function AdminSidebarShell({ children }: { children: ReactNode })
                 title={collapsed ? item.label : undefined}
                 className={itemClass(active, collapsed)}
               >
-                <Icon className="h-4 w-4 shrink-0" />
+                <span className="relative shrink-0">
+                  <Icon className="h-4 w-4" />
+                  <PendingDot className="-right-1.5 -top-1" />
+                </span>
                 {!collapsed && <span className="truncate">{item.label}</span>}
               </Link>
             );
@@ -181,7 +199,10 @@ export default function AdminSidebarShell({ children }: { children: ReactNode })
                     isActive(pathname, item) ? 'text-admin-persimmon' : 'text-admin-bone/80'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <span className="relative">
+                    <Icon className="h-4 w-4" />
+                    <PendingDot className="-right-1.5 -top-1" />
+                  </span>
                   {item.label}
                 </Link>
               );
@@ -210,7 +231,10 @@ export default function AdminSidebarShell({ children }: { children: ReactNode })
                 active && !moreOpen ? 'text-admin-persimmon' : 'text-admin-bone/55'
               }`}
             >
-              <Icon className="h-5 w-5" />
+              <span className="relative">
+                <Icon className="h-5 w-5" />
+                <PendingDot className="-right-2 -top-0.5" />
+              </span>
               {item.label}
             </Link>
           );
