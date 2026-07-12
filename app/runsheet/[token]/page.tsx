@@ -38,7 +38,7 @@ export default async function SharedRunsheetPage({ params }: { params: Promise<{
 
   return (
     <div className="min-h-screen bg-admin-bone text-admin-ink admin-light">
-      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:max-w-5xl">
         {/* ── Header ── */}
         <header>
           <p className="text-xs uppercase tracking-[0.3em] text-admin-green">Wedding run sheet</p>
@@ -101,21 +101,46 @@ export default async function SharedRunsheetPage({ params }: { params: Promise<{
                         return (
                           <div key={item.id}>
                             {gap !== null && gap > 0 && (
-                              <p className="py-1 text-center text-[11px] text-admin-ink/35 sm:pl-28 sm:text-left">
+                              <p className="py-1 text-center text-[11px] text-admin-ink/35 sm:pl-48 sm:text-left">
                                 · {fmtDuration(gap)} gap
                               </p>
                             )}
                             <div className="flex flex-col gap-1 border-b border-admin-sand/15 py-3 last:border-b-0 sm:flex-row sm:gap-4">
-                              <p className="w-32 shrink-0 text-sm font-semibold tabular-nums text-admin-green">
+                              <p className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums text-admin-green sm:w-44">
                                 {fmtTimeRange(item.start_time, item.end_time) || '—'}
                               </p>
                               <div className="min-w-0 flex-1">
                                 <p className="text-sm font-medium">{item.title}</p>
                                 {item.description && <p className="mt-0.5 text-sm text-admin-ink/60">{item.description}</p>}
+                                {/* Compact inline meta — replaced by the right-hand column at lg+ */}
                                 {(item.location || item.owner || itemVendors.length > 0) && (
-                                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-admin-ink/55">
+                                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-admin-ink/55 lg:hidden">
                                     {item.location && <span>📍 {item.location}</span>}
                                     {item.owner && <span>👤 {item.owner}</span>}
+                                    {itemVendors.map(v => (
+                                      <span key={v.id} className="rounded-full bg-admin-ink/5 px-2.5 py-0.5 font-medium text-admin-ink/70">
+                                        {v.supplier_name}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              {/* Desktop meta column */}
+                              <div className="hidden w-64 shrink-0 space-y-1 text-xs lg:block">
+                                {item.location && (
+                                  <p className="text-admin-ink/60">
+                                    <span className="mr-1.5 font-semibold uppercase tracking-[0.08em] text-admin-ink/40">Where</span>
+                                    {item.location}
+                                  </p>
+                                )}
+                                {item.owner && (
+                                  <p className="text-admin-ink/60">
+                                    <span className="mr-1.5 font-semibold uppercase tracking-[0.08em] text-admin-ink/40">Who</span>
+                                    {item.owner}
+                                  </p>
+                                )}
+                                {itemVendors.length > 0 && (
+                                  <div className="flex flex-wrap gap-1.5 pt-0.5">
                                     {itemVendors.map(v => (
                                       <span key={v.id} className="rounded-full bg-admin-ink/5 px-2.5 py-0.5 font-medium text-admin-ink/70">
                                         {v.supplier_name}
