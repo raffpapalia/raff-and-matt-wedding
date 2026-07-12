@@ -27,6 +27,7 @@ export type Household = {
   plus_one_allowance: number;
   link_open_count: number;
   link_first_opened_at: string | null;
+  link_last_opened_at: string | null;
   created_at: string;
 };
 

@@ -58,6 +58,7 @@ export default function CommsDetailClient({
   householdSlug,
   linkOpenCount,
   linkFirstOpenedAt,
+  linkLastOpenedAt,
   guests,
   comms,
   templates,
@@ -71,6 +72,7 @@ export default function CommsDetailClient({
   householdSlug: string;
   linkOpenCount: number;
   linkFirstOpenedAt: string | null;
+  linkLastOpenedAt: string | null;
   guests: DetailGuest[];
   comms: DetailComm[];
   templates: EmailTemplateRow[];
@@ -684,6 +686,15 @@ export default function CommsDetailClient({
                   title={linkFirstOpenedAt ? new Date(linkFirstOpenedAt).toLocaleString() : undefined}
                 >
                   {linkFirstOpenedAt ? relativeTime(linkFirstOpenedAt) : '—'}
+                </td>
+              </tr>
+              <tr className="border-t border-admin-sand/20">
+                <td className="py-3 pr-4 text-admin-ink/50">Last opened</td>
+                <td
+                  className="py-3 text-right font-medium text-admin-ink"
+                  title={linkLastOpenedAt ? new Date(linkLastOpenedAt).toLocaleString() : undefined}
+                >
+                  {linkLastOpenedAt ? relativeTime(linkLastOpenedAt) : '—'}
                 </td>
               </tr>
               <tr className="border-t border-admin-sand/20">

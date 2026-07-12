@@ -89,11 +89,13 @@ async function getInviteData(slug: string, isPreview = false) {
     // Track invite link open — skipped for admin preview requests so they don't
     // inflate the household's view count.
     if (!isPreview) {
+      const now = new Date().toISOString();
       supabaseServer
         .from('households')
         .update({
           link_open_count: (household.link_open_count || 0) + 1,
-          link_first_opened_at: household.link_first_opened_at || new Date().toISOString(),
+          link_first_opened_at: household.link_first_opened_at || now,
+          link_last_opened_at: now,
         })
         .eq('id', household.id)
         .then(({ error }) => {
