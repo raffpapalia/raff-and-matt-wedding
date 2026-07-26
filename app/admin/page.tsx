@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { supabase, getSettings } from '@/lib/supabase';
+import { supabase, supabaseServer, getSettings } from '@/lib/supabase';
 import { isAdminAuthenticated } from '@/lib/adminAuth';
 
 const phaseLabels: Record<string, string> = {
@@ -150,12 +150,22 @@ function formatDietaryLabel(key: string): string {
 }
 
 async function getDashboardData() {
-  const [householdsRes, guestsRes, phaseRes, dietaryRes, tagsRes] = await Promise.all([
+  const [householdsRes, guestsRes, phaseRes, dietaryRes, tagsRes, unsubscribesRes] = await Promise.all([
     supabase.from('households').select('id,slug').order('created_at', { ascending: false }),
     supabase.from('guests').select('household_id, rsvp_status'),
     supabase.from('phases').select('current_phase').order('created_at', { ascending: false }).limit(1),
     supabase.from('guests').select('dietary_requirement').eq('rsvp_status', 'attending').neq('dietary_requirement', 'none'),
     supabase.from('guest_tags').select('household_id, tag'),
+    // RLS on communications requires an authenticated Supabase role, which this
+    // app's custom admin-cookie auth never establishes — same reason every other
+    // read of this table in the codebase goes through supabaseServer.
+    supabaseServer
+      .from('communications')
+      .select('id, guest_id, household_id, sent_at')
+      .eq('type', 'email')
+      .eq('status', 'unsubscribed')
+      .order('sent_at', { ascending: false })
+      .limit(10),
   ]);
 
   const households = householdsRes.data ?? [];
@@ -232,7 +242,32 @@ async function getDashboardData() {
   }
 
   const firstSlug = (households[0] as { slug?: string } | undefined)?.slug ?? '';
-  return { totalHouseholds, totalGuests: guestRecords.length, ...counts, activePhase, dietaryBreakdown, tagBreakdown, untagged, firstSlug };
+
+  const unsubscribeRows = unsubscribesRes.data ?? [];
+  let recentUnsubscribes: { guestName: string; householdName: string; householdId: string; sentAt: string }[] = [];
+  if (unsubscribeRows.length > 0) {
+    const guestIds = Array.from(new Set(unsubscribeRows.map((r) => r.guest_id).filter(Boolean))) as string[];
+    const householdIds = Array.from(new Set(unsubscribeRows.map((r) => r.household_id).filter(Boolean))) as string[];
+    const [guestNamesRes, householdNamesRes] = await Promise.all([
+      guestIds.length > 0
+        ? supabase.from('guests').select('id, first_name, last_name').in('id', guestIds)
+        : Promise.resolve({ data: [] }),
+      householdIds.length > 0
+        ? supabase.from('households').select('id, name').in('id', householdIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+    const guestNameById = new Map((guestNamesRes.data ?? []).map((g) => [g.id as string, `${g.first_name} ${g.last_name ?? ''}`.trim()]));
+    const householdNameById = new Map((householdNamesRes.data ?? []).map((h) => [h.id as string, h.name as string]));
+
+    recentUnsubscribes = unsubscribeRows.map((row) => ({
+      guestName: guestNameById.get(row.guest_id as string) ?? 'Removed guest',
+      householdName: householdNameById.get(row.household_id as string) ?? 'Unknown household',
+      householdId: row.household_id as string,
+      sentAt: row.sent_at as string,
+    }));
+  }
+
+  return { totalHouseholds, totalGuests: guestRecords.length, ...counts, activePhase, dietaryBreakdown, tagBreakdown, untagged, firstSlug, recentUnsubscribes };
 }
 
 function LoginForm({ error }: { error?: string }) {
@@ -357,6 +392,31 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
                 </p>
               </Link>
             )}
+          </div>
+        </div>
+      )}
+
+      {dashboard.recentUnsubscribes.length > 0 && (
+        <div className="rounded-3xl border border-admin-sand/20 bg-white p-6 sm:p-8">
+          <p className="text-sm uppercase tracking-[0.3em] text-admin-green">Unsubscribed from email</p>
+          <p className="mt-1 mb-5 text-sm text-admin-ink/60">
+            These guests opted out of email updates — SMS and their invite link are unaffected.
+          </p>
+          <div className="space-y-2">
+            {dashboard.recentUnsubscribes.map((u, i) => (
+              <Link
+                key={i}
+                href={`/admin/guests/${u.householdId}/edit`}
+                className="flex items-center justify-between rounded-2xl border border-admin-sand/30 bg-admin-bone/40 px-5 py-3 transition hover:border-admin-green/40 hover:bg-admin-bone/70"
+              >
+                <span className="text-sm font-medium text-admin-ink">
+                  {u.guestName} <span className="text-admin-ink/50">· {u.householdName}</span>
+                </span>
+                <span className="text-xs text-admin-ink/50">
+                  {new Date(u.sentAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
       )}

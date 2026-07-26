@@ -35,6 +35,7 @@ export interface EmailWrapperProps {
   bodyBlocks: BodyBlock[];
   inviteLink: string;
   ctaLabel?: string;
+  unsubscribeUrl?: string;
 }
 
 // v4 "Admit Two" palette — kept in sync with --green-deep/--persimmon/--ink/--bone/--violet
@@ -49,6 +50,10 @@ const violet = '#8E7CC3';
 // Muted tint derived from the palette above for secondary text — kept as
 // solid hex (no rgba) so colour holds up in Outlook's Word rendering engine.
 const inkMuted = '#6B7268';
+
+// Muted tint of bone for text on the dark footer band — same "solid hex, no
+// rgba" reasoning as inkMuted above, just re-derived for a dark background.
+const boneMuted = '#7C9184';
 
 const edgeDividerStyle: React.CSSProperties = {
   borderTopStyle: 'solid',
@@ -118,6 +123,7 @@ export default function EmailWrapper({
   bodyBlocks,
   inviteLink,
   ctaLabel = 'See the details',
+  unsubscribeUrl,
 }: EmailWrapperProps) {
   return (
     <Html lang="en">
@@ -229,6 +235,21 @@ export default function EmailWrapper({
                 Raff
               </span>
             </Text>
+            {unsubscribeUrl && (
+              <Text
+                style={{
+                  margin: '20px 0 0',
+                  textAlign: 'center',
+                  fontSize: '10px',
+                  fontFamily: sansFontStack,
+                  color: boneMuted,
+                }}
+              >
+                <a href={unsubscribeUrl} style={{ color: boneMuted, textDecoration: 'underline' }}>
+                  Unsubscribe from email updates
+                </a>
+              </Text>
+            )}
           </Section>
 
           {/* Bottom gold rule */}
@@ -254,4 +275,5 @@ EmailWrapper.PreviewProps = {
     { type: 'cta' },
   ],
   inviteLink: 'https://www.mattandraff.com/invite/sample',
+  unsubscribeUrl: 'https://www.mattandraff.com/api/unsubscribe/sample',
 } satisfies EmailWrapperProps;

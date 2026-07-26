@@ -39,10 +39,10 @@ export type EmailTemplateRow = {
   is_active: boolean;
 };
 
-type GuestForRender = { first_name: string };
+type GuestForRender = { first_name: string; id?: string };
 type HouseholdForRender = { slug: string; name?: string };
 
-export type RenderedEmail = { subject: string; html: string };
+export type RenderedEmail = { subject: string; html: string; text: string };
 
 export async function loadEmailTemplate(key: string): Promise<EmailTemplateRow | null> {
   const { data, error } = await supabaseServer
@@ -110,7 +110,8 @@ async function renderWithWrapper(
   body: string,
   firstName: string,
   householdSlug: string,
-  householdName: string = ''
+  householdName: string = '',
+  guestId?: string
 ): Promise<RenderedEmail> {
   const settings = await getSettings();
   const weddingDate = formatWeddingDate(settings.wedding_date);
@@ -124,20 +125,25 @@ async function renderWithWrapper(
   const resolvedSubject = resolveMergeTags(subject, mergeValues);
   const bodyBlocks = buildBodyBlocks(body, mergeValues);
   const inviteLink = `${EMAIL_LINK_BASE}/invite/${householdSlug}`;
+  const unsubscribeUrl = `${EMAIL_LINK_BASE}/api/unsubscribe/${guestId ?? 'preview'}`;
 
   const Wrapper = getWrapperForTemplate(templateKey);
-  const html = await render(
-    React.createElement(Wrapper, {
-      previewText: resolvedSubject,
-      eyebrow: EYEBROW_LABELS[templateKey as EmailTemplateKey] ?? 'Matt & Raff',
-      weddingDate,
-      venue: settings.venue_name,
-      bodyBlocks,
-      inviteLink,
-    })
-  );
+  const element = React.createElement(Wrapper, {
+    previewText: resolvedSubject,
+    eyebrow: EYEBROW_LABELS[templateKey as EmailTemplateKey] ?? 'Matt & Raff',
+    weddingDate,
+    venue: settings.venue_name,
+    bodyBlocks,
+    inviteLink,
+    unsubscribeUrl,
+  });
 
-  return { subject: resolvedSubject, html };
+  const [html, text] = await Promise.all([
+    render(element),
+    render(element, { plainText: true }),
+  ]);
+
+  return { subject: resolvedSubject, html, text };
 }
 
 export async function renderEmailTemplate(
@@ -150,7 +156,7 @@ export async function renderEmailTemplate(
     throw new Error(`No active template found for key: ${templateKey}`);
   }
 
-  return renderWithWrapper(templateKey, template.subject, template.body, guest.first_name, household.slug, household.name ?? '');
+  return renderWithWrapper(templateKey, template.subject, template.body, guest.first_name, household.slug, household.name ?? '', guest.id);
 }
 
 // Admin-only preview: renders unsaved subject/body edits through the same wrapper
@@ -174,7 +180,7 @@ export async function renderCustomEmail(
   household: HouseholdForRender,
   baseKey?: EmailTemplateKey
 ): Promise<RenderedEmail> {
-  return renderWithWrapper(baseKey ?? 'custom', subject, body, guest.first_name, household.slug, household.name ?? '');
+  return renderWithWrapper(baseKey ?? 'custom', subject, body, guest.first_name, household.slug, household.name ?? '', guest.id);
 }
 
 // Live preview counterpart to renderCustomEmail, against sample guest data.

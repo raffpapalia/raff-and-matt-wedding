@@ -51,6 +51,7 @@ export async function POST(request: Request) {
       to: to.trim(),
       subject: rendered.subject,
       html: rendered.html,
+      text: rendered.text,
     });
 
     if (error) {

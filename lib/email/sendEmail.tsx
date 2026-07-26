@@ -7,6 +7,10 @@ export type CustomEmailContent = { subject: string; body: string; baseKey?: Emai
 
 export const FROM_EMAIL = 'ten7twenty7@mattandraff.com';
 
+// Duplicated from renderTemplate.tsx rather than imported, same reasoning as that
+// file's own note: avoids a circular import between the two.
+const EMAIL_LINK_BASE = process.env.EMAIL_LINK_BASE ?? 'https://www.mattandraff.com';
+
 export type EmailTemplate = EmailTemplateKey;
 
 export type SendSummary = {
@@ -53,7 +57,7 @@ export async function sendGuestEmail(
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const templateKey = template ?? PHASE_TEMPLATE_MAP[phase];
 
-  let rendered: { subject: string; html: string };
+  let rendered: { subject: string; html: string; text: string };
   try {
     rendered = custom
       ? await renderCustomEmail(custom.subject, custom.body, guest, household, custom.baseKey)
@@ -78,11 +82,21 @@ export async function sendGuestEmail(
 
   const resend = new Resend(process.env.RESEND_API_KEY);
 
+  // RFC 8058 one-click unsubscribe: Gmail/Yahoo/Outlook surface an "Unsubscribe"
+  // link next to the sender using these two headers, and POST the URL directly
+  // with no visible confirmation step — the endpoint must act on POST alone.
+  const unsubscribeUrl = `${EMAIL_LINK_BASE}/api/unsubscribe/${guest.id}`;
+
   const { data: sendData, error: sendError } = await resend.emails.send({
     from: FROM_EMAIL,
     to: guest.email,
     subject: rendered.subject,
     html: rendered.html,
+    text: rendered.text,
+    headers: {
+      'List-Unsubscribe': `<${unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   });
 
   await supabaseServer.from('communications').insert({
