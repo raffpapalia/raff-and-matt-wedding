@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { supabase, supabaseServer, getSettings } from '@/lib/supabase';
 import { isAdminAuthenticated } from '@/lib/adminAuth';
+import EnablePushButton from './components/EnablePushButton';
 
 const phaseLabels: Record<string, string> = {
   save_the_date: 'Save the Date',
@@ -320,6 +321,7 @@ export default async function AdminPage({ searchParams }: { searchParams?: Promi
   return (
     <div className="space-y-6 lg:space-y-8">
       <DashboardHeader daysUntil={daysUntil} weddingDateLabel={weddingDateLabel} />
+      <EnablePushButton />
 
       {/* Headline stats — RSVP status detail deliberately lives only in the
           progress bar below, so nothing here repeats it. */}

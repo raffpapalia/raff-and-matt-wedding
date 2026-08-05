@@ -251,6 +251,70 @@ export async function sendSingleGuestSms(
   return { success: false, error: outcome.reason ?? 'Failed to send SMS' };
 }
 
+// A conversational reply from the Inbox, not a campaign send — unlike
+// sendGuestSms/sendSingleGuestSms, this never resolves merge tags or appends
+// the household's invite short link. "Yes we'll be there!" should stay exactly that.
+export async function sendGuestSmsReply(guestId: string, body: string): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  const { data: guest, error: guestError } = await supabaseServer
+    .from('guests')
+    .select('id, first_name, mobile, household_id')
+    .eq('id', guestId)
+    .single();
+
+  if (guestError || !guest) {
+    return { success: false, error: 'Guest not found' };
+  }
+
+  const normalized = normalizeAuMobile(guest.mobile as string | null);
+  if (!normalized.ok) {
+    return { success: false, error: normalized.reason };
+  }
+
+  try {
+    const message = await twilioClient.messages.create({
+      from: TWILIO_FROM_NUMBER,
+      to: normalized.e164,
+      body,
+    });
+
+    await supabaseServer.from('communications').insert({
+      household_id: guest.household_id,
+      guest_id: guest.id,
+      type: 'sms',
+      direction: 'outbound',
+      message: body,
+      recipient_number: normalized.e164,
+      status: 'sent',
+      provider_message_id: message.sid,
+      error_message: null,
+      sent_at: new Date().toISOString(),
+      phase: null,
+      is_custom: true,
+    });
+
+    return { success: true, messageId: message.sid };
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : 'Twilio send failed';
+
+    await supabaseServer.from('communications').insert({
+      household_id: guest.household_id,
+      guest_id: guest.id,
+      type: 'sms',
+      direction: 'outbound',
+      message: body,
+      recipient_number: normalized.e164,
+      status: 'failed',
+      provider_message_id: null,
+      error_message: reason,
+      sent_at: new Date().toISOString(),
+      phase: null,
+      is_custom: true,
+    });
+
+    return { success: false, error: reason };
+  }
+}
+
 export async function getGuestsTextedForPhase(householdId: string, phase: PhaseName): Promise<string[]> {
   const { data, error } = await supabaseServer
     .from('communications')

@@ -1,0 +1,12 @@
+{
+  "name": "Matt & Raff Wedding Admin",
+  "short_name": "Wedding Admin",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "background_color": "#F6EEDD",
+  "theme_color": "#0B2118",
+  "icons": [
+    { "src": "/icon.png", "sizes": "64x64", "type": "image/png" }
+  ]
+}

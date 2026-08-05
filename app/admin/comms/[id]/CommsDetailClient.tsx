@@ -597,10 +597,11 @@ export default function CommsDetailClient({
                     ? `${recipient.first_name} ${recipient.last_name}`
                     : 'Guest no longer on file'
                   : 'Whole household (sent before per-guest tracking)';
+                const inbound = comm.direction === 'inbound';
                 return (
                 <div key={comm.id} className="rounded-2xl border border-admin-sand/20 bg-admin-bone/40 p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span
                         className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] ${
                           comm.type === 'sms' ? 'bg-admin-violet/25 text-admin-ink/80' : 'bg-admin-sand/25 text-admin-ink/80'
@@ -608,10 +609,39 @@ export default function CommsDetailClient({
                       >
                         {comm.type.toUpperCase()}
                       </span>
-                      {comm.is_custom && (
+                      {inbound && (
+                        <span className="inline-flex rounded-full bg-admin-persimmon/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-admin-persimmon">
+                          Received
+                        </span>
+                      )}
+                      {comm.is_custom && !inbound && (
                         <span className="inline-flex rounded-full bg-admin-green/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-admin-green">
                           Custom
                         </span>
+                      )}
+                      {comm.type === 'email' && !inbound && (
+                        <>
+                          {comm.delivered_at && (
+                            <span className="inline-flex rounded-full bg-admin-green/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-admin-green">
+                              Delivered
+                            </span>
+                          )}
+                          {comm.opened_at && (
+                            <span className="inline-flex rounded-full bg-admin-green/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-admin-green">
+                              Opened{comm.open_count > 1 ? ` ×${comm.open_count}` : ''}
+                            </span>
+                          )}
+                          {comm.bounced_at && (
+                            <span className="inline-flex rounded-full bg-admin-persimmon/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-admin-persimmon">
+                              Bounced
+                            </span>
+                          )}
+                          {comm.complained_at && (
+                            <span className="inline-flex rounded-full bg-admin-persimmon/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-admin-persimmon">
+                              Complained
+                            </span>
+                          )}
+                        </>
                       )}
                     </div>
                     <span
@@ -631,31 +661,32 @@ export default function CommsDetailClient({
                       comm.guest_id && recipient ? 'text-admin-ink' : 'text-admin-warning'
                     }`}
                   >
-                    To: {recipientLabel}
+                    {inbound ? 'From' : 'To'}: {recipientLabel}
                   </p>
                   <p className="mt-1 text-xs text-admin-ink/60" title={new Date(comm.sent_at).toLocaleString()}>
                     {relativeTime(comm.sent_at)} · {new Date(comm.sent_at).toLocaleTimeString()}
                   </p>
                   <p className="mt-2 line-clamp-3 text-sm text-admin-ink/70">{comm.message}</p>
-                  {comm.guest_id ? (
-                    <button
-                      type="button"
-                      onClick={() => resendComm(comm)}
-                      disabled={resendingId === comm.id}
-                      className="mt-3 min-h-[44px] rounded-xl border border-admin-sand/40 bg-white px-3 py-1 text-xs font-medium text-admin-ink/70 transition hover:border-admin-green/40 hover:text-admin-green disabled:opacity-50"
-                    >
-                      {resendingId === comm.id ? 'Resending…' : 'Resend'}
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled
-                      title="Original recipient unknown — cannot resend"
-                      className="mt-3 min-h-[44px] rounded-xl border border-admin-sand/40 bg-white px-3 py-1 text-xs font-medium text-admin-ink/70 opacity-50 cursor-not-allowed"
-                    >
-                      Resend
-                    </button>
-                  )}
+                  {!inbound &&
+                    (comm.guest_id ? (
+                      <button
+                        type="button"
+                        onClick={() => resendComm(comm)}
+                        disabled={resendingId === comm.id}
+                        className="mt-3 min-h-[44px] rounded-xl border border-admin-sand/40 bg-white px-3 py-1 text-xs font-medium text-admin-ink/70 transition hover:border-admin-green/40 hover:text-admin-green disabled:opacity-50"
+                      >
+                        {resendingId === comm.id ? 'Resending…' : 'Resend'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        title="Original recipient unknown — cannot resend"
+                        className="mt-3 min-h-[44px] rounded-xl border border-admin-sand/40 bg-white px-3 py-1 text-xs font-medium text-admin-ink/70 opacity-50 cursor-not-allowed"
+                      >
+                        Resend
+                      </button>
+                    ))}
                 </div>
                 );
               })}

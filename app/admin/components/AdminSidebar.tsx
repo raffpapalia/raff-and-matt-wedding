@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   CalendarClock,
   ClipboardList,
+  Inbox,
   LayoutDashboard,
   LogOut,
   MoreHorizontal,
@@ -39,6 +40,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/guests', label: 'Guests', icon: Users },
   { href: '/admin/comms', label: 'Comms', icon: Send },
+  { href: '/admin/comms/inbox', label: 'Inbox', icon: Inbox },
   { href: '/admin/responses', label: 'Responses', icon: ClipboardList },
   { href: '/admin/budget', label: 'Budget', icon: Wallet },
   { href: '/admin/runsheet', label: 'Run sheet', icon: CalendarClock },
@@ -53,12 +55,23 @@ const NAV_ITEMS: NavItem[] = [
 function isActive(pathname: string, item: NavItem): boolean {
   if (item.exact) return pathname === item.href;
   const prefixes = [item.href, ...(item.alsoMatches ?? [])];
-  return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const matches = prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  if (!matches) return false;
+  // Inbox (/admin/comms/inbox) nests under Comms' own href prefix (/admin/comms) —
+  // when a more specific item's href also matches, only that one should light up.
+  const moreSpecificMatch = NAV_ITEMS.some(
+    (other) =>
+      other !== item &&
+      other.href.length > item.href.length &&
+      (pathname === other.href || pathname.startsWith(`${other.href}/`))
+  );
+  return !moreSpecificMatch;
 }
 
 // Bottom tab bar fits five tabs comfortably; the rest live in the "More" sheet.
-const MOBILE_PRIMARY = NAV_ITEMS.filter((i) => i.label !== 'Responses' && i.label !== 'Setup');
-const MOBILE_MORE = NAV_ITEMS.filter((i) => i.label === 'Responses' || i.label === 'Setup');
+const MOBILE_MORE_LABELS = ['Responses', 'Inbox', 'Setup'];
+const MOBILE_PRIMARY = NAV_ITEMS.filter((i) => !MOBILE_MORE_LABELS.includes(i.label));
+const MOBILE_MORE = NAV_ITEMS.filter((i) => MOBILE_MORE_LABELS.includes(i.label));
 
 // Fixed-size dot that lights up on the tapped link while its navigation is
 // pending — instant feedback before the route-level skeleton takes over.

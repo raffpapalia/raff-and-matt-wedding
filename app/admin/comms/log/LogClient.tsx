@@ -2,7 +2,7 @@
 
 import { Fragment, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import type { LogRow } from './page';
+import type { LogRow, EmailStats } from './page';
 
 type Filters = { channel: string; status: string; from: string; to: string };
 
@@ -16,6 +16,15 @@ function substitutePreviewTags(message: string, householdName: string, weddingDa
     .replace(/\{\{venue\}\}/g, venueName);
 }
 
+function StatTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-admin-sand/20 bg-admin-bone/40 px-4 py-3">
+      <p className="text-[10px] uppercase tracking-[0.25em] text-admin-ink/50">{label}</p>
+      <p className="mt-1 text-xl font-semibold text-admin-ink">{value}</p>
+    </div>
+  );
+}
+
 export default function LogClient({
   rows,
   page,
@@ -24,6 +33,7 @@ export default function LogClient({
   filters: initialFilters,
   weddingDate,
   venueName,
+  emailStats,
 }: {
   rows: LogRow[];
   page: number;
@@ -32,6 +42,7 @@ export default function LogClient({
   filters: Filters;
   weddingDate: string;
   venueName: string;
+  emailStats: EmailStats;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -63,8 +74,22 @@ export default function LogClient({
 
   const hasFilters = filters.channel || filters.status || filters.from || filters.to;
 
+  const deliveredPct = emailStats.total > 0 ? Math.round((emailStats.delivered / emailStats.total) * 100) : 0;
+  const openedPct = emailStats.total > 0 ? Math.round((emailStats.opened / emailStats.total) * 100) : 0;
+  const bouncedPct = emailStats.total > 0 ? Math.round((emailStats.bounced / emailStats.total) * 100) : 0;
+
   return (
     <div className="space-y-6 rounded-[2rem] border border-admin-sand/20 bg-white p-6">
+      {/* Email engagement stats (matches current filters) */}
+      {emailStats.total > 0 && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatTile label="Emails sent" value={`${emailStats.total}`} />
+          <StatTile label="Delivered" value={`${deliveredPct}%`} />
+          <StatTile label="Opened" value={`${openedPct}%`} />
+          <StatTile label="Bounced" value={`${bouncedPct}%`} />
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-4">
         <div>
@@ -89,6 +114,9 @@ export default function LogClient({
             <option value="">All statuses</option>
             <option value="sent">Sent</option>
             <option value="failed">Failed</option>
+            <option value="received">Received (SMS reply)</option>
+            <option value="bounced">Bounced</option>
+            <option value="complained">Complained</option>
           </select>
         </div>
         <div>
@@ -160,17 +188,24 @@ export default function LogClient({
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] ${
-                            row.status === 'sent'
-                              ? 'bg-admin-green/10 text-admin-green'
-                              : row.status === 'failed'
-                              ? 'bg-admin-persimmon/10 text-admin-persimmon'
-                              : 'bg-admin-ink/5 text-admin-ink/40'
-                          }`}
-                        >
-                          {row.status}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.22em] ${
+                              row.status === 'sent'
+                                ? 'bg-admin-green/10 text-admin-green'
+                                : row.status === 'failed' || row.status === 'bounced' || row.status === 'complained'
+                                ? 'bg-admin-persimmon/10 text-admin-persimmon'
+                                : 'bg-admin-ink/5 text-admin-ink/40'
+                            }`}
+                          >
+                            {row.status}
+                          </span>
+                          {row.channel === 'email' && row.openedAt && (
+                            <span className="inline-flex rounded-full bg-admin-green/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.2em] text-admin-green">
+                              Opened
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="hidden max-w-xs px-4 py-3 md:table-cell">
                         <p className="truncate text-admin-ink/70">{resolvedPreview}</p>

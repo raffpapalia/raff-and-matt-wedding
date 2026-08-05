@@ -24,6 +24,16 @@ export type LogRow = {
   sentAt: string;
   recipientEmail: string | null;
   recipientNumber: string | null;
+  deliveredAt: string | null;
+  openedAt: string | null;
+  bouncedAt: string | null;
+};
+
+export type EmailStats = {
+  total: number;
+  delivered: number;
+  opened: number;
+  bounced: number;
 };
 
 const PAGE_SIZE = 50;
@@ -45,18 +55,32 @@ export default async function CommsLogPage({
   let query = supabaseServer
     .from('communications')
     .select(
-      'id, household_id, type, message, sent_at, status, recipient_email, recipient_number, households(name)',
+      'id, household_id, type, message, sent_at, status, recipient_email, recipient_number, delivered_at, opened_at, bounced_at, households(name)',
       { count: 'exact' },
     )
     .order('sent_at', { ascending: false })
     .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 
+  // Stats strip covers every outbound email matching the current filter, not just
+  // the current page — a separate lighter query with the same predicates.
+  let statsQuery = supabaseServer
+    .from('communications')
+    .select('delivered_at, opened_at, bounced_at')
+    .eq('direction', 'outbound')
+    .eq('type', 'email');
+
   if (channel) query = query.eq('type', channel);
   if (status) query = query.eq('status', status);
-  if (from) query = query.gte('sent_at', from);
-  if (to) query = query.lte('sent_at', to + 'T23:59:59Z');
+  if (from) {
+    query = query.gte('sent_at', from);
+    statsQuery = statsQuery.gte('sent_at', from);
+  }
+  if (to) {
+    query = query.lte('sent_at', to + 'T23:59:59Z');
+    statsQuery = statsQuery.lte('sent_at', to + 'T23:59:59Z');
+  }
 
-  const [{ data, count }, settings] = await Promise.all([query, getSettings()]);
+  const [{ data, count }, { data: statsData }, settings] = await Promise.all([query, statsQuery, getSettings()]);
 
   const rows: LogRow[] = (data ?? []).map((r: any) => ({
     id: r.id,
@@ -68,7 +92,20 @@ export default async function CommsLogPage({
     sentAt: r.sent_at,
     recipientEmail: r.recipient_email ?? null,
     recipientNumber: r.recipient_number ?? null,
+    deliveredAt: r.delivered_at ?? null,
+    openedAt: r.opened_at ?? null,
+    bouncedAt: r.bounced_at ?? null,
   }));
+
+  const emailStats: EmailStats = (statsData ?? []).reduce(
+    (acc, r) => ({
+      total: acc.total + 1,
+      delivered: acc.delivered + (r.delivered_at ? 1 : 0),
+      opened: acc.opened + (r.opened_at ? 1 : 0),
+      bounced: acc.bounced + (r.bounced_at ? 1 : 0),
+    }),
+    { total: 0, delivered: 0, opened: 0, bounced: 0 }
+  );
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
@@ -106,6 +143,7 @@ export default async function CommsLogPage({
         filters={{ channel, status, from, to }}
         weddingDate={formatWeddingDate(settings.wedding_date)}
         venueName={settings.venue_name}
+        emailStats={emailStats}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { Metadata, Viewport } from 'next';
 import { Geist_Mono, Bebas_Neue } from 'next/font/google';
 import { isAdminAuthenticated } from '@/lib/adminAuth';
 import AdminSidebarShell from './components/AdminSidebar';
@@ -15,8 +16,19 @@ const bebasNeue = Bebas_Neue({
   display: 'swap',
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Wedding Admin',
+  manifest: '/manifest.json',
+  icons: { apple: '/icon.png' },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Wedding Admin',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0B2118',
 };
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {

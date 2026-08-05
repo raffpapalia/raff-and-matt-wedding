@@ -54,7 +54,7 @@ function SummaryCard({ label, value, sub }: { label: string; value: string; sub?
 export default async function CommsPage() {
   await requireAdminAuth();
 
-  const [householdsRes, tagsRes, guestsRes, commsRes, phaseRes, templatesRes, smsTemplatesRes] = await Promise.all([
+  const [householdsRes, tagsRes, guestsRes, commsRes, unreadRes, emailEngagementRes, phaseRes, templatesRes, smsTemplatesRes] = await Promise.all([
     supabase.from('households').select('id,name,slug,link_first_opened_at').order('created_at', { ascending: false }),
     supabase.from('guest_tags').select('household_id,tag'),
     supabase
@@ -64,6 +64,12 @@ export default async function CommsPage() {
       .from('communications')
       .select('household_id,type,status,sent_at')
       .order('sent_at', { ascending: false }),
+    supabaseServer
+      .from('communications')
+      .select('id', { count: 'exact', head: true })
+      .eq('direction', 'inbound')
+      .is('read_at', null),
+    supabaseServer.from('communications').select('opened_at').eq('type', 'email').eq('direction', 'outbound'),
     getCurrentPhase(),
     supabaseServer
       .from('email_templates')
@@ -79,6 +85,12 @@ export default async function CommsPage() {
   const tags = tagsRes.data ?? [];
   const guests = guestsRes.data ?? [];
   const comms = commsRes.data ?? [];
+  const unreadReplies = unreadRes.count ?? 0;
+  const emailEngagement = emailEngagementRes.data ?? [];
+  const openRatePct =
+    emailEngagement.length > 0
+      ? Math.round((emailEngagement.filter((r) => r.opened_at).length / emailEngagement.length) * 100)
+      : null;
   const emailTemplates = (templatesRes.data ?? []) as EmailTemplateRow[];
   const smsTemplates = (smsTemplatesRes.data ?? []) as SmsTemplateRow[];
 
@@ -156,6 +168,12 @@ export default async function CommsPage() {
               Templates
             </a>
             <a
+              href="/admin/comms/inbox"
+              className="rounded-full border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green"
+            >
+              Inbox{unreadReplies > 0 ? ` (${unreadReplies})` : ''}
+            </a>
+            <a
               href="/admin/comms/log"
               className="rounded-full border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green"
             >
@@ -188,7 +206,7 @@ export default async function CommsPage() {
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-6">
         <SummaryCard label="Total households" value={`${households.length}`} />
         <SummaryCard label="SMS-ready guests" value={`${smsReadyTotal}`} />
         <SummaryCard label="Email-ready guests" value={`${emailReadyTotal}`} />
@@ -197,6 +215,12 @@ export default async function CommsPage() {
           value={`${sentToday}`}
           sub={totalFailed > 0 ? `${totalFailed} failed overall` : undefined}
         />
+        <SummaryCard
+          label="Unread replies"
+          value={`${unreadReplies}`}
+          sub={unreadReplies > 0 ? 'Check the Inbox' : undefined}
+        />
+        <SummaryCard label="Email open rate" value={openRatePct === null ? '—' : `${openRatePct}%`} />
       </div>
 
       <CommsClient
