@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { InboxRow } from './page';
+import { syncAppBadge } from '../../components/BadgeSync';
 
 function relativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -145,7 +146,14 @@ export default function InboxClient({ rows }: { rows: InboxRow[] }) {
       ) : (
         <div className="space-y-3">
           {rows.map((row) => (
-            <InboxRowCard key={row.id} row={row} onChanged={() => router.refresh()} />
+            <InboxRowCard
+              key={row.id}
+              row={row}
+              onChanged={() => {
+                router.refresh();
+                syncAppBadge();
+              }}
+            />
           ))}
         </div>
       )}

@@ -17,6 +17,7 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
+import BadgeSync from './BadgeSync';
 
 const STORAGE_KEY = 'admin-sidebar-collapsed';
 const EXPANDED_W = 'w-[220px]';
@@ -121,6 +122,7 @@ export default function AdminSidebarShell({ children }: { children: ReactNode })
 
   return (
     <div className="min-h-screen">
+      <BadgeSync />
       <aside
         className={`fixed inset-y-0 left-0 z-40 hidden flex-col bg-admin-ink transition-[width] duration-200 lg:flex ${
           collapsed ? COLLAPSED_W : EXPANDED_W

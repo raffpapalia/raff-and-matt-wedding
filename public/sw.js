@@ -2,6 +2,25 @@
 // notifications (iOS 16.4+ only delivers push to a registered SW inside an
 // installed PWA, never to a plain browser tab).
 
+// Refreshes the home-screen icon badge from the real unread count (rather than
+// incrementing a counter in the service worker, which would drift the moment
+// the admin reads something from a different device or the SW restarts).
+async function syncBadge() {
+  if (!self.navigator || !self.navigator.setAppBadge) return;
+  try {
+    const res = await fetch('/admin/api/push/unread-count');
+    if (!res.ok) return;
+    const { count } = await res.json();
+    if (count > 0) {
+      await self.navigator.setAppBadge(count);
+    } else {
+      await self.navigator.clearAppBadge();
+    }
+  } catch {
+    // best-effort — a stale badge is better than a crashed push handler
+  }
+}
+
 self.addEventListener('push', (event) => {
   let payload = { title: 'Wedding admin', body: '' };
   try {
@@ -11,11 +30,14 @@ self.addEventListener('push', (event) => {
   }
 
   event.waitUntil(
-    self.registration.showNotification(payload.title, {
-      body: payload.body,
-      icon: '/icon.png',
-      data: { url: payload.url || '/admin' },
-    })
+    Promise.all([
+      self.registration.showNotification(payload.title, {
+        body: payload.body,
+        icon: '/icon.png',
+        data: { url: payload.url || '/admin' },
+      }),
+      syncBadge(),
+    ])
   );
 });
 
