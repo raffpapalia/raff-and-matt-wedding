@@ -18,7 +18,84 @@ function relativeTime(dateStr: string): string {
   return `${months} month${months !== 1 ? 's' : ''} ago`;
 }
 
-function InboxRowCard({ row, onChanged }: { row: InboxRow; onChanged: () => void }) {
+function DeleteConfirmModal({
+  row,
+  onCancel,
+  onDeleted,
+}: {
+  row: InboxRow;
+  onCancel: () => void;
+  onDeleted: () => void;
+}) {
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const label = row.guestName ?? (row.householdName ? `${row.householdName} (unmatched)` : 'this unknown number');
+
+  async function handleConfirm() {
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/admin/api/sms-inbox/${row.id}`, { method: 'DELETE' });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json?.error) {
+        setError(json?.error ?? 'Failed to delete message');
+        setDeleting(false);
+        return;
+      }
+      onDeleted();
+    } catch {
+      setError('Network error');
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      onClick={() => !deleting && onCancel()}
+    >
+      <div
+        className="w-full max-w-md rounded-3xl border border-white/10 bg-admin-ink p-6 shadow-2xl shadow-black/50 sm:p-8"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <h3 className="font-cinzel text-xl font-semibold text-admin-bone">Delete message from {label}?</h3>
+        <p className="mt-3 text-sm leading-relaxed text-admin-bone/70">This cannot be undone.</p>
+        {error ? (
+          <div className="mt-4 rounded-2xl bg-admin-persimmon/10 px-4 py-3 text-sm text-admin-persimmon">{error}</div>
+        ) : null}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={deleting}
+            className="rounded-full bg-admin-persimmon px-5 py-3 text-sm font-semibold text-admin-ink transition hover:bg-admin-persimmon/90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {deleting ? 'Deleting…' : 'Delete'}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={deleting}
+            className="rounded-full border border-admin-bone/20 px-5 py-3 text-sm text-admin-bone/85 transition hover:border-admin-bone/40 hover:text-admin-bone disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InboxRowCard({
+  row,
+  onChanged,
+  onRequestDelete,
+}: {
+  row: InboxRow;
+  onChanged: () => void;
+  onRequestDelete: (row: InboxRow) => void;
+}) {
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [marking, setMarking] = useState(false);
@@ -95,16 +172,25 @@ function InboxRowCard({ row, onChanged }: { row: InboxRow; onChanged: () => void
             {row.recipientNumber ?? 'Unknown number'} · {relativeTime(row.sentAt)}
           </p>
         </div>
-        {unread && (
+        <div className="flex shrink-0 gap-2">
+          {unread && (
+            <button
+              type="button"
+              onClick={markRead}
+              disabled={marking}
+              className="min-h-[36px] rounded-xl border border-admin-sand/40 bg-white px-3 py-1 text-xs font-medium text-admin-ink/70 transition hover:border-admin-green/40 hover:text-admin-green disabled:opacity-50"
+            >
+              {marking ? '…' : 'Mark read'}
+            </button>
+          )}
           <button
             type="button"
-            onClick={markRead}
-            disabled={marking}
-            className="min-h-[36px] rounded-xl border border-admin-sand/40 bg-white px-3 py-1 text-xs font-medium text-admin-ink/70 transition hover:border-admin-green/40 hover:text-admin-green disabled:opacity-50"
+            onClick={() => onRequestDelete(row)}
+            className="min-h-[36px] rounded-xl border border-admin-sand/40 bg-white px-3 py-1 text-xs font-medium text-admin-ink/50 transition hover:border-admin-persimmon/40 hover:text-admin-persimmon"
           >
-            {marking ? '…' : 'Mark read'}
+            Delete
           </button>
-        )}
+        </div>
       </div>
 
       <p className="mt-3 whitespace-pre-wrap text-sm text-admin-ink">{row.message}</p>
@@ -138,6 +224,12 @@ function InboxRowCard({ row, onChanged }: { row: InboxRow; onChanged: () => void
 
 export default function InboxClient({ rows }: { rows: InboxRow[] }) {
   const router = useRouter();
+  const [deleteTarget, setDeleteTarget] = useState<InboxRow | null>(null);
+
+  function handleChanged() {
+    router.refresh();
+    syncAppBadge();
+  }
 
   return (
     <div className="rounded-3xl border border-admin-sand/20 bg-white p-8">
@@ -146,16 +238,20 @@ export default function InboxClient({ rows }: { rows: InboxRow[] }) {
       ) : (
         <div className="space-y-3">
           {rows.map((row) => (
-            <InboxRowCard
-              key={row.id}
-              row={row}
-              onChanged={() => {
-                router.refresh();
-                syncAppBadge();
-              }}
-            />
+            <InboxRowCard key={row.id} row={row} onChanged={handleChanged} onRequestDelete={setDeleteTarget} />
           ))}
         </div>
+      )}
+
+      {deleteTarget && (
+        <DeleteConfirmModal
+          row={deleteTarget}
+          onCancel={() => setDeleteTarget(null)}
+          onDeleted={() => {
+            setDeleteTarget(null);
+            handleChanged();
+          }}
+        />
       )}
     </div>
   );
