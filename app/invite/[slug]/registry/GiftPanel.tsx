@@ -67,18 +67,16 @@ export default function GiftPanel({
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  const trimmedQuery = query.trim();
+
   // Debounced typeahead — the endpoint scans every household per call, so this
   // waits for a pause rather than firing on each keystroke.
   useEffect(() => {
-    const trimmed = query.trim();
-    if (trimmed.length < 2) {
-      setResults([]);
-      return;
-    }
+    if (trimmedQuery.length < 2) return;
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/registry/household-search?q=${encodeURIComponent(trimmed)}`, {
+        const res = await fetch(`/api/registry/household-search?q=${encodeURIComponent(trimmedQuery)}`, {
           signal: controller.signal,
         });
         if (!res.ok) return;
@@ -92,7 +90,12 @@ export default function GiftPanel({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query]);
+  }, [trimmedQuery]);
+
+  // Derived rather than cleared in the effect: below the minimum length there is
+  // nothing to show, and stale matches from a longer query must not linger.
+  const visibleResults =
+    trimmedQuery.length < 2 ? [] : results.filter(r => !tags.some(t => t.ref === r.ref));
 
   const total = selections.reduce((sum, s) => sum + s.amount, 0);
 
@@ -336,17 +339,15 @@ export default function GiftPanel({
             value={query}
             onChange={e => setQuery(e.target.value)}
           />
-          {results.length > 0 && (
+          {visibleResults.length > 0 && (
             <ul className="mr-reg-results">
-              {results
-                .filter(r => !tags.some(t => t.ref === r.ref))
-                .map(r => (
-                  <li key={r.ref}>
-                    <button type="button" onClick={() => addTag(r)}>
-                      {r.name}
-                    </button>
-                  </li>
-                ))}
+              {visibleResults.map(r => (
+                <li key={r.ref}>
+                  <button type="button" onClick={() => addTag(r)}>
+                    {r.name}
+                  </button>
+                </li>
+              ))}
             </ul>
           )}
 

@@ -1,16 +1,7 @@
 import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
-import { stripe } from '@/lib/stripe/client';
+import { getStripe, getWebhookSecret } from '@/lib/stripe/client';
 import { supabaseServer } from '@/lib/supabase';
-
-const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-
-// Fail loudly at import time, matching lib/stripe/client.ts. An unset secret
-// here would otherwise mean every webhook silently 400s as "bad signature" and
-// paid orders quietly never confirm — the worst possible failure mode.
-if (!STRIPE_WEBHOOK_SECRET) {
-  throw new Error('Missing STRIPE_WEBHOOK_SECRET environment variable');
-}
 
 const HANDLED_EVENTS = [
   'checkout.session.completed',
@@ -116,9 +107,15 @@ export async function POST(request: Request) {
     return new NextResponse('Missing signature', { status: 400 });
   }
 
+  // A missing secret throws out of getWebhookSecret and 500s, which is the
+  // honest answer — it's our misconfiguration, not a bad request from Stripe,
+  // and a 500 is what makes Stripe retry once it's fixed. Only a genuine
+  // verification failure returns 400.
+  const webhookSecret = getWebhookSecret();
+
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(payload, signature, STRIPE_WEBHOOK_SECRET as string);
+    event = getStripe().webhooks.constructEvent(payload, signature, webhookSecret);
   } catch (err) {
     console.error('[registry:webhook] signature verification failed', err);
     return new NextResponse('Invalid signature', { status: 400 });

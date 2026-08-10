@@ -1,5 +1,5 @@
 import type Stripe from 'stripe';
-import { stripe } from './client';
+import { getStripe } from './client';
 
 // One line on the guest's checkout page. `name` is carried through from the
 // caller rather than re-queried here: app/api/registry/checkout/route.ts has
@@ -64,7 +64,7 @@ export async function createOrderCheckoutSession(
     },
   }));
 
-  return stripe.checkout.sessions.create({
+  return getStripe().checkout.sessions.create({
     mode: 'payment',
     line_items,
     // Read back by app/api/registry/webhook/route.ts as a cross-check against
