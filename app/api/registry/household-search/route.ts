@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
-import { matchHouseholdName, normHousehold, significantTokens } from '@/lib/nameMatch';
+import { matchHouseholdName, matchesNamePrefix, normHousehold, significantTokens } from '@/lib/nameMatch';
 import { householdRef } from '@/lib/registry/beneficiaryRef';
 
 // Typeahead for "who's this gift from?" — lets a guest attribute a gift to
@@ -38,10 +38,17 @@ export async function GET(request: Request) {
   if (!target) return NextResponse.json({ matches: [] });
   const targetTokens = new Set(significantTokens(target));
 
+  // Prefix matching carries the typeahead while the guest is still typing;
+  // matchHouseholdName then adds the fuzzy/typo-tolerant hits once there's
+  // enough of a name to compare, so a misspelling still finds the household.
   const matches: { id: string; name: string; exact: boolean }[] = [];
   for (const row of data ?? []) {
     const match = matchHouseholdName(row.name, target, targetTokens);
-    if (match) matches.push({ id: row.id, name: row.name, exact: match.exact });
+    if (match) {
+      matches.push({ id: row.id, name: row.name, exact: match.exact });
+    } else if (matchesNamePrefix(row.name, target)) {
+      matches.push({ id: row.id, name: row.name, exact: false });
+    }
   }
 
   matches.sort((a, b) => Number(b.exact) - Number(a.exact) || a.name.localeCompare(b.name));

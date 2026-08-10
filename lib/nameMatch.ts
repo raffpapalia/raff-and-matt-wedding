@@ -66,6 +66,23 @@ export function isCloseMatch(a: string, b: string): boolean {
 }
 
 /**
+ * Word-prefix match, for typeahead rather than duplicate detection.
+ *
+ * matchHouseholdName below compares whole names against whole names, which is
+ * right when checking "is this the same household?" but wrong while someone is
+ * still typing: it needs four characters before `includes` engages, so "Pap"
+ * and "Smi" match nothing. This instead asks whether every word of the query
+ * prefixes some word of the candidate — "pap" finds "Maria Papalia", and
+ * "gab pap" finds "Imma, Gabby & Grace Papalia".
+ */
+export function matchesNamePrefix(candidateName: string, target: string): boolean {
+  const candidateWords = normHousehold(candidateName).split(' ').filter(Boolean);
+  const queryWords = target.split(' ').filter(Boolean);
+  if (queryWords.length === 0 || candidateWords.length === 0) return false;
+  return queryWords.every(q => candidateWords.some(w => w.startsWith(q)));
+}
+
+/**
  * Scores a candidate household name against a target. Returns null for no match.
  * Shared by the admin duplicate check (which surfaces both kinds as warnings)
  * and the registry beneficiary typeahead (which just needs a ranked shortlist).
