@@ -2,6 +2,14 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
+import {
+  isCloseMatch,
+  matchHouseholdName,
+  normHousehold,
+  normMobile,
+  normText,
+  significantTokens,
+} from '@/lib/nameMatch';
 
 // Duplicate detection for the new/edit household forms. The guest list is
 // small (dozens of households), so both checks fetch all rows and match in
@@ -9,6 +17,9 @@ import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
 // punctuation/"&"-vs-"and"/accent-insensitive comparisons, "The X Family"
 // stripping, typo tolerance via edit distance, swapped first/last names, and
 // digit-normalised AU mobile comparison (+61 vs 0, ignoring spacing).
+//
+// The normalisation and matching primitives now live in lib/nameMatch.ts so the
+// guest-facing registry beneficiary picker matches household names identically.
 
 type HouseholdMatch = { id: string; name: string; slug: string; exact: boolean };
 
@@ -20,66 +31,6 @@ type GuestMatch = {
   slug: string;
   matchType: 'name' | 'similar_name' | 'email' | 'mobile';
 };
-
-// ── Normalisation helpers ─────────────────────────────────────────────────────
-
-// Lowercase, strip accents and punctuation, unify "&"/"and", collapse spaces.
-function normText(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/&/g, ' and ')
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-const HOUSEHOLD_STOPWORDS = new Set(['the', 'and', 'family', 'household', 'of']);
-
-// Household names additionally drop framing words: "The Smith Family" → "smith".
-function normHousehold(s: string): string {
-  return normText(s)
-    .split(' ')
-    .filter(t => !HOUSEHOLD_STOPWORDS.has(t))
-    .join(' ');
-}
-
-function significantTokens(normalised: string): string[] {
-  return normalised.split(' ').filter(t => t.length >= 3);
-}
-
-// Mobile numbers compare on digits only, with AU "+61 4xx" folded onto "04xx".
-function normMobile(s: string): string {
-  const digits = s.replace(/\D/g, '');
-  if (digits.length === 11 && digits.startsWith('61')) return `0${digits.slice(2)}`;
-  return digits;
-}
-
-// Classic Levenshtein — inputs here are short names, so O(a·b) is fine.
-function editDistance(a: string, b: string): number {
-  if (a === b) return 0;
-  const prev = new Array<number>(b.length + 1);
-  for (let j = 0; j <= b.length; j++) prev[j] = j;
-  for (let i = 1; i <= a.length; i++) {
-    let diag = prev[0];
-    prev[0] = i;
-    for (let j = 1; j <= b.length; j++) {
-      const tmp = prev[j];
-      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1));
-      diag = tmp;
-    }
-  }
-  return prev[b.length];
-}
-
-// Typo tolerance scaled to length: short strings must match exactly.
-function isCloseMatch(a: string, b: string): boolean {
-  if (!a || !b) return false;
-  const maxLen = Math.max(a.length, b.length);
-  const allowed = maxLen >= 12 ? 2 : maxLen >= 5 ? 1 : 0;
-  return editDistance(a, b) <= allowed;
-}
 
 // ── Route ─────────────────────────────────────────────────────────────────────
 
@@ -109,20 +60,8 @@ export async function GET(request: Request) {
     const matches: HouseholdMatch[] = [];
     for (const row of data ?? []) {
       if (exclude && row.id === exclude) continue;
-      const candidate = normHousehold(row.name);
-      if (!candidate || !target) continue;
-
-      const exact = candidate === target;
-      const similar =
-        !exact &&
-        (isCloseMatch(candidate, target) ||
-          // One name contains the other ("smith" ⊂ "smith and jones").
-          (target.length >= 4 && candidate.includes(target)) ||
-          (candidate.length >= 4 && target.includes(candidate)) ||
-          // Shared significant word — usually the surname.
-          significantTokens(candidate).some(t => targetTokens.has(t)));
-
-      if (exact || similar) matches.push({ id: row.id, name: row.name, slug: row.slug, exact });
+      const match = matchHouseholdName(row.name, target, targetTokens);
+      if (match) matches.push({ id: row.id, name: row.name, slug: row.slug, exact: match.exact });
     }
 
     matches.sort((a, b) => Number(b.exact) - Number(a.exact));

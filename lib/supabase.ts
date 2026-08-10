@@ -208,6 +208,17 @@ export type Settings = {
   section_order: SectionOrderItem[];
   thank_you_attended_message: string;
   thank_you_not_attended_message: string;
+  // ── Gift registry (see migration 021) ──
+  // registry_url above is the *link* shown on the "Good to know" card; these
+  // drive the registry page's own copy and the manual PayID path.
+  registry_enabled: boolean;
+  registry_hero_eyebrow: string;
+  registry_hero_heading: string;
+  registry_hero_body: string;
+  registry_closing_message: string;
+  registry_payid: string;
+  registry_payid_name: string;
+  registry_payid_instructions: string;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -248,6 +259,17 @@ export const DEFAULT_SETTINGS: Settings = {
     'Thank you so much for celebrating with us. Your presence made our day truly special.',
   thank_you_not_attended_message:
     'We missed you on our special day. Thank you for your kind wishes — it meant the world to us.',
+  registry_enabled: false,
+  registry_hero_eyebrow: 'Our registry',
+  registry_hero_heading: 'Give the gift of unforgettable memories',
+  registry_hero_body:
+    "Your presence is the gift — truly. But if you'd like to give something more, we've put together a few things that would mean a lot to us.",
+  registry_closing_message:
+    "Thank you. Your love and support mean the world to us, and we can't wait to celebrate with you.",
+  registry_payid: '',
+  registry_payid_name: '',
+  registry_payid_instructions:
+    'Please include the reference code above so we can match your gift to you.',
 };
 
 // ── Budget tracking (admin-only; tables have no anon RLS policies) ──
@@ -330,6 +352,91 @@ export type RunsheetSettings = {
   share_enabled: boolean;
   updated_at: string;
 };
+
+// ── Gift registry (admin-only tables; guest routes read via supabaseServer) ──
+
+export type RegistryFund = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  suggested_amounts: number[];
+  category: string;
+  image_url: string | null;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RegistryItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  category: string;
+  image_url: string | null;
+  // null = unlimited. Any non-null value is a hard cap the webhook enforces
+  // before incrementing quantity_claimed.
+  quantity_available: number | null;
+  quantity_claimed: number;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RegistryPaymentMethod = 'stripe' | 'payid_manual';
+
+// 'pending'        — Stripe session created, guest hasn't paid (or hasn't finished)
+// 'confirmed'      — Stripe payment succeeded (sync or async)
+// 'manual_pending' — guest chose PayID, transfer not yet seen
+// 'manual_received'— admin ticked "Mark as received"
+// 'expired'        — Stripe async payment failed
+export type RegistryOrderStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'manual_pending'
+  | 'manual_received'
+  | 'expired';
+
+export type RegistryOrder = {
+  id: string;
+  submitting_household_id: string | null;
+  payment_method: RegistryPaymentMethod;
+  stripe_checkout_session_id: string | null;
+  reference_code: string | null;
+  status: RegistryOrderStatus;
+  total_amount: number;
+  message: string | null;
+  created_at: string;
+  confirmed_at: string | null;
+};
+
+export type RegistryOrderItem = {
+  id: string;
+  order_id: string;
+  fund_id: string | null;
+  item_id: string | null;
+  amount: number;
+};
+
+export type RegistryOrderBeneficiary = {
+  id: string;
+  order_id: string;
+  household_id: string | null;
+  guest_name_freetext: string | null;
+};
+
+export const REGISTRY_CATEGORIES = [
+  'Eat & Drink',
+  'Relax',
+  'Explore',
+  'Stay',
+  'Experiences',
+  'Home',
+  'Other',
+] as const;
 
 export const BUDGET_CATEGORIES = [
   'Venue',
