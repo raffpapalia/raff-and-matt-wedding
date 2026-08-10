@@ -1,0 +1,432 @@
+/* Gift registry page styles (app/invite/[slug]/registry).
+   Kept out of design.css because that file is the shared vocabulary for the
+   four invite phases, while these classes belong to one page — but scoped
+   under .mr-v4 exactly like design.css, so all the colour/typography vars
+   resolve from the wrapper in app/invite/[slug]/layout.tsx and nothing here
+   can leak into another phase. Interactive controls deliberately mirror the
+   RSVP form's .rv-pill / .rv-field / .rv-submit shapes. */
+
+/* Hero: photo beside the copy on desktop, stacked (and photo last) on narrow
+   screens so the heading is the first thing read. */
+@media (max-width: 860px) {
+  .mr-v4 .mr-reg-hero-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Category filter pills — on the deep green section, so light-on-dark. */
+.mr-v4 .mr-reg-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mr-v4 .mr-reg-pill {
+  font-family: var(--grotesque);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 11px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(246, 238, 221, 0.28);
+  background: transparent;
+  color: var(--bone);
+  cursor: pointer;
+  transition: 0.2s;
+  touch-action: manipulation;
+}
+.mr-v4 .mr-reg-pill:hover:not(.is-active) {
+  border-color: var(--sand);
+  color: var(--sand);
+}
+.mr-v4 .mr-reg-pill:focus-visible {
+  outline: 2px solid var(--sand);
+  outline-offset: 3px;
+}
+.mr-v4 .mr-reg-pill.is-active {
+  background: var(--persimmon);
+  border-color: var(--persimmon);
+  color: var(--on-persimmon);
+}
+
+/* Card grid */
+.mr-v4 .mr-reg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: clamp(18px, 2.4vw, 28px);
+}
+.mr-v4 .mr-reg-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bone);
+  color: var(--ink);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 24px 48px -22px rgba(11, 33, 24, 0.55);
+}
+.mr-v4 .mr-reg-card.is-selected {
+  outline: 2px solid var(--persimmon);
+  outline-offset: 2px;
+}
+.mr-v4 .mr-reg-card-photo {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--bone-2);
+}
+.mr-v4 .mr-reg-card-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mr-v4 .mr-reg-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(11, 33, 24, 0.82);
+  color: var(--bone);
+}
+.mr-v4 .mr-reg-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: clamp(18px, 2.4vw, 24px);
+}
+.mr-v4 .mr-reg-card-body h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.15;
+  margin: 0;
+}
+.mr-v4 .mr-reg-desc {
+  font-family: var(--grotesque);
+  font-weight: 300;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(11, 33, 24, 0.72);
+  margin: 8px 0 0;
+}
+.mr-v4 .mr-reg-price {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  color: var(--muted-deep);
+  margin: 14px 0 0;
+}
+
+/* Suggested-amount chips on a fund card */
+.mr-v4 .mr-reg-chip-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.mr-v4 .mr-reg-chip {
+  font-family: var(--grotesque);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(11, 33, 24, 0.2);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: 0.2s;
+  touch-action: manipulation;
+}
+.mr-v4 .mr-reg-chip:hover:not(.is-active) {
+  border-color: var(--sand);
+}
+.mr-v4 .mr-reg-chip.is-active {
+  background: var(--persimmon);
+  border-color: var(--persimmon);
+  color: var(--on-persimmon);
+}
+.mr-v4 .mr-reg-chip:focus-visible {
+  outline: 2px solid var(--sand);
+  outline-offset: 3px;
+}
+.mr-v4 .mr-reg-custom {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+/* Card CTA sits at the bottom regardless of description length */
+.mr-v4 .mr-reg-cta {
+  margin-top: auto;
+  padding-top: 16px;
+}
+.mr-v4 .mr-reg-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-family: var(--grotesque);
+  font-weight: 700;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 13px 24px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  background: var(--persimmon);
+  color: var(--on-persimmon);
+  cursor: pointer;
+  transition: 0.2s;
+  touch-action: manipulation;
+}
+.mr-v4 .mr-reg-btn:hover:not(:disabled) {
+  background: var(--sand);
+}
+.mr-v4 .mr-reg-btn:focus-visible {
+  outline: 2px solid var(--sand);
+  outline-offset: 3px;
+}
+.mr-v4 .mr-reg-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.mr-v4 .mr-reg-btn-ghost {
+  background: transparent;
+  border-color: rgba(11, 33, 24, 0.28);
+  color: var(--ink);
+}
+.mr-v4 .mr-reg-btn-ghost:hover:not(:disabled) {
+  background: transparent;
+  border-color: var(--sand);
+  color: var(--muted-deep);
+}
+
+/* Sticky selection tray */
+.mr-v4 .mr-reg-tray {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 45;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px clamp(20px, 5.5vw, 90px);
+  background: rgba(15, 67, 49, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -1px 0 rgba(168, 140, 96, 0.25);
+}
+.mr-v4 .mr-reg-tray-summary {
+  font-family: var(--grotesque);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sand);
+}
+.mr-v4 .mr-reg-tray-total {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: var(--bone);
+}
+.mr-v4 .mr-reg-tray .mr-reg-btn {
+  width: auto;
+  padding: 14px 32px;
+}
+
+/* "Who's this from?" panel */
+.mr-v4 .mr-reg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 48px);
+  overflow-y: auto;
+  background: rgba(11, 33, 24, 0.72);
+  backdrop-filter: blur(4px);
+}
+.mr-v4 .mr-reg-panel {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  background: var(--bone);
+  color: var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 30px 60px -20px rgba(11, 33, 24, 0.6);
+  padding: clamp(24px, 4vw, 40px);
+}
+.mr-v4 .mr-reg-panel h2 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: 1.05;
+  margin: 0;
+}
+.mr-v4 .mr-reg-section {
+  padding-top: clamp(20px, 3vw, 26px);
+  margin-top: clamp(20px, 3vw, 26px);
+  border-top: 1px solid rgba(11, 33, 24, 0.12);
+}
+.mr-v4 .mr-reg-label {
+  display: block;
+  font-family: var(--grotesque);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-deep);
+  margin-bottom: 10px;
+}
+.mr-v4 .mr-reg-field {
+  width: 100%;
+  display: block;
+  font-family: var(--grotesque);
+  font-weight: 300;
+  font-size: 0.92rem;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(11, 33, 24, 0.2);
+  background: var(--bone-2);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.mr-v4 .mr-reg-field::placeholder {
+  color: rgba(11, 33, 24, 0.4);
+}
+.mr-v4 .mr-reg-field:focus {
+  border-color: var(--sand);
+  box-shadow: 0 0 0 3px rgba(142, 124, 195, 0.25);
+}
+.mr-v4 .mr-reg-field-sm {
+  padding: 9px 12px;
+  font-size: 0.82rem;
+  border-radius: 8px;
+}
+
+/* Line-item review inside the panel */
+.mr-v4 .mr-reg-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--grotesque);
+  font-size: 0.9rem;
+}
+.mr-v4 .mr-reg-lines li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(11, 33, 24, 0.1);
+}
+.mr-v4 .mr-reg-lines li:last-child {
+  border-bottom: 0;
+}
+.mr-v4 .mr-reg-lines .mr-reg-line-amount {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.mr-v4 .mr-reg-lines button {
+  border: 0;
+  background: transparent;
+  color: var(--muted-deep);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0 0 4px;
+}
+.mr-v4 .mr-reg-lines button:hover {
+  color: var(--persimmon);
+}
+
+/* Tagged beneficiaries + typeahead results */
+.mr-v4 .mr-reg-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.mr-v4 .mr-reg-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--grotesque);
+  font-size: 0.82rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(11, 33, 24, 0.08);
+}
+.mr-v4 .mr-reg-tag button {
+  border: 0;
+  background: transparent;
+  color: var(--muted-deep);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+}
+.mr-v4 .mr-reg-tag button:hover {
+  color: var(--persimmon);
+}
+.mr-v4 .mr-reg-results {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  border: 1px solid rgba(11, 33, 24, 0.14);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.mr-v4 .mr-reg-results li + li {
+  border-top: 1px solid rgba(11, 33, 24, 0.1);
+}
+.mr-v4 .mr-reg-results button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: var(--grotesque);
+  font-size: 0.9rem;
+  padding: 11px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.mr-v4 .mr-reg-results button:hover {
+  background: rgba(168, 140, 96, 0.16);
+}
+
+/* Notices — the 409 "no longer available" list, and the PayID result block */
+.mr-v4 .mr-reg-notice {
+  font-family: var(--grotesque);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(242, 96, 60, 0.12);
+  color: var(--ink);
+}
+.mr-v4 .mr-reg-notice ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+.mr-v4 .mr-reg-payid {
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  word-break: break-all;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--bone-2);
+  border: 1px dashed rgba(11, 33, 24, 0.3);
+  margin-top: 6px;
+}

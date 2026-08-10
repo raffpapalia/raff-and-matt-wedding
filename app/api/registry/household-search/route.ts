@@ -1,15 +1,19 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 import { matchHouseholdName, normHousehold, significantTokens } from '@/lib/nameMatch';
+import { householdRef } from '@/lib/registry/beneficiaryRef';
 
 // Typeahead for "who's this gift from?" — lets a guest attribute a gift to
 // another household on the list (e.g. paying on behalf of their parents).
 //
 // This is an UNAUTHENTICATED endpoint on a public page, so it is deliberately
-// narrow: it returns only { id, name }, never slugs, contact details, RSVP
+// narrow: it returns only { ref, name }, never slugs, contact details, RSVP
 // status or anything else on the household row, and only when the caller
 // already typed a plausible name. Reusing matchHouseholdName from lib/nameMatch
 // keeps the fuzziness identical to the admin duplicate check.
+//
+// `ref` is an opaque HMAC rather than the household id — see the reasoning in
+// lib/registry/beneficiaryRef.ts.
 
 // Below this, a query is too broad to be a real name lookup and would just
 // enumerate the guest list two letters at a time.
@@ -43,6 +47,6 @@ export async function GET(request: Request) {
   matches.sort((a, b) => Number(b.exact) - Number(a.exact) || a.name.localeCompare(b.name));
 
   return NextResponse.json({
-    matches: matches.slice(0, MAX_RESULTS).map(({ id, name }) => ({ id, name })),
+    matches: matches.slice(0, MAX_RESULTS).map(({ id, name }) => ({ ref: householdRef(id), name })),
   });
 }

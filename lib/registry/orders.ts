@@ -1,6 +1,7 @@
 import { supabaseServer } from '@/lib/supabase';
 import type { RegistryPaymentMethod, RegistryOrderStatus } from '@/lib/supabase';
 import type { CheckoutSelection } from '@/lib/stripe/checkout';
+import { resolveHouseholdRefs } from './beneficiaryRef';
 
 // Shared by app/api/registry/checkout and app/api/registry/contribute-manual —
 // both accept the same request body and build the same three rows sets, and
@@ -8,7 +9,9 @@ import type { CheckoutSelection } from '@/lib/stripe/checkout';
 // reference code).
 
 export type IncomingSelection = { type: 'fund' | 'item'; id: string; amount?: number };
-export type IncomingBeneficiary = { householdId?: string; freetextName?: string };
+// householdRef is the opaque HMAC handed out by /api/registry/household-search,
+// never a raw households.id — see lib/registry/beneficiaryRef.ts.
+export type IncomingBeneficiary = { householdRef?: string; freetextName?: string };
 
 export type InvalidReason = 'not_found' | 'inactive' | 'sold_out' | 'invalid_amount' | 'duplicate';
 export type InvalidSelection = { type: 'fund' | 'item'; id: string; name: string | null; reason: InvalidReason };
@@ -141,19 +144,33 @@ export async function getHouseholdBySlug(slug: string) {
  */
 type BeneficiaryRow = { household_id: string | null; guest_name_freetext: string | null };
 
-function normaliseBeneficiaries(
+async function normaliseBeneficiaries(
   raw: IncomingBeneficiary[] | undefined,
   submittingHouseholdId: string
-): BeneficiaryRow[] {
-  const rows = (Array.isArray(raw) ? raw : [])
+): Promise<BeneficiaryRow[]> {
+  const incoming = Array.isArray(raw) ? raw : [];
+
+  // Refs resolve in one batch rather than per beneficiary, so tagging five
+  // households is still a single households read.
+  const refs = incoming.map(b => b.householdRef).filter((r): r is string => Boolean(r));
+  const resolved = await resolveHouseholdRefs(refs);
+
+  const rows = incoming
     .map((b): BeneficiaryRow | null => {
-      if (b.householdId) return { household_id: b.householdId, guest_name_freetext: null };
+      if (b.householdRef) {
+        const householdId = resolved.get(b.householdRef);
+        // An unresolvable ref is a forged or stale value — drop it rather than
+        // recording a beneficiary that doesn't exist.
+        return householdId ? { household_id: householdId, guest_name_freetext: null } : null;
+      }
       const name = b.freetextName?.trim();
       if (name) return { household_id: null, guest_name_freetext: name };
       return null;
     })
     .filter((b): b is BeneficiaryRow => b !== null);
 
+  // Never leave an order unattributed — a gift with no beneficiary is a hole in
+  // the thank-you list.
   if (rows.length === 0) {
     return [{ household_id: submittingHouseholdId, guest_name_freetext: null }];
   }
@@ -217,7 +234,7 @@ export async function createOrder(params: {
     amount: s.amount,
   }));
 
-  const beneficiaryRows = normaliseBeneficiaries(params.beneficiaries, params.submittingHouseholdId).map(b => ({
+  const beneficiaryRows = (await normaliseBeneficiaries(params.beneficiaries, params.submittingHouseholdId)).map(b => ({
     order_id: order.id,
     ...b,
   }));
