@@ -11,7 +11,14 @@ const VALID_KEYS: EmailTemplateKey[] = [
   'pre_wedding',
   'thank_you',
   'link_recovery',
+  'registry_gift_confirmed',
 ];
+
+// Sample data for templates whose merge tags aren't covered by the standard
+// first_name/household_name/wedding_date/venue set every template gets for free.
+const SAMPLE_EXTRA_MERGE_VALUES: Partial<Record<EmailTemplateKey, Record<string, string>>> = {
+  registry_gift_confirmed: { gift_summary: 'Honeymoon fund', gift_total: '$250' },
+};
 
 async function requireAuth() {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
@@ -34,7 +41,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const rendered = await renderEmailPreview(key as EmailTemplateKey, subject, templateBody);
+    const rendered = await renderEmailPreview(
+      key as EmailTemplateKey,
+      subject,
+      templateBody,
+      SAMPLE_EXTRA_MERGE_VALUES[key as EmailTemplateKey]
+    );
     return NextResponse.json(rendered);
   } catch (err) {
     return NextResponse.json(

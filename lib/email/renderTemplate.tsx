@@ -17,7 +17,8 @@ export type EmailTemplateKey =
   | 'rsvp_updated'
   | 'pre_wedding'
   | 'thank_you'
-  | 'link_recovery';
+  | 'link_recovery'
+  | 'registry_gift_confirmed';
 
 const EYEBROW_LABELS: Record<EmailTemplateKey, string> = {
   save_the_date: 'Save the Date',
@@ -28,6 +29,7 @@ const EYEBROW_LABELS: Record<EmailTemplateKey, string> = {
   pre_wedding: 'Almost Time',
   thank_you: 'Thank You',
   link_recovery: 'Your Invitation Link',
+  registry_gift_confirmed: 'Thank You',
 };
 
 export type EmailTemplateRow = {
@@ -111,7 +113,8 @@ async function renderWithWrapper(
   firstName: string,
   householdSlug: string,
   householdName: string = '',
-  guestId?: string
+  guestId?: string,
+  extraMergeValues?: Record<string, string>
 ): Promise<RenderedEmail> {
   const settings = await getSettings();
   const weddingDate = formatWeddingDate(settings.wedding_date);
@@ -120,6 +123,7 @@ async function renderWithWrapper(
     household_name: householdName,
     wedding_date: weddingDate,
     venue: settings.venue_name,
+    ...extraMergeValues,
   };
 
   const resolvedSubject = resolveMergeTags(subject, mergeValues);
@@ -149,14 +153,24 @@ async function renderWithWrapper(
 export async function renderEmailTemplate(
   templateKey: EmailTemplateKey,
   guest: GuestForRender,
-  household: HouseholdForRender
+  household: HouseholdForRender,
+  extraMergeValues?: Record<string, string>
 ): Promise<RenderedEmail> {
   const template = await loadEmailTemplate(templateKey);
   if (!template) {
     throw new Error(`No active template found for key: ${templateKey}`);
   }
 
-  return renderWithWrapper(templateKey, template.subject, template.body, guest.first_name, household.slug, household.name ?? '', guest.id);
+  return renderWithWrapper(
+    templateKey,
+    template.subject,
+    template.body,
+    guest.first_name,
+    household.slug,
+    household.name ?? '',
+    guest.id,
+    extraMergeValues
+  );
 }
 
 // Admin-only preview: renders unsaved subject/body edits through the same wrapper
@@ -164,9 +178,10 @@ export async function renderEmailTemplate(
 export async function renderEmailPreview(
   templateKey: EmailTemplateKey,
   subject: string,
-  body: string
+  body: string,
+  extraMergeValues?: Record<string, string>
 ): Promise<RenderedEmail> {
-  return renderWithWrapper(templateKey, subject, body, 'Jane', 'sample', 'Sample Household');
+  return renderWithWrapper(templateKey, subject, body, 'Jane', 'sample', 'Sample Household', undefined, extraMergeValues);
 }
 
 // One-off custom send: subject/body are typed by the admin for this send only and

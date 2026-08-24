@@ -17,6 +17,15 @@ const MERGE_TAGS: Array<{ tag: string; hint: string }> = [
   { tag: '{{cta_button}}', hint: 'Invite button — must be on its own line' },
 ];
 
+// Extra tags only meaningful on specific templates, added on top of MERGE_TAGS
+// rather than replacing it — every template still gets the standard set for free.
+const EXTRA_MERGE_TAGS_BY_KEY: Record<string, Array<{ tag: string; hint: string }>> = {
+  registry_gift_confirmed: [
+    { tag: '{{gift_summary}}', hint: 'Fund/item name(s) from the order' },
+    { tag: '{{gift_total}}', hint: 'Total amount, formatted' },
+  ],
+};
+
 const SMS_MERGE_TAGS: Array<{ tag: string; hint: string }> = [
   { tag: '{{first_name}}', hint: "Guest's first name" },
 ];
@@ -30,6 +39,8 @@ const TEMPLATE_DESCRIPTIONS: Record<string, string> = {
   pre_wedding: 'Sends automatically to every guest when you switch the wedding into the Pre-wedding phase.',
   thank_you: 'Sends automatically to every guest when you switch the wedding into the Thank You phase.',
   link_recovery: 'Sends automatically whenever a guest requests their invitation link again.',
+  registry_gift_confirmed:
+    "Sends automatically to the giving household's eligible guests the moment a registry gift is confirmed — by card payment, or by an admin marking a bank transfer as received.",
 };
 
 type TemplateGroup = { label: string; key: string };
@@ -49,7 +60,14 @@ const PHASE_TABS: PhaseTab[] = [
   },
   { id: 'pre_wedding', label: 'Pre-wedding', groups: [{ label: 'Pre-wedding', key: 'pre_wedding' }] },
   { id: 'thank_you', label: 'Thank You', groups: [{ label: 'Thank You', key: 'thank_you' }] },
-  { id: 'utility', label: 'Utility', groups: [{ label: 'Lost Invitation Link', key: 'link_recovery' }] },
+  {
+    id: 'utility',
+    label: 'Utility',
+    groups: [
+      { label: 'Lost Invitation Link', key: 'link_recovery' },
+      { label: 'Gift Confirmed', key: 'registry_gift_confirmed' },
+    ],
+  },
 ];
 
 const TEST_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -364,7 +382,7 @@ function TemplateCard({
           </div>
           <div>
             <p className="mb-2 font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50">Merge tags</p>
-            <MergeTagChips tags={MERGE_TAGS} />
+            <MergeTagChips tags={[...MERGE_TAGS, ...(EXTRA_MERGE_TAGS_BY_KEY[template.key] ?? [])]} />
             <p className="mt-2 font-dm-sans text-xs text-admin-ink/40">
               The invite button renders wherever <code>{'{{cta_button}}'}</code> appears on its own line in the
               body, and is left out entirely if you don&apos;t include it. The other tags above can sit inline

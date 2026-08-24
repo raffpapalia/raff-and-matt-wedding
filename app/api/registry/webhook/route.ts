@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 import { getStripe, getWebhookSecret } from '@/lib/stripe/client';
 import { supabaseServer } from '@/lib/supabase';
+import { sendGiftConfirmedEmail } from '@/lib/registry/giftEmail';
 
 const HANDLED_EVENTS = [
   'checkout.session.completed',
@@ -97,6 +98,8 @@ async function confirmOrder(session: Stripe.Checkout.Session): Promise<void> {
   for (const line of lines ?? []) {
     if (line.item_id) await claimItem(line.item_id);
   }
+
+  await sendGiftConfirmedEmail(order.id);
 }
 
 export async function POST(request: Request) {

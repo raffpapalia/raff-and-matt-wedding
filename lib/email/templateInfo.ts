@@ -12,6 +12,7 @@ export const EMAIL_TEMPLATE_TITLES: Record<EmailTemplateKey, string> = {
   pre_wedding: 'Final Details',
   thank_you: 'Thank You',
   link_recovery: 'Lost Invitation Link',
+  registry_gift_confirmed: 'Gift Confirmed',
 };
 
 export const PHASE_LABELS: Record<PhaseName, string> = {

@@ -6,6 +6,8 @@
    can leak into another phase. Interactive controls deliberately mirror the
    RSVP form's .rv-pill / .rv-field / .rv-submit shapes. */
 
+/* Post-checkout notice — shown when Stripe redirects back with ?gift=thanks
+   or ?gift=cancelled (see success_url/cancel_url in lib/stripe/checkout.ts). */
 /* Hero: full-bleed photo with an angled bone-coloured text panel cut over it
    on desktop; the cutout collapses to a solid dark overlay panel on narrow
    screens, where a clip-path shape would leave too little room to read. */
@@ -268,9 +270,6 @@
   border-radius: 999px;
   background: rgba(11, 33, 24, 0.82);
   color: var(--bone);
-}
-.mr-v4 .mr-reg-badge--open {
-  background: rgba(242, 96, 60, 0.85);
 }
 .mr-v4 .mr-reg-card-body {
   display: flex;
@@ -636,7 +635,9 @@
   font-style: italic;
   font-weight: 400;
   font-size: clamp(1.5rem, 3vw, 2rem);
-  color: var(--bone);
+  /* Sand, matching the supporting text under the names on other footers
+     (e.g. PreWeddingPhase's "See you on the..." line), not plain bone. */
+  color: var(--sand);
   margin: 0 0 14px;
   white-space: pre-wrap;
 }

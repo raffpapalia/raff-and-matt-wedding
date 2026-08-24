@@ -181,6 +181,11 @@ export default function GiftPanel({
         return;
       }
       setPayid(data as PayidResult);
+      // The order already exists in the database the moment this call
+      // succeeds — clear the tray now rather than waiting for "Done", so a
+      // guest who closes the tab instead of dismissing the panel doesn't come
+      // back to a stale cart and risk placing a second order for the same gift.
+      onDropSelections(selections.map(s => selectionKey(s.type, s.id)));
     } catch {
       setError('Could not set up the transfer. Please check your connection and try again.');
     } finally {
@@ -195,11 +200,8 @@ export default function GiftPanel({
     return (
       <div className="mr-reg-overlay" role="dialog" aria-modal="true" aria-label="Bank transfer details">
         <div className="mr-reg-panel" ref={panelRef}>
-          <h2>Almost there</h2>
-          <p className="mr-reg-desc">
-            Transfer {formatAud(payid.total)} using the details below. We&apos;ll mark your gift as received once
-            it lands.
-          </p>
+          <h2>Thank you!</h2>
+          <p className="mr-reg-desc">Transfer {formatAud(payid.total)} using the details below.</p>
 
           {payid.payid && (
             <div className="mr-reg-section">

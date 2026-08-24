@@ -53,7 +53,8 @@ export async function sendGuestEmail(
   household: HouseholdForEmail,
   template: EmailTemplate | undefined,
   phase: PhaseName,
-  custom?: CustomEmailContent
+  custom?: CustomEmailContent,
+  extraMergeValues?: Record<string, string>
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const templateKey = template ?? PHASE_TEMPLATE_MAP[phase];
 
@@ -61,7 +62,7 @@ export async function sendGuestEmail(
   try {
     rendered = custom
       ? await renderCustomEmail(custom.subject, custom.body, guest, household, custom.baseKey)
-      : await renderEmailTemplate(templateKey, guest, household);
+      : await renderEmailTemplate(templateKey, guest, household, extraMergeValues);
   } catch (err) {
     const error = err instanceof Error ? err.message : 'Failed to render email template';
     await supabaseServer.from('communications').insert({
@@ -125,7 +126,8 @@ export async function sendHouseholdEmail(
   template: EmailTemplate | undefined,
   phase: PhaseName,
   mode: SendMode = 'all',
-  custom?: CustomEmailContent
+  custom?: CustomEmailContent,
+  extraMergeValues?: Record<string, string>
 ): Promise<SendResult> {
   const { data: household, error: householdError } = await supabaseServer
     .from('households')
@@ -176,7 +178,8 @@ export async function sendHouseholdEmail(
       household,
       template,
       phase,
-      custom
+      custom,
+      extraMergeValues
     );
 
     if (result.success) {

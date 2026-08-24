@@ -13,7 +13,14 @@ const VALID_KEYS: EmailTemplateKey[] = [
   'pre_wedding',
   'thank_you',
   'link_recovery',
+  'registry_gift_confirmed',
 ];
+
+// Sample data for templates whose merge tags aren't covered by the standard
+// first_name/household_name/wedding_date/venue set every template gets for free.
+const SAMPLE_EXTRA_MERGE_VALUES: Partial<Record<EmailTemplateKey, Record<string, string>>> = {
+  registry_gift_confirmed: { gift_summary: 'Honeymoon fund', gift_total: '$250' },
+};
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -43,7 +50,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const rendered = await renderEmailTemplate(key as EmailTemplateKey, { first_name: 'Jane' }, { slug: 'sample' });
+    const rendered = await renderEmailTemplate(
+      key as EmailTemplateKey,
+      { first_name: 'Jane' },
+      { slug: 'sample' },
+      SAMPLE_EXTRA_MERGE_VALUES[key as EmailTemplateKey]
+    );
 
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { data, error } = await resend.emails.send({

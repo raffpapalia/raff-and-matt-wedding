@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
+import { sendGiftConfirmedEmail } from '@/lib/registry/giftEmail';
 
 async function requireAuth() {
   const authCookie = (await cookies()).get(ADMIN_COOKIE_NAME)?.value;
@@ -50,6 +51,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       { status: 409 }
     );
   }
+
+  await sendGiftConfirmedEmail(id);
 
   return NextResponse.json(data);
 }

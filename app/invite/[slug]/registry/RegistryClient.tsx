@@ -168,13 +168,12 @@ function FundCard({
         <div className="mr-reg-card-photo">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={fund.image_url} alt="" />
-          <span className="mr-reg-badge mr-reg-badge--open">Open</span>
         </div>
       )}
       <div className="mr-reg-card-body">
         <h3>{fund.name}</h3>
         {fund.description && <p className="mr-reg-desc">{fund.description}</p>}
-        <p className="mr-reg-price">{selected ? `Added — ${formatAud(selected.amount)}` : 'Contribute any amount'}</p>
+        {selected && <p className="mr-reg-price">Added — {formatAud(selected.amount)}</p>}
 
         {selected ? (
           <div className="mr-reg-card-footer">
@@ -289,6 +288,30 @@ export default function RegistryClient({
   const [selections, setSelections] = useState<Selection[]>([]);
   const [category, setCategory] = useState(ALL_CATEGORIES);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [showThanks, setShowThanks] = useState(false);
+
+  // Stripe redirects back here with ?gift=thanks or ?gift=cancelled (see
+  // success_url/cancel_url in lib/stripe/checkout.ts). This has to run in an
+  // effect, not a lazy useState initializer: window.location isn't knowable
+  // during SSR, so a lazy initializer that reads it renders a banner on the
+  // client's first pass that the server never produced — a genuine hydration
+  // mismatch, not the "you might not need an effect" case the lint rule
+  // usually catches. `selections` already starts at its default `[]`, since
+  // this is a real full-navigation return trip, not a client-side transition.
+  // `cancelled` gets no UI at all — no charge was made, nothing to confirm,
+  // and a modal there would just be an unnecessary interruption.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const gift = params.get('gift');
+    if (gift !== 'thanks' && gift !== 'cancelled') return;
+    if (gift === 'thanks') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above
+      setShowThanks(true);
+    }
+    params.delete('gift');
+    const query = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (query ? `?${query}` : ''));
+  }, []);
 
   // Categories are whatever the item catalogue actually uses, in first-seen
   // order — so the admin can add one without touching this file. Funds are
@@ -345,6 +368,20 @@ export default function RegistryClient({
           }}
         >
           Admin preview — the registry is switched off for guests
+        </div>
+      )}
+
+      {showThanks && (
+        <div className="mr-reg-overlay" role="dialog" aria-modal="true" aria-label="Payment confirmed">
+          <div className="mr-reg-panel">
+            <h2>Thank you!</h2>
+            <p className="mr-reg-desc">Your card payment has gone through.</p>
+            <div className="mr-reg-section">
+              <button type="button" className="mr-reg-btn" onClick={() => setShowThanks(false)}>
+                Done
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
