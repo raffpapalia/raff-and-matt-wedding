@@ -2,7 +2,6 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
-import { parseAmounts } from '@/lib/registry/catalog';
 
 function logErr(op: string, err: unknown) {
   const e = err as { message?: string; code?: string; details?: string } | null;
@@ -35,13 +34,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if ('image_url' in body) update.image_url = String(body.image_url ?? '').trim() || null;
   if ('is_active' in body) update.is_active = body.is_active;
   if ('sort_order' in body) update.sort_order = body.sort_order;
-  if ('suggested_amounts' in body) {
-    const amounts = parseAmounts(body.suggested_amounts);
-    if (amounts.length === 0) {
-      return NextResponse.json({ message: 'Give at least one suggested amount' }, { status: 400 });
-    }
-    update.suggested_amounts = amounts;
-  }
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ message: 'No fields to update' }, { status: 400 });

@@ -4,6 +4,15 @@ import React, { FormEvent, useEffect, useMemo, useState, useTransition } from 'r
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PhotoUpload from '../../../components/PhotoUpload';
+import type { GiftReceived } from './page';
+
+function formatAud(amount: number): string {
+  return amount.toLocaleString('en-AU', { style: 'currency', currency: 'AUD', maximumFractionDigits: 0 });
+}
+
+function formatGiftDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+}
 
 const dietaryOptions = [
   { value: 'none', label: 'No preference' },
@@ -281,11 +290,13 @@ export default function EditHouseholdForm({
   prevHousehold,
   nextHousehold,
   shortLink,
+  giftsReceived,
 }: {
   initial: HouseholdFormData;
   prevHousehold: HouseholdNavItem | null;
   nextHousehold: HouseholdNavItem | null;
   shortLink: string | null;
+  giftsReceived: GiftReceived[];
 }) {
   const [householdName, setHouseholdName] = useState(initial?.name ?? '');
   const [slug, setSlug] = useState(initial?.slug ?? '');
@@ -902,6 +913,29 @@ export default function EditHouseholdForm({
               <p className="text-sm text-admin-warning">⚠ Thank you page partially complete</p>
             ) : null}
           </div>
+
+          {giftsReceived.length > 0 && (
+            <div className="space-y-2 rounded-2xl border border-admin-sand/30 bg-white p-4">
+              <p className="text-xs uppercase tracking-[0.25em] text-admin-ink/50">
+                Registry gifts — for reference while writing the message
+              </p>
+              <ul className="space-y-2">
+                {giftsReceived.map(gift => (
+                  <li key={gift.orderId} className="text-sm text-admin-ink">
+                    <span className="font-medium">
+                      {gift.lines.length > 0 ? gift.lines.map(l => l.label).join(', ') : 'Gift'}
+                    </span>
+                    {' — '}
+                    {formatAud(gift.total)}
+                    {gift.beneficiaries.length > 0 && <> — from {gift.beneficiaries.join(', ')}</>}
+                    {' · '}
+                    {formatGiftDate(gift.date)}
+                    {gift.message && <p className="mt-1 text-admin-ink/60 italic">&quot;{gift.message}&quot;</p>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="space-y-2">
             <PhotoUpload

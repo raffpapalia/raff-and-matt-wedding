@@ -13,6 +13,9 @@ type PayidResult = {
   payid: string;
   payidName: string;
   instructions: string;
+  bankBsb: string;
+  bankAccountNumber: string;
+  bankAccountName: string;
   referenceCode: string;
   total: number;
 };
@@ -30,7 +33,7 @@ export default function GiftPanel({
   householdName,
   householdRef,
   selections,
-  payidConfigured,
+  bankTransferConfigured,
   onClose,
   onDropSelections,
   onRemoveSelection,
@@ -39,7 +42,7 @@ export default function GiftPanel({
   householdName: string;
   householdRef: string;
   selections: Selection[];
-  payidConfigured: boolean;
+  bankTransferConfigured: boolean;
   onClose: () => void;
   onDropSelections: (keys: string[]) => void;
   onRemoveSelection: (type: 'fund' | 'item', id: string) => void;
@@ -198,15 +201,32 @@ export default function GiftPanel({
             it lands.
           </p>
 
-          <div className="mr-reg-section">
-            <span className="mr-reg-label">PayID</span>
-            <div className="mr-reg-payid">{payid.payid}</div>
-            {payid.payidName && (
-              <p className="mr-reg-desc" style={{ marginTop: 8 }}>
-                Account name: {payid.payidName}
-              </p>
-            )}
-          </div>
+          {payid.payid && (
+            <div className="mr-reg-section">
+              <span className="mr-reg-label">PayID</span>
+              <div className="mr-reg-payid">{payid.payid}</div>
+              {payid.payidName && (
+                <p className="mr-reg-desc" style={{ marginTop: 8 }}>
+                  Account name: {payid.payidName}
+                </p>
+              )}
+            </div>
+          )}
+
+          {payid.bankBsb && (
+            <div className="mr-reg-section">
+              <span className="mr-reg-label">Bank transfer</span>
+              <div className="mr-reg-payid">BSB {payid.bankBsb}</div>
+              <div className="mr-reg-payid" style={{ marginTop: 8 }}>
+                Acc {payid.bankAccountNumber}
+              </div>
+              {payid.bankAccountName && (
+                <p className="mr-reg-desc" style={{ marginTop: 8 }}>
+                  Account name: {payid.bankAccountName}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="mr-reg-section">
             <span className="mr-reg-label">Reference</span>
@@ -398,9 +418,27 @@ export default function GiftPanel({
             </div>
           )}
 
+          {bankTransferConfigured && (
+            <>
+              <button
+                type="button"
+                className="mr-reg-btn"
+                onClick={payByTransfer}
+                disabled={!hasSelections || busy !== null}
+              >
+                {busy === 'payid' ? 'Setting up…' : `Bank transfer — ${formatAud(total)}, no fees`}
+              </button>
+              <p className="mr-reg-desc" style={{ textAlign: 'center', marginTop: 8 }}>
+                Our preferred way to receive a gift — we&apos;ll show you the details and a reference code to
+                quote
+              </p>
+            </>
+          )}
+
           <button
             type="button"
-            className="mr-reg-btn"
+            className={`mr-reg-btn${bankTransferConfigured ? ' mr-reg-btn-ghost' : ''}`}
+            style={bankTransferConfigured ? { marginTop: 16 } : undefined}
             onClick={payByCard}
             disabled={!hasSelections || busy !== null}
           >
@@ -409,23 +447,6 @@ export default function GiftPanel({
           <p className="mr-reg-desc" style={{ textAlign: 'center', marginTop: 8 }}>
             Visa, Mastercard and Amex · secured by Stripe
           </p>
-
-          {payidConfigured && (
-            <>
-              <button
-                type="button"
-                className="mr-reg-btn mr-reg-btn-ghost"
-                style={{ marginTop: 16 }}
-                onClick={payByTransfer}
-                disabled={!hasSelections || busy !== null}
-              >
-                {busy === 'payid' ? 'Setting up…' : 'Bank transfer (PayID) — no fees'}
-              </button>
-              <p className="mr-reg-desc" style={{ textAlign: 'center', marginTop: 8 }}>
-                We&apos;ll show you a PayID and a reference code to quote
-              </p>
-            </>
-          )}
 
           <button
             type="button"

@@ -130,7 +130,7 @@ export async function validateSelections(raw: IncomingSelection[]): Promise<Vali
 export async function getHouseholdBySlug(slug: string) {
   const { data } = await supabaseServer
     .from('households')
-    .select('id, name, short_code')
+    .select('id, name, slug, short_code')
     .eq('slug', slug)
     .maybeSingle();
   return data;
@@ -177,21 +177,6 @@ async function normaliseBeneficiaries(
   return rows;
 }
 
-/**
- * Generates the PayID reference the guest quotes on their bank transfer:
- * the household's short code plus a short random suffix, so two gifts from the
- * same household are still distinguishable in the bank feed.
- * Ambiguous characters (0/O, 1/I) are excluded — people read these off a screen
- * and type them into a banking app.
- */
-export function generateReferenceCode(shortCode: string): string {
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let suffix = '';
-  for (let i = 0; i < 4; i++) {
-    suffix += alphabet[Math.floor(Math.random() * alphabet.length)];
-  }
-  return `${shortCode.toUpperCase()}-${suffix}`;
-}
 
 /**
  * Writes the order plus its line items and beneficiaries. The order row is

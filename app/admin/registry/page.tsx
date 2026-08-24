@@ -46,6 +46,13 @@ export default async function AdminRegistryPage() {
           registry_payid: settings.registry_payid,
           registry_payid_name: settings.registry_payid_name,
           registry_payid_instructions: settings.registry_payid_instructions,
+          registry_bank_bsb: settings.registry_bank_bsb,
+          registry_bank_account_number: settings.registry_bank_account_number,
+          registry_bank_account_name: settings.registry_bank_account_name,
+          registry_hero_photo_url: settings.registry_hero_photo_url,
+          registry_story_heading: settings.registry_story_heading,
+          registry_story_body: settings.registry_story_body,
+          registry_travel_photos: settings.registry_travel_photos,
         }}
       />
     </div>

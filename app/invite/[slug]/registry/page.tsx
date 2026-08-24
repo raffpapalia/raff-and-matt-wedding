@@ -17,7 +17,7 @@ async function getRegistryData(slug: string) {
     supabaseServer.from('households').select('*').eq('slug', slug).maybeSingle(),
     supabaseServer
       .from('registry_funds')
-      .select('id, name, description, suggested_amounts, category, image_url')
+      .select('id, name, description, category, image_url')
       .eq('is_active', true)
       .order('sort_order', { ascending: true }),
     supabaseServer
@@ -71,8 +71,16 @@ export default async function RegistryPage({
         heroHeading: data.settings.registry_hero_heading,
         heroBody: data.settings.registry_hero_body,
         closingMessage: data.settings.registry_closing_message,
-        heroPhotoUrl: data.settings.couple_photo_url || '',
-        payidConfigured: Boolean(data.settings.registry_payid),
+        // The registry gets its own hero photo so it can be scenic/holiday-themed
+        // independent of the couple photo used on the other guest phases — falls
+        // back to that shared photo only if a registry-specific one isn't set.
+        heroPhotoUrl: data.settings.registry_hero_photo_url || data.settings.couple_photo_url || '',
+        // PayID and BSB/account are independent — either configured is enough
+        // to offer the bank-transfer path; the panel shows whichever exist.
+        bankTransferConfigured: Boolean(data.settings.registry_payid || data.settings.registry_bank_bsb),
+        storyHeading: data.settings.registry_story_heading,
+        storyBody: data.settings.registry_story_body,
+        travelPhotos: data.settings.registry_travel_photos,
       }}
       funds={data.funds}
       items={data.items}

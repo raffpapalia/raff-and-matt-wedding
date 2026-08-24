@@ -13,7 +13,7 @@ export async function GET() {
   const [fundsRes, itemsRes] = await Promise.all([
     supabaseServer
       .from('registry_funds')
-      .select('id, name, slug, description, suggested_amounts, category, image_url')
+      .select('id, name, slug, description, category, image_url')
       .eq('is_active', true)
       .order('sort_order', { ascending: true }),
     supabaseServer

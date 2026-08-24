@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { REGISTRY_CATEGORIES, type RegistryFund, type RegistryItem } from '@/lib/supabase';
+import PhotoUpload from '../components/PhotoUpload';
 
 // Funds and items share a single client component because they're two views of
 // the same catalogue and the couple edits them together. Form conventions match
@@ -17,12 +18,18 @@ type RegistrySettingsForm = {
   registry_payid: string;
   registry_payid_name: string;
   registry_payid_instructions: string;
+  registry_bank_bsb: string;
+  registry_bank_account_number: string;
+  registry_bank_account_name: string;
+  registry_hero_photo_url: string;
+  registry_story_heading: string;
+  registry_story_body: string;
+  registry_travel_photos: string[];
 };
 
 type FundForm = {
   name: string;
   description: string;
-  suggested_amounts: string;
   category: string;
   image_url: string;
   is_active: boolean;
@@ -42,7 +49,6 @@ type ItemForm = {
 const EMPTY_FUND: FundForm = {
   name: '',
   description: '',
-  suggested_amounts: '50, 100, 250',
   category: REGISTRY_CATEGORIES[0],
   image_url: '',
   is_active: true,
@@ -116,6 +122,31 @@ export default function CatalogClient({
     setItemForm(prev => ({ ...prev, [key]: value }));
   }
 
+  // ── Travel photo strip — same add/remove/move-by-swap shape as the "On the
+  // Day" schedule editor in SettingsClient, just against this component's
+  // single settings object instead of its own state slice. ──
+  function addTravelPhoto() {
+    setSettings(s => ({ ...s, registry_travel_photos: [...s.registry_travel_photos, ''] }));
+  }
+  function updateTravelPhoto(i: number, url: string | null) {
+    setSettings(s => ({
+      ...s,
+      registry_travel_photos: s.registry_travel_photos.map((p, idx) => (idx === i ? url ?? '' : p)),
+    }));
+  }
+  function removeTravelPhoto(i: number) {
+    setSettings(s => ({ ...s, registry_travel_photos: s.registry_travel_photos.filter((_, idx) => idx !== i) }));
+  }
+  function moveTravelPhoto(i: number, direction: -1 | 1) {
+    setSettings(s => {
+      const target = i + direction;
+      if (target < 0 || target >= s.registry_travel_photos.length) return s;
+      const reordered = [...s.registry_travel_photos];
+      [reordered[i], reordered[target]] = [reordered[target], reordered[i]];
+      return { ...s, registry_travel_photos: reordered };
+    });
+  }
+
   // ── Settings (generic PATCH /admin/api/settings — no registry-specific endpoint) ──
   async function saveSettings() {
     setSettingsSaving(true);
@@ -145,7 +176,6 @@ export default function CatalogClient({
     setFundForm({
       name: fund.name,
       description: fund.description ?? '',
-      suggested_amounts: (fund.suggested_amounts ?? []).join(', '),
       category: fund.category,
       image_url: fund.image_url ?? '',
       is_active: fund.is_active,
@@ -160,14 +190,6 @@ export default function CatalogClient({
       setFormError('Give the fund a name.');
       return;
     }
-    const amounts = fundForm.suggested_amounts
-      .split(',')
-      .map(s => Number(s.trim()))
-      .filter(n => Number.isFinite(n) && n > 0);
-    if (amounts.length === 0) {
-      setFormError('Give at least one suggested amount, e.g. 50, 100, 250.');
-      return;
-    }
 
     setSaving(true);
     setFormError(null);
@@ -175,7 +197,6 @@ export default function CatalogClient({
     const body = {
       name: fundForm.name.trim(),
       description: fundForm.description.trim(),
-      suggested_amounts: amounts,
       category: fundForm.category,
       image_url: fundForm.image_url.trim(),
       is_active: fundForm.is_active,
@@ -365,6 +386,14 @@ export default function CatalogClient({
           </label>
         </div>
 
+        <PhotoUpload
+          value={settings.registry_hero_photo_url || null}
+          onChange={url => setSettings(s => ({ ...s, registry_hero_photo_url: url ?? '' }))}
+          aspectRatio={16 / 9}
+          label="Hero photo (falls back to the couple photo from Settings if left empty)"
+          uploadPathPrefix="registry/hero"
+        />
+
         <label className="block">
           <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-ink/50">Hero body</span>
           <textarea
@@ -374,6 +403,81 @@ export default function CatalogClient({
             className="w-full resize-y rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink outline-none focus:border-admin-green"
           />
         </label>
+
+        <div className="space-y-4 rounded-2xl border border-admin-sand/30 bg-admin-bone/30 p-4">
+          <p className="text-xs uppercase tracking-[0.25em] text-admin-ink/50">
+            Our travels — a short story and photo strip shown between the hero and the gifts. Leave the heading and
+            body blank to skip this section entirely.
+          </p>
+
+          <label className="block">
+            <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-ink/50">Story heading</span>
+            <input
+              value={settings.registry_story_heading}
+              onChange={e => setSettings(s => ({ ...s, registry_story_heading: e.target.value }))}
+              className="w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink outline-none focus:border-admin-green"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-ink/50">Story body</span>
+            <textarea
+              rows={4}
+              value={settings.registry_story_body}
+              onChange={e => setSettings(s => ({ ...s, registry_story_body: e.target.value }))}
+              className="w-full resize-y rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink outline-none focus:border-admin-green"
+            />
+          </label>
+
+          <div className="space-y-3">
+            <span className="block text-xs uppercase tracking-[0.25em] text-admin-ink/50">Travel photos</span>
+            {settings.registry_travel_photos.map((photo, i) => (
+              <div key={i} className="flex items-start gap-3 rounded-2xl border border-admin-sand/30 bg-white p-3">
+                <div className="w-40 shrink-0">
+                  <PhotoUpload
+                    value={photo || null}
+                    onChange={url => updateTravelPhoto(i, url)}
+                    aspectRatio={4 / 3}
+                    label={`Photo ${i + 1}`}
+                    uploadPathPrefix="registry/travel"
+                  />
+                </div>
+                <div className="flex flex-col gap-2 pt-6">
+                  <button
+                    type="button"
+                    onClick={() => moveTravelPhoto(i, -1)}
+                    disabled={i === 0}
+                    className="rounded-full border border-admin-sand/40 px-3 py-1 text-xs text-admin-ink/70 transition hover:border-admin-green/40 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveTravelPhoto(i, 1)}
+                    disabled={i === settings.registry_travel_photos.length - 1}
+                    className="rounded-full border border-admin-sand/40 px-3 py-1 text-xs text-admin-ink/70 transition hover:border-admin-green/40 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    ↓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeTravelPhoto(i)}
+                    className="rounded-full border border-admin-persimmon/40 px-3 py-1 text-xs text-admin-persimmon transition hover:bg-admin-persimmon/10"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addTravelPhoto}
+              className="rounded-full border border-admin-sand/40 bg-white px-4 py-2 text-sm text-admin-ink/80 transition hover:border-admin-green/40 hover:text-admin-green"
+            >
+              + Add photo
+            </button>
+          </div>
+        </div>
 
         <label className="block">
           <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-ink/50">Closing message</span>
@@ -421,6 +525,40 @@ export default function CatalogClient({
           />
         </label>
 
+        <div>
+          <p className="text-xs uppercase tracking-[0.25em] text-admin-ink/50">
+            Bank transfer (for guests whose bank doesn&apos;t support PayID — independent of PayID above,
+            guests see whichever of these are filled in)
+          </p>
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <label className="block">
+              <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-ink/50">BSB</span>
+              <input
+                value={settings.registry_bank_bsb}
+                onChange={e => setSettings(s => ({ ...s, registry_bank_bsb: e.target.value }))}
+                placeholder="123-456"
+                className="w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink outline-none focus:border-admin-green"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-ink/50">Account number</span>
+              <input
+                value={settings.registry_bank_account_number}
+                onChange={e => setSettings(s => ({ ...s, registry_bank_account_number: e.target.value }))}
+                className="w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink outline-none focus:border-admin-green"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-admin-ink/50">Account name</span>
+              <input
+                value={settings.registry_bank_account_name}
+                onChange={e => setSettings(s => ({ ...s, registry_bank_account_name: e.target.value }))}
+                className="w-full rounded-2xl border border-admin-sand/40 bg-white px-4 py-3 text-sm text-admin-ink outline-none focus:border-admin-green"
+              />
+            </label>
+          </div>
+        </div>
+
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -465,9 +603,6 @@ export default function CatalogClient({
                   {fund.description && (
                     <p className="mt-1 line-clamp-2 text-sm text-admin-ink/60">{fund.description}</p>
                   )}
-                  <p className="mt-1 text-xs text-admin-ink/50">
-                    Suggested: {(fund.suggested_amounts ?? []).map(a => `$${a}`).join(' · ')}
-                  </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                   <button
@@ -617,16 +752,6 @@ export default function CatalogClient({
               </label>
 
               <label className="block">
-                <span className={labelClass}>Suggested amounts (comma separated)</span>
-                <input
-                  value={fundForm.suggested_amounts}
-                  onChange={e => setFundField('suggested_amounts', e.target.value)}
-                  placeholder="50, 100, 250"
-                  className={fieldClass}
-                />
-              </label>
-
-              <label className="block">
                 <span className={labelClass}>Category</span>
                 <select
                   value={fundForm.category}
@@ -641,15 +766,15 @@ export default function CatalogClient({
                 </select>
               </label>
 
-              <label className="block">
-                <span className={labelClass}>Image URL</span>
-                <input
-                  value={fundForm.image_url}
-                  onChange={e => setFundField('image_url', e.target.value)}
-                  placeholder="https://…"
-                  className={fieldClass}
+              <div className="rounded-2xl bg-admin-bone p-4">
+                <PhotoUpload
+                  value={fundForm.image_url || null}
+                  onChange={url => setFundField('image_url', url ?? '')}
+                  aspectRatio={16 / 9}
+                  label="Photo"
+                  uploadPathPrefix="registry/fund"
                 />
-              </label>
+              </div>
 
               <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
                 <div>

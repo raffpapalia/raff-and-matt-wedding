@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSettings } from '@/lib/supabase';
 import {
   createOrder,
-  generateReferenceCode,
   getHouseholdBySlug,
   validateSelections,
   type IncomingBeneficiary,
@@ -43,10 +42,11 @@ export async function POST(request: NextRequest) {
   }
 
   const settings = await getSettings();
-  // Without a PayID there is nothing to show the guest, and an order created
-  // here would be un-payable. Better to fail now and fall back to the card path.
-  if (!settings.registry_payid) {
-    console.error('[registry:contribute-manual] registry_payid setting is empty');
+  // Without a PayID or BSB/account there is nothing to show the guest, and an
+  // order created here would be un-payable. Better to fail now and fall back
+  // to the card path. PayID and BSB/account are independent — either is enough.
+  if (!settings.registry_payid && !settings.registry_bank_bsb) {
+    console.error('[registry:contribute-manual] no PayID or bank details configured');
     return NextResponse.json(
       { message: 'Bank transfer is not set up yet — please use the card option.' },
       { status: 503 }
@@ -67,9 +67,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // One code for the whole order, not per line — the guest makes a single
-  // transfer, so a single reference is what shows up in the bank feed.
-  const referenceCode = generateReferenceCode(household.short_code);
+  // The household's own slug, so the reference reads as their name rather than
+  // an opaque code — easier to type into a banking app and to recognise in the
+  // bank feed. Every gift from this household carries the same reference,
+  // since it identifies the giver rather than one specific order.
+  const referenceCode = household.slug.toUpperCase();
 
   const created = await createOrder({
     submittingHouseholdId: household.id,
@@ -90,6 +92,9 @@ export async function POST(request: NextRequest) {
     payid: settings.registry_payid,
     payidName: settings.registry_payid_name,
     instructions: settings.registry_payid_instructions,
+    bankBsb: settings.registry_bank_bsb,
+    bankAccountNumber: settings.registry_bank_account_number,
+    bankAccountName: settings.registry_bank_account_name,
     referenceCode,
     total: validation.total,
   });

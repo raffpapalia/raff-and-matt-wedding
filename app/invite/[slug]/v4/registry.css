@@ -6,19 +6,186 @@
    can leak into another phase. Interactive controls deliberately mirror the
    RSVP form's .rv-pill / .rv-field / .rv-submit shapes. */
 
-/* Hero: photo beside the copy on desktop, stacked (and photo last) on narrow
-   screens so the heading is the first thing read. */
-@media (max-width: 860px) {
-  .mr-v4 .mr-reg-hero-grid {
-    grid-template-columns: 1fr !important;
+/* Hero: full-bleed photo with an angled bone-coloured text panel cut over it
+   on desktop; the cutout collapses to a solid dark overlay panel on narrow
+   screens, where a clip-path shape would leave too little room to read. */
+.mr-v4 .mr-reg-hero {
+  position: relative;
+  min-height: min(82vh, 700px);
+  overflow: hidden;
+}
+.mr-v4 .mr-reg-hero-photo {
+  position: absolute;
+  inset: 0;
+}
+.mr-v4 .mr-reg-hero-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mr-v4 .mr-reg-hero-panel {
+  position: absolute;
+  inset: 0;
+  width: 58%;
+  background: var(--bone);
+  clip-path: polygon(0 0, 76% 0, 56% 100%, 0 100%);
+  display: flex;
+  align-items: center;
+}
+.mr-v4 .mr-reg-hero-panel--full {
+  position: relative;
+  width: 100%;
+  min-height: min(82vh, 700px);
+  clip-path: none;
+}
+.mr-v4 .mr-reg-hero-panel-inner {
+  max-width: 460px;
+  padding: 0 clamp(20px, 4vw, 40px) 0 clamp(20px, 6vw, 64px);
+}
+.mr-v4 .mr-reg-hero-heading {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 18px 0 0;
+}
+.mr-v4 .mr-reg-hero-heading em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--green-deep);
+}
+.mr-v4 .mr-reg-hero-body {
+  font-family: var(--body);
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: rgba(11, 33, 24, 0.7);
+  max-width: 42ch;
+  margin: 22px 0 0;
+  white-space: pre-wrap;
+}
+.mr-v4 .mr-reg-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--green-deep);
+  color: var(--bone);
+  font-family: var(--grotesque);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 15px 26px;
+  border-radius: 999px;
+  margin-top: 30px;
+  text-decoration: none;
+  transition: 0.2s;
+}
+.mr-v4 .mr-reg-hero-cta:hover {
+  background: var(--persimmon);
+  color: var(--on-persimmon);
+}
+@media (max-width: 760px) {
+  .mr-v4 .mr-reg-hero-panel {
+    width: 100%;
+    clip-path: none;
+    background: rgba(11, 33, 24, 0.72);
+  }
+  .mr-v4 .mr-reg-hero-panel-inner {
+    max-width: 520px;
+    padding: 0 24px;
+  }
+  .mr-v4 .mr-reg-hero-heading,
+  .mr-v4 .mr-reg-hero-body {
+    color: var(--bone);
+  }
+  .mr-v4 .mr-reg-hero-heading em {
+    color: var(--bone-2);
+  }
+  .mr-v4 .mr-reg-hero-body {
+    color: rgba(246, 238, 221, 0.8);
   }
 }
 
-/* Category filter pills — on the deep green section, so light-on-dark. */
+/* Travel photo strip — horizontal scroll-snap row, no arrows/dots/autoplay;
+   guests scroll it themselves with touch, trackpad, or mouse drag. */
+.mr-v4 .mr-reg-photo-strip {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+.mr-v4 .mr-reg-photo-strip-item {
+  flex: 0 0 auto;
+  width: clamp(220px, 32vw, 340px);
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  background: var(--bone-2);
+}
+.mr-v4 .mr-reg-photo-strip-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Dot indicators under the photo strip — active dot tracks scroll position. */
+.mr-v4 .mr-reg-photo-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.mr-v4 .mr-reg-photo-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(11, 33, 24, 0.2);
+  cursor: pointer;
+  transition: 0.2s;
+  touch-action: manipulation;
+}
+.mr-v4 .mr-reg-photo-dot:hover:not(.is-active) {
+  background: var(--sand);
+}
+.mr-v4 .mr-reg-photo-dot.is-active {
+  width: 22px;
+  background: var(--persimmon);
+}
+.mr-v4 .mr-reg-photo-dot:focus-visible {
+  outline: 2px solid var(--sand);
+  outline-offset: 3px;
+}
+
+/* Fund grid — larger, featured cards since funds are the main way to give. */
+.mr-v4 .mr-reg-fund-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(18px, 2.4vw, 28px);
+}
+.mr-v4 .mr-reg-fund-grid .mr-reg-card-photo {
+  aspect-ratio: 16 / 9;
+}
+@media (max-width: 700px) {
+  .mr-v4 .mr-reg-fund-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Category filter pills — sit on the bone catalogue section, dark-on-light. */
 .mr-v4 .mr-reg-filters {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 .mr-v4 .mr-reg-pill {
   font-family: var(--grotesque);
@@ -28,32 +195,42 @@
   text-transform: uppercase;
   padding: 11px 22px;
   border-radius: 999px;
-  border: 1px solid rgba(246, 238, 221, 0.28);
+  border: 1px solid rgba(11, 33, 24, 0.18);
   background: transparent;
-  color: var(--bone);
+  color: rgba(11, 33, 24, 0.65);
   cursor: pointer;
   transition: 0.2s;
   touch-action: manipulation;
 }
 .mr-v4 .mr-reg-pill:hover:not(.is-active) {
   border-color: var(--sand);
-  color: var(--sand);
+  color: var(--muted-deep);
 }
 .mr-v4 .mr-reg-pill:focus-visible {
   outline: 2px solid var(--sand);
   outline-offset: 3px;
 }
 .mr-v4 .mr-reg-pill.is-active {
-  background: var(--persimmon);
-  border-color: var(--persimmon);
-  color: var(--on-persimmon);
+  background: var(--green-deep);
+  border-color: var(--green-deep);
+  color: var(--bone);
 }
 
 /* Card grid */
 .mr-v4 .mr-reg-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: clamp(18px, 2.4vw, 28px);
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(18px, 2.2vw, 26px);
+}
+@media (max-width: 980px) {
+  .mr-v4 .mr-reg-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .mr-v4 .mr-reg-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .mr-v4 .mr-reg-card {
   display: flex;
@@ -82,7 +259,7 @@
 .mr-v4 .mr-reg-badge {
   position: absolute;
   top: 12px;
-  right: 12px;
+  left: 12px;
   font-family: var(--mono);
   font-size: 0.58rem;
   letter-spacing: 0.16em;
@@ -91,6 +268,9 @@
   border-radius: 999px;
   background: rgba(11, 33, 24, 0.82);
   color: var(--bone);
+}
+.mr-v4 .mr-reg-badge--open {
+  background: rgba(242, 96, 60, 0.85);
 }
 .mr-v4 .mr-reg-card-body {
   display: flex;
@@ -121,51 +301,64 @@
   margin: 14px 0 0;
 }
 
-/* Suggested-amount chips on a fund card */
-.mr-v4 .mr-reg-chip-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-}
-.mr-v4 .mr-reg-chip {
-  font-family: var(--grotesque);
-  font-weight: 700;
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  padding: 9px 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(11, 33, 24, 0.2);
-  background: transparent;
-  color: var(--ink);
-  cursor: pointer;
-  transition: 0.2s;
-  touch-action: manipulation;
-}
-.mr-v4 .mr-reg-chip:hover:not(.is-active) {
-  border-color: var(--sand);
-}
-.mr-v4 .mr-reg-chip.is-active {
-  background: var(--persimmon);
-  border-color: var(--persimmon);
-  color: var(--on-persimmon);
-}
-.mr-v4 .mr-reg-chip:focus-visible {
-  outline: 2px solid var(--sand);
-  outline-offset: 3px;
-}
+/* Amount entry on a fund card — free-form only, no suggested-amount presets. */
 .mr-v4 .mr-reg-custom {
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-top: 12px;
 }
 
-/* Card CTA sits at the bottom regardless of description length */
-.mr-v4 .mr-reg-cta {
-  margin-top: auto;
-  padding-top: 16px;
+/* Collapsible amount panel on a fund card — closed until "Contribute →" is
+   clicked, matching the mockup's accordion rather than always-visible chips. */
+.mr-v4 .mr-reg-contribute-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
 }
+.mr-v4 .mr-reg-card.is-open .mr-reg-contribute-panel {
+  max-height: 220px;
+}
+.mr-v4 .mr-reg-contribute-panel-inner {
+  padding-top: 14px;
+  border-top: 1px solid rgba(11, 33, 24, 0.1);
+  margin-top: 2px;
+}
+
+/* Card CTA sits at the bottom regardless of description length, as a small
+   inline text link rather than a full-width button. */
+.mr-v4 .mr-reg-card-footer {
+  margin-top: auto;
+  padding-top: 14px;
+}
+.mr-v4 .mr-reg-card-cta {
+  font-family: var(--grotesque);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--persimmon);
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.mr-v4 .mr-reg-card-cta:hover:not(:disabled) {
+  color: var(--green-deep);
+}
+.mr-v4 .mr-reg-card-cta:focus-visible {
+  outline: 2px solid var(--sand);
+  outline-offset: 3px;
+}
+.mr-v4 .mr-reg-card-cta.is-claimed,
+.mr-v4 .mr-reg-card-cta:disabled {
+  color: var(--sand);
+  cursor: not-allowed;
+}
+
 .mr-v4 .mr-reg-btn {
   display: block;
   width: 100%;
@@ -429,4 +622,29 @@
   background: var(--bone-2);
   border: 1px dashed rgba(11, 33, 24, 0.3);
   margin-top: 6px;
+}
+
+/* Closing footer — dark green, matching the footer/closing treatment used
+   elsewhere on the site (e.g. ThankYouPhase's footer), not a light panel. */
+.mr-v4 .mr-reg-closing {
+  background: var(--green-deep);
+  padding: clamp(56px, 8vw, 90px) clamp(24px, 5.5vw, 90px);
+  text-align: center;
+}
+.mr-v4 .mr-reg-closing-script {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: var(--bone);
+  margin: 0 0 14px;
+  white-space: pre-wrap;
+}
+.mr-v4 .mr-reg-closing-names {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  /* Plain bone, same as ThankYouPhase's sign-off — only the "&" gets an
+     accent colour (persimmon), not the whole name. */
+  color: var(--bone);
 }

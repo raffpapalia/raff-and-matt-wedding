@@ -30,16 +30,6 @@ export async function uniqueFundSlug(base: string): Promise<string> {
   return `${base}-${Date.now()}`;
 }
 
-// Suggested amounts are whole dollars in an INT[] column — anything
-// non-numeric or non-positive is dropped rather than written through.
-export function parseAmounts(input: unknown): number[] {
-  if (!Array.isArray(input)) return [];
-  return input
-    .map(v => Math.round(Number(v)))
-    .filter(n => Number.isFinite(n) && n > 0)
-    .slice(0, 8);
-}
-
 /**
  * Normalises the item quantity field. The admin form models this as an
  * "Unlimited" checkbox, which stores NULL — the value the rest of the system

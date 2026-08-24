@@ -219,6 +219,13 @@ export type Settings = {
   registry_payid: string;
   registry_payid_name: string;
   registry_payid_instructions: string;
+  registry_bank_bsb: string;
+  registry_bank_account_number: string;
+  registry_bank_account_name: string;
+  registry_hero_photo_url: string;
+  registry_story_heading: string;
+  registry_story_body: string;
+  registry_travel_photos: string[];
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -270,6 +277,13 @@ export const DEFAULT_SETTINGS: Settings = {
   registry_payid_name: '',
   registry_payid_instructions:
     'Please include the reference code above so we can match your gift to you.',
+  registry_bank_bsb: '',
+  registry_bank_account_number: '',
+  registry_bank_account_name: '',
+  registry_hero_photo_url: '',
+  registry_story_heading: '',
+  registry_story_body: '',
+  registry_travel_photos: [],
 };
 
 // ── Budget tracking (admin-only; tables have no anon RLS policies) ──
@@ -360,7 +374,6 @@ export type RegistryFund = {
   name: string;
   slug: string;
   description: string | null;
-  suggested_amounts: number[];
   category: string;
   image_url: string | null;
   is_active: boolean;

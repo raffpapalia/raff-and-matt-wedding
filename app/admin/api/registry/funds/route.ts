@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 import { ADMIN_COOKIE_NAME, verifyAdminSession } from '@/lib/adminAuth';
-import { parseAmounts, slugify, uniqueFundSlug } from '@/lib/registry/catalog';
+import { slugify, uniqueFundSlug } from '@/lib/registry/catalog';
 
 function logErr(op: string, err: unknown) {
   const e = err as { message?: string; code?: string; details?: string } | null;
@@ -42,21 +42,16 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, description, suggested_amounts, category, image_url, is_active, sort_order } = body;
+  const { name, description, category, image_url, is_active, sort_order } = body;
 
   if (!name?.trim() || !category?.trim()) {
     return NextResponse.json({ message: 'name and category are required' }, { status: 400 });
   }
 
-  const amounts = parseAmounts(suggested_amounts);
-
   const payload = {
     name: name.trim(),
     slug: await uniqueFundSlug(slugify(name)),
     description: description?.trim() || null,
-    // Falling back to the column default rather than an empty array keeps a
-    // fund from rendering with no way to choose an amount.
-    suggested_amounts: amounts.length > 0 ? amounts : [50, 100, 250],
     category: category.trim(),
     image_url: image_url?.trim() || null,
     is_active: is_active ?? true,
