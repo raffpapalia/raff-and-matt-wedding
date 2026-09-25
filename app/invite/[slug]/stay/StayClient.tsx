@@ -200,7 +200,11 @@ export default function StayClient({
           </h1>
           <div className="mr-stay-lede">
             <p>
-              Are you planning to book a room at QT Hotel for our wedding?
+              Are you planning to book a room at{' '}
+              <a className="mr-stay-lede-link" href="https://www.qthotels.com/melbourne" target="_blank" rel="noopener noreferrer">
+                QT Hotel
+              </a>{' '}
+              for our wedding?
               <br />
               One lift can take you from ceremony to party to bed!
             </p>

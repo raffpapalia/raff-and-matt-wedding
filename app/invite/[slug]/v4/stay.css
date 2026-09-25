@@ -101,6 +101,19 @@
 .mr-v4 .mr-stay-lede p + p {
   margin-top: 0.85em;
 }
+/* Same type and colour as the surrounding text; the underline is the only cue. */
+.mr-v4 .mr-stay-lede-link {
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+.mr-v4 .mr-stay-lede-link:focus-visible {
+  outline: 2px solid var(--persimmon);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
 
 /* Key card — desktop only (the mobile mockup omits it). */
 .mr-v4 .mr-stay-keycard {
