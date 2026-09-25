@@ -198,13 +198,23 @@ export default function StayClient({
           <h1 className="mr-stay-heading">
             Staying at <em>{venueShort}?</em>
           </h1>
-          <p className="mr-stay-lede">
-            Just a quick headcount, no commitment
-            <br />
-            It helps us secure a better group room rate at {venueName}
-            <br />
-            You’ll confirm your room later when you RSVP
-          </p>
+          <div className="mr-stay-lede">
+            <p>
+              Are you planning to book a room at QT Hotel for our wedding?
+              <br />
+              One lift can take you from ceremony to party to bed!
+            </p>
+            <p>
+              We are organising a group room booking which will give you a better rate than booking directly. The more
+              rooms we hold, the better the rate will be.
+            </p>
+            <p>
+              If you’re keen to stay, we’ll handle the booking for you via your RSVP. You won’t have to do anything
+              other than pay on check-in.
+            </p>
+            <p>QT Hotel is right in the middle of the CBD with heaps of other options if QT isn’t your thing.</p>
+            <p>Be on the lookout for the invite coming soon!</p>
+          </div>
 
           <div className="mr-stay-keycard" aria-hidden="true">
             <div className="mr-stay-keycard-top">

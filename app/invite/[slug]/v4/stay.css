@@ -95,6 +95,12 @@
   line-height: 1.55;
   color: color-mix(in srgb, var(--bone) 80%, transparent);
 }
+.mr-v4 .mr-stay-lede p {
+  margin: 0;
+}
+.mr-v4 .mr-stay-lede p + p {
+  margin-top: 0.85em;
+}
 
 /* Key card — desktop only (the mobile mockup omits it). */
 .mr-v4 .mr-stay-keycard {
