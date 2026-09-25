@@ -310,12 +310,6 @@
   line-height: 1;
   font-variation-settings: 'opsz' 144;
 }
-.mr-v4 .mr-stay-rooms-hint {
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--muted-deep);
-}
-
 .mr-v4 .mr-stay-no-note {
   padding: 18px 20px;
   border-radius: 12px;
@@ -694,15 +688,6 @@
     justify-content: space-between;
     align-items: center;
     gap: 24px;
-  }
-  .mr-v4 .mr-stay-rooms-head {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .mr-v4 .mr-stay-rooms-hint {
-    padding-left: 32px;
-    font-size: 14px;
   }
   .mr-v4 .mr-stay-step {
     width: 50px;

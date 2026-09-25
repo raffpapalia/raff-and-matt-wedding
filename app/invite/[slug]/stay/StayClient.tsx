@@ -196,7 +196,7 @@ export default function StayClient({
           <div className="mr-stay-kicker">Expression of interest</div>
           <div className="mr-stay-greeting">Hi {greeting},</div>
           <h1 className="mr-stay-heading">
-            Staying <em>at {venueShort}?</em>
+            Staying at <em>{venueShort}?</em>
           </h1>
           <p className="mr-stay-lede">
             Just a quick headcount, no commitment
@@ -328,12 +328,9 @@ export default function StayClient({
                   </fieldset>
 
                   <div className="mr-stay-rooms">
-                    <div className="mr-stay-rooms-head">
-                      <div className="mr-stay-legend" id="mr-stay-rooms-label">
-                        <span className="mr-stay-num">03</span>
-                        <span className="mr-stay-q">How many rooms?</span>
-                      </div>
-                      <div className="mr-stay-rooms-hint mr-stay-desktop-only">Most households need just the one.</div>
+                    <div className="mr-stay-legend" id="mr-stay-rooms-label">
+                      <span className="mr-stay-num">03</span>
+                      <span className="mr-stay-q">How many rooms?</span>
                     </div>
                     <div className="mr-stay-stepper" role="group" aria-labelledby="mr-stay-rooms-label">
                       <button
@@ -362,7 +359,6 @@ export default function StayClient({
                           <path d="M5 12h14M12 5v14" />
                         </svg>
                       </button>
-                      <div className="mr-stay-rooms-hint mr-stay-mobile-only">Most households need just the one.</div>
                     </div>
                   </div>
                 </>
