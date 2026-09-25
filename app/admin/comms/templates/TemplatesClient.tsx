@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { EmailTemplateRow, SmsTemplateRow } from './page';
 import { EMAIL_TEMPLATE_TITLES } from '@/lib/email/templateInfo';
-import { resolveMergeTags } from '@/lib/email/mergeTags';
 import MergeTagChips from '../MergeTagChips';
+import { buildSmsBody } from '@/lib/sms/smsBody';
 
 type Draft = { subject: string; body: string; is_active: boolean };
 type SmsDraft = { body: string; is_active: boolean };
@@ -15,6 +15,8 @@ const MERGE_TAGS: Array<{ tag: string; hint: string }> = [
   { tag: '{{wedding_date}}', hint: 'Wedding date, formatted' },
   { tag: '{{venue}}', hint: 'Venue name' },
   { tag: '{{cta_button}}', hint: 'Invite button — must be on its own line' },
+  { tag: '{{stay_link}}', hint: 'Room interest page link' },
+  { tag: '{{stay_button}}', hint: 'Register interest button — must be on its own line' },
 ];
 
 // Extra tags only meaningful on specific templates, added on top of MERGE_TAGS
@@ -28,6 +30,7 @@ const EXTRA_MERGE_TAGS_BY_KEY: Record<string, Array<{ tag: string; hint: string 
 
 const SMS_MERGE_TAGS: Array<{ tag: string; hint: string }> = [
   { tag: '{{first_name}}', hint: "Guest's first name" },
+  { tag: '{{stay_link}}', hint: 'Room interest link (replaces the invite link)' },
 ];
 
 const TEMPLATE_DESCRIPTIONS: Record<string, string> = {
@@ -94,7 +97,11 @@ function getSmsInfo(text: string) {
 }
 
 function renderSmsPreviewText(body: string, firstName: string): string {
-  return `${resolveMergeTags(body, { first_name: firstName })} ${SMS_SAMPLE_SHORT_LINK}`;
+  return buildSmsBody(body, {
+    first_name: firstName,
+    inviteLink: SMS_SAMPLE_SHORT_LINK,
+    stayLink: `${SMS_SAMPLE_SHORT_LINK}/stay`,
+  });
 }
 
 function isDirty(draft: Draft | undefined, saved: EmailTemplateRow | undefined) {
@@ -601,8 +608,9 @@ function SmsTemplateCard({
             <p className="mb-2 font-dm-sans text-xs uppercase tracking-[0.2em] text-admin-ink/50">Merge tags</p>
             <MergeTagChips tags={SMS_MERGE_TAGS} />
             <p className="mt-2 font-dm-sans text-xs text-admin-ink/40">
-              The short invite link is added automatically at the end — you don&apos;t need to type it. Plain text
-              only, no formatting.
+              The short invite link is added automatically at the end — you don&apos;t need to type it. Use{' '}
+              <code>{'{{stay_link}}'}</code> instead to send the room interest link in its place. Plain text only, no
+              formatting.
             </p>
           </div>
 

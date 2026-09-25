@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stay at QT, v3 desktop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:opsz,wght@9..40,400..700&amp;family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&amp;display=swap">
+<style>
+body{margin:0;background:#0B2118}
+a{color:#F6EEDD}a:hover{color:#F2603C}
+button{cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1320px; box-sizing: border-box; display: flex; flex-direction: column; background: #0B2118; color: #F6EEDD; font-family: 'DM Sans', system-ui, sans-serif">
+
+  <header style="display: flex; justify-content: space-between; align-items: center; padding: 28px 120px; border-bottom: 1px solid rgba(168,140,96,0.35)">
+    <div style="font-family: 'Fraunces', Georgia, serif; font-weight: 900; font-variation-settings: 'opsz' 144; font-size: 26px; letter-spacing: 0.01em; line-height: 1"><span style="color: #8E7CC3">Matt</span> <span style="font-style: italic; font-weight: 600; color: #F2603C">&amp;</span> <span style="color: #8E7CC3">Raff</span></div>
+    <div style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 13px; letter-spacing: 0.12em; color: #A88C60">QT MELBOURNE · 10.07.27</div>
+  </header>
+
+  <section style="flex-grow: 1; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 88px; align-items: start; padding: 72px 120px">
+    <div style="display: flex; flex-direction: column; gap: 24px">
+      <div style="font-family: 'Bricolage Grotesque', 'DM Sans', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.18em; text-transform: uppercase; color: #F2603C">Expression of interest</div>
+      <div style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 26px; color: #A88C60">Hi {{guestNames}},</div>
+      <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 300; font-variation-settings: 'opsz' 144; font-size: 96px; line-height: 0.94; letter-spacing: -0.02em">Staying <span style="font-style: italic; color: #F2603C">at QT?</span></h1>
+      <p style="margin: 0; max-width: 480px; font-size: 19px; line-height: 1.55; color: rgba(246,238,221,0.8); text-align: start; width: 447px">Just a quick headcount, no commitment<br>It helps us secure a better group room rate at QT Hotel Melbourne&nbsp;<br>You'll confirm your room later when you RSVP</p>
+
+      <div style="margin-top: 26px; margin-left: 12px; width: 400px; height: 250px; box-sizing: border-box; padding: 26px 30px; border-radius: 16px; background: #A88C60; color: #0B2118; transform: rotate(-4deg); box-shadow: 0 30px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <div style="font-family: 'Bricolage Grotesque', 'DM Sans', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 0.2em">QT MELBOURNE</div>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B2118" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8.5 7.5a6 6 0 0 1 0 9"></path><path d="M12 5a9.5 9.5 0 0 1 0 14"></path><path d="M15.5 2.5a13 13 0 0 1 0 19"></path></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="font-family: 'Fraunces', Georgia, serif; font-size: 30px; line-height: 1; font-variation-settings: 'opsz' 144">Matt <span style="font-style: italic">&amp;</span> Raff</div>
+          <div style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.12em; font-weight: 500">GUEST · {{guestNamesCaps}}</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding-top: 12px; border-top: 1.5px solid rgba(11,33,24,0.5)">
+          <div style="display: flex; flex-direction: column; gap: 3px"><div style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.14em; font-weight: 500">IN</div><div style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500">{{cardIn}}</div></div>
+          <div style="display: flex; flex-direction: column; gap: 3px"><div style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.14em; font-weight: 500">OUT</div><div style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500">{{cardOut}}</div></div>
+          <div style="display: flex; flex-direction: column; gap: 3px"><div style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.14em; font-weight: 500">ROOMS</div><div style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500">{{roomsPad}}</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="position: relative; display: flex; flex-direction: column; padding: 48px; border-radius: 22px; background: #EFE3C7; color: #0B2118">
+      <sc-if value="{{showForm}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 40px">
+
+          <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column">
+            <legend style="padding: 0; margin-bottom: 18px; display: flex; gap: 14px; align-items: baseline"><span style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 13px; color: #6e6347">01</span><span style="font-family: 'Fraunces', Georgia, serif; font-size: 30px">Are you likely to stay at QT?</span></legend>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+              <sc-for list="{{statusOptions}}" as="o" hint-placeholder-count="3">
+                <button type="button" aria-pressed="{{o.pressed}}" onClick="{{o.pick}}" style="min-height: 96px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; padding: 16px 18px; border-radius: 14px; text-align: left; font-family: inherit; background: {{o.bg}}; color: {{o.fg}}; border: 1.5px solid {{o.border}}">
+                  <span style="font-family: 'Fraunces', Georgia, serif; font-size: 21px">{{o.label}}</span>
+                  <span style="font-size: 14px; line-height: 1.35; color: {{o.sfg}}">{{o.sub}}</span>
+                </button>
+              </sc-for>
+            </div>
+          </fieldset>
+
+          <sc-if value="{{showDetails}}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 40px">
+              <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 16px">
+                <legend style="padding: 0; margin-bottom: 18px; display: flex; gap: 14px; align-items: baseline"><span style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 13px; color: #6e6347">02</span><span style="font-family: 'Fraunces', Georgia, serif; font-size: 30px">Which nights?</span><span style="font-size: 15px; color: #6e6347">Pick all that apply</span></legend>
+                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+                  <sc-for list="{{nightOptions}}" as="n" hint-placeholder-count="3">
+                    <button type="button" aria-pressed="{{n.pressed}}" onClick="{{n.pick}}" style="min-height: 176px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; padding: 18px; border-radius: 14px; text-align: left; font-family: inherit; background: {{n.bg}}; color: {{n.fg}}; border: 1.5px solid {{n.border}}">
+                      <span style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start">
+                        <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.12em">{{n.kicker}}</span><span style="font-family: 'Fraunces', Georgia, serif; font-size: 46px; line-height: 1; font-variation-settings: 'opsz' 144">{{n.date}}</span></span>
+                        <span style="width: 26px; height: 26px; box-sizing: border-box; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{n.dotBg}}; border: 1.5px solid {{n.dotBorder}}">
+                          <sc-if value="{{n.selected}}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0B2118" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+                        </span>
+                      </span>
+                      <span style="display: flex; flex-direction: column; gap: 4px">
+                        <span style="font-family: 'Fraunces', Georgia, serif; font-size: 20px">{{n.title}}</span>
+                        <span style="font-size: 14px; line-height: 1.4; color: {{n.sfg}}">{{n.note}}</span>
+                      </span>
+                    </button>
+                  </sc-for>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; font-family: 'DM Mono', ui-monospace, monospace; font-size: 14px; color: #0F7A52">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F7A52" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V8M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5"></path><circle cx="7" cy="11" r="1.6"></circle></svg>
+                  <span>{{rangeText}}</span>
+                </div>
+              </fieldset>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 24px">
+                <div style="display: flex; flex-direction: column; gap: 6px">
+                  <div style="display: flex; gap: 14px; align-items: baseline"><span style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 13px; color: #6e6347">03</span><span style="font-family: 'Fraunces', Georgia, serif; font-size: 30px">How many rooms?</span></div>
+                  <div style="padding-left: 32px; font-size: 14px; color: #6e6347">Most households need just the one.</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 20px">
+                  <button type="button" aria-label="One fewer room" onClick="{{decRooms}}" style="width: 50px; height: 50px; border-radius: 50%; border: 1.5px solid #0B2118; background: transparent; display: flex; align-items: center; justify-content: center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0B2118" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+                  <div aria-live="polite" style="min-width: 34px; text-align: center; font-family: 'Fraunces', Georgia, serif; font-size: 48px; line-height: 1; font-variation-settings: 'opsz' 144">{{rooms}}</div>
+                  <button type="button" aria-label="One more room" onClick="{{incRooms}}" style="width: 50px; height: 50px; border-radius: 50%; border: 1.5px solid #0B2118; background: transparent; display: flex; align-items: center; justify-content: center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0B2118" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{showNo}}" hint-placeholder-val="{{ false }}">
+            <div style="padding: 20px 22px; border-radius: 14px; background: #F6EEDD; font-size: 16px; line-height: 1.6">No worries at all. We won’t count a room for you, and if plans change you can add one when you RSVP.</div>
+          </sc-if>
+
+          <div style="position: relative; height: 28px; display: flex; align-items: center">
+            <div style="position: absolute; left: -62px; top: 0; width: 28px; height: 28px; border-radius: 50%; background: #0B2118"></div>
+            <div style="flex-grow: 1; border-top: 2px dashed rgba(11,33,24,0.25)"></div>
+            <div style="position: absolute; right: -62px; top: 0; width: 28px; height: 28px; border-radius: 50%; background: #0B2118"></div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 18px">
+            <sc-if value="{{showSummary}}" hint-placeholder-val="{{ true }}"><div style="display: flex; flex-direction: column; gap: 6px">
+              <div style="font-family: 'DM Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.14em; color: #6e6347">YOUR INTEREST</div>
+              <div style="font-family: 'Fraunces', Georgia, serif; font-size: 26px">{{summary}}</div>
+            </div></sc-if>
+            <button type="button" onClick="{{submit}}" disabled="{{submitDisabled}}" style="width: 100%; min-height: 58px; border-radius: 999px; border: 0; background: #F2603C; color: #1a0d07; font-family: 'Bricolage Grotesque', 'DM Sans', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; opacity: {{submitOpacity}}">{{submitLabel}}</button>
+            <sc-if value="{{showSummary}}" hint-placeholder-val="{{ true }}"><p style="margin: 0; font-size: 14px; line-height: 1.55; color: #6e6347">This is an expression of interest only. It’s not a booking, and you’re not committed to anything.</p></sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{showDone}}" hint-placeholder-val="{{ false }}">
+        <div style="min-height: 460px; display: flex; flex-direction: column; justify-content: center; gap: 20px">
+          <div style="width: 52px; height: 52px; border-radius: 50%; background: #F2603C; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B2118" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></div>
+          <h2 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 300; font-variation-settings: 'opsz' 144; font-size: 52px; line-height: 1.02">{{doneTitle}}</h2>
+          <p style="margin: 0; font-size: 17px; line-height: 1.6">{{doneBody}}</p>
+          <div><button type="button" onClick="{{edit}}" style="min-height: 46px; padding: 0 22px; border-radius: 999px; border: 1.5px solid #0B2118; background: transparent; color: #0B2118; font-family: 'Bricolage Grotesque', 'DM Sans', sans-serif; font-weight: 600; font-size: 15px">Change my answer</button></div>
+        </div>
+      </sc-if>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"guestNames":{"editor":"text","default":"Priya &amp; Tom"},"$preview":{"width":1440,"height":1320}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { status: 'yes', nights: { fri: true, sat: true, longer: false }, rooms: 1, submitted: false };
+  }
+  renderVals() {
+    var s = this.state, self = this;
+    var INK = '#0B2118', BONE = '#F6EEDD', LINE = 'rgba(11,33,24,0.28)', MUTED = '#6e6347', SAND = '#A88C60', PERS = '#F2603C';
+    var guestNames = this.props.guestNames ?? 'Priya & Tom';
+
+    var statusOptions = [
+      { id: 'yes', label: 'Yes, likely', sub: 'We’d probably want a room' },
+      { id: 'maybe', label: 'Maybe', sub: 'Too early to say' },
+      { id: 'no', label: 'No thanks', sub: 'We’re local or sorted' }
+    ].map(function (d) {
+      var on = s.status === d.id;
+      return { label: d.label, sub: d.sub, pressed: on ? 'true' : 'false', bg: on ? INK : 'transparent', fg: on ? BONE : INK, sfg: on ? SAND : MUTED, border: on ? INK : LINE,
+        pick: function () { self.setState({ status: d.id }); } };
+    });
+
+    var nightOptions = [
+      { id: 'fri', kicker: 'FRI · JUL', dow: 'FRI', date: '09', title: 'The night before', note: 'Arrive early, settle in' },
+      { id: 'sat', kicker: 'SAT · JUL', dow: 'SAT', date: '10', title: 'Wedding night', note: 'Your bed is a lift ride away' },
+      { id: 'longer', kicker: 'EXTRA NIGHTS', dow: 'MORE', date: '+', title: 'We’re staying longer', note: 'Confirm dates at RSVP' }
+    ].map(function (d) {
+      var on = !!s.nights[d.id];
+      return { kicker: d.kicker, dow: d.dow, date: d.date, title: d.title, note: d.note, selected: on, pressed: on ? 'true' : 'false',
+        bg: on ? INK : 'transparent', fg: on ? BONE : INK, sfg: on ? SAND : MUTED, border: on ? INK : LINE,
+        dotBg: on ? PERS : 'transparent', dotBorder: on ? PERS : LINE,
+        pick: function () {
+          var n = Object.assign({}, s.nights);
+          if (d.id === 'longer') {
+            n.longer = !n.longer;
+            if (n.longer) { n.fri = false; n.sat = false; }
+          } else {
+            n[d.id] = !n[d.id];
+            n.longer = false;
+          }
+          self.setState({ nights: n });
+        } };
+    });
+
+    var fri = !!s.nights.fri, sat = !!s.nights.sat, longer = !!s.nights.longer;
+    var count = (fri ? 1 : 0) + (sat ? 1 : 0);
+    var rangeText, cardIn = 'TBC', cardOut = 'TBC';
+    if (longer) {
+      rangeText = 'Longer stay: you’ll confirm your exact dates at RSVP';
+    } else if (count === 0) {
+      rangeText = 'Pick at least one option';
+    } else {
+      var inLong = fri ? 'Fri 9 July' : 'Sat 10 July';
+      var outLong = sat ? 'Sun 11 July' : 'Sat 10 July';
+      rangeText = 'Check in ' + inLong + '  ·  check out ' + outLong;
+      cardIn = fri ? '09 JUL' : '10 JUL';
+      cardOut = sat ? '11 JUL' : '10 JUL';
+    }
+    if (s.status === 'no') { cardIn = 'TBC'; cardOut = 'TBC'; }
+
+    var showDetails = s.status === 'yes' || s.status === 'maybe';
+    var roomsText = s.rooms + ' room' + (s.rooms === 1 ? '' : 's');
+    var summary;
+    if (!s.status) summary = 'Nothing selected yet';
+    else if (longer) summary = 'Longer stay  ·  ' + roomsText + (s.status === 'maybe' ? '  ·  maybe' : '');
+    else summary = count + ' night' + (count === 1 ? '' : 's') + '  ·  ' + roomsText + (s.status === 'maybe' ? '  ·  maybe' : '');
+    var submitDisabled = !s.status || (showDetails && count === 0 && !longer);
+
+    return {
+      guestNames: guestNames,
+      guestNamesCaps: guestNames.toUpperCase(),
+      statusOptions: statusOptions,
+      nightOptions: nightOptions,
+      rangeText: rangeText,
+      cardIn: cardIn,
+      cardOut: cardOut,
+      rooms: s.rooms,
+      roomsPad: s.status === 'no' ? '00' : ('0' + s.rooms),
+      showDetails: showDetails,
+      showNo: s.status === 'no',
+      showSummary: s.status !== 'no',
+      showForm: !s.submitted,
+      showDone: s.submitted,
+      summary: summary,
+      submitLabel: s.status === 'no' ? 'Let us know' : 'Register interest',
+      submitDisabled: submitDisabled,
+      submitOpacity: submitDisabled ? '0.45' : '1',
+      doneTitle: s.status === 'no' ? 'Thanks for letting us know.' : 'Thanks, interest noted.',
+      doneBody: s.status === 'no'
+        ? 'We won’t count a room for you. If plans change, you can add one when you RSVP.'
+        : 'We’ve noted ' + summary.replace(/  ·  /g, ', ').toLowerCase() + '. Nothing’s booked yet. You’ll confirm your room, with the rate, when you RSVP.',
+      decRooms: function () { self.setState({ rooms: Math.max(1, s.rooms - 1) }); },
+      incRooms: function () { self.setState({ rooms: Math.min(4, s.rooms + 1) }); },
+      submit: function () { if (!submitDisabled) self.setState({ submitted: true }); },
+      edit: function () { self.setState({ submitted: false }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

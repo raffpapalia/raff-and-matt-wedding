@@ -1,0 +1,767 @@
+/* QT room block expression of interest (app/invite/[slug]/stay).
+   Kept out of design.css for the same reason as registry.css: it belongs to one
+   page. Scoped under .mr-v4 so the colour/typography vars resolve from the
+   wrapper in app/invite/[slug]/layout.tsx. Mobile-first; the desktop layout
+   from design/stay-eoi/Stay.dc.html kicks in at 960px. */
+
+.mr-v4 .mr-stay {
+  --stay-line: color-mix(in srgb, var(--ink) 28%, transparent);
+  --stay-card-pad-x: 20px;
+  min-height: 100vh;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--body);
+}
+
+.mr-v4 .mr-stay .mr-stay-desktop-only {
+  display: none;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.mr-v4 .mr-stay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid color-mix(in srgb, var(--sand) 35%, transparent);
+}
+.mr-v4 .mr-stay-wordmark {
+  font-family: var(--display);
+  font-weight: 900;
+  font-variation-settings: 'opsz' 144;
+  font-size: 22px;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.mr-v4 .mr-stay-wordmark-name {
+  color: var(--violet);
+}
+.mr-v4 .mr-stay-wordmark-amp {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--persimmon);
+}
+.mr-v4 .mr-stay-header-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--sand);
+  text-align: right;
+}
+
+/* ── Intro column ───────────────────────────────────────────────────────── */
+.mr-v4 .mr-stay-grid {
+  display: flex;
+  flex-direction: column;
+}
+.mr-v4 .mr-stay-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 44px 24px 36px;
+}
+.mr-v4 .mr-stay-kicker {
+  font-family: var(--grotesque);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--persimmon);
+}
+.mr-v4 .mr-stay-greeting {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--sand);
+}
+.mr-v4 .mr-stay-heading {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 300;
+  font-variation-settings: 'opsz' 144;
+  font-size: 60px;
+  line-height: 0.94;
+  letter-spacing: -0.02em;
+}
+.mr-v4 .mr-stay-heading em {
+  font-style: italic;
+  color: var(--persimmon);
+}
+.mr-v4 .mr-stay-lede {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--bone) 80%, transparent);
+}
+
+/* Key card — desktop only (the mobile mockup omits it). */
+.mr-v4 .mr-stay-keycard {
+  display: none;
+}
+
+/* ── Form card ──────────────────────────────────────────────────────────── */
+.mr-v4 .mr-stay-card {
+  position: relative;
+  margin: 0 16px 40px;
+  padding: 30px var(--stay-card-pad-x) 28px;
+  border-radius: 18px;
+  background: var(--bone-2);
+  color: var(--ink);
+}
+.mr-v4 .mr-stay-form {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+}
+.mr-v4 .mr-stay-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mr-v4 .mr-stay-legend {
+  padding: 0;
+  margin-bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+}
+.mr-v4 .mr-stay-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted-deep);
+}
+.mr-v4 .mr-stay-q {
+  font-family: var(--display);
+  font-size: 24px;
+}
+.mr-v4 .mr-stay-legend-hint {
+  font-size: 13px;
+  color: var(--muted-deep);
+}
+
+/* Option buttons (status + night tiles) */
+.mr-v4 .mr-stay-option {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 12px;
+  text-align: left;
+  font-family: inherit;
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--stay-line);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.mr-v4 .mr-stay-option:hover {
+  border-color: var(--ink);
+}
+.mr-v4 .mr-stay-option[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--bone);
+  border-color: var(--ink);
+}
+.mr-v4 .mr-stay-option-sub {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--muted-deep);
+}
+.mr-v4 .mr-stay-option[aria-pressed='true'] .mr-stay-option-sub {
+  color: var(--sand);
+}
+.mr-v4 .mr-stay-option-label {
+  font-family: var(--display);
+  font-size: 20px;
+}
+
+.mr-v4 .mr-stay-status-grid,
+.mr-v4 .mr-stay-night-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mr-v4 .mr-stay-status {
+  min-height: 64px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+}
+.mr-v4 .mr-stay-status .mr-stay-option-sub {
+  text-align: right;
+}
+
+.mr-v4 .mr-stay-night {
+  min-height: 84px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+}
+.mr-v4 .mr-stay-night-date {
+  width: 54px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.mr-v4 .mr-stay-night-kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+.mr-v4 .mr-stay-night-day {
+  font-family: var(--display);
+  font-size: 34px;
+  line-height: 1;
+  font-variation-settings: 'opsz' 144;
+}
+.mr-v4 .mr-stay-night-text {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mr-v4 .mr-stay-night-title {
+  font-family: var(--display);
+  font-size: 18px;
+}
+.mr-v4 .mr-stay-dot {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--stay-line);
+  color: var(--ink);
+}
+.mr-v4 .mr-stay-option[aria-pressed='true'] .mr-stay-dot {
+  background: var(--persimmon);
+  border-color: var(--persimmon);
+}
+
+.mr-v4 .mr-stay-range {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--green);
+}
+.mr-v4 .mr-stay-range svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Rooms stepper */
+.mr-v4 .mr-stay-rooms {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mr-v4 .mr-stay-rooms .mr-stay-legend {
+  margin-bottom: 0;
+}
+.mr-v4 .mr-stay-stepper {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.mr-v4 .mr-stay-step {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.mr-v4 .mr-stay-step:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--bone);
+}
+.mr-v4 .mr-stay-step:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.mr-v4 .mr-stay-step-value {
+  min-width: 32px;
+  text-align: center;
+  font-family: var(--display);
+  font-size: 44px;
+  line-height: 1;
+  font-variation-settings: 'opsz' 144;
+}
+.mr-v4 .mr-stay-rooms-hint {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted-deep);
+}
+
+.mr-v4 .mr-stay-no-note {
+  padding: 18px 20px;
+  border-radius: 12px;
+  background: var(--bone);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Ticket perforation: dashed rule with page-coloured notches cut into the card edges. */
+.mr-v4 .mr-stay-perf {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+.mr-v4 .mr-stay-perf-line {
+  flex-grow: 1;
+  border-top: 2px dashed color-mix(in srgb, var(--ink) 25%, transparent);
+}
+.mr-v4 .mr-stay-notch {
+  position: absolute;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.mr-v4 .mr-stay-notch--left {
+  left: calc(-1 * var(--stay-card-pad-x) - 12px);
+}
+.mr-v4 .mr-stay-notch--right {
+  right: calc(-1 * var(--stay-card-pad-x) - 12px);
+}
+
+.mr-v4 .mr-stay-submit-block {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.mr-v4 .mr-stay-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mr-v4 .mr-stay-summary-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--muted-deep);
+}
+.mr-v4 .mr-stay-summary-value {
+  font-family: var(--display);
+  font-size: 21px;
+  line-height: 1.3;
+}
+.mr-v4 .mr-stay-submit {
+  width: 100%;
+  min-height: 56px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--persimmon);
+  color: var(--on-persimmon);
+  font-family: var(--grotesque);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+.mr-v4 .mr-stay-submit:hover:not(:disabled) {
+  background: var(--sand);
+}
+.mr-v4 .mr-stay-submit:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.mr-v4 .mr-stay-fineprint,
+.mr-v4 .mr-stay-error {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted-deep);
+}
+.mr-v4 .mr-stay-error {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Confirmation + closed states */
+.mr-v4 .mr-stay-done {
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+.mr-v4 .mr-stay-done-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--persimmon);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mr-v4 .mr-stay-done-title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 300;
+  font-variation-settings: 'opsz' 144;
+  font-size: 38px;
+  line-height: 1.05;
+}
+.mr-v4 .mr-stay-done-body {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.mr-v4 .mr-stay-ghost {
+  min-height: 46px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--grotesque);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.mr-v4 .mr-stay-ghost:hover {
+  background: var(--ink);
+  color: var(--bone);
+}
+.mr-v4 .mr-stay-closed p {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+/* Focus: persimmon ring on every control, offset so it reads on both ink and bone. */
+.mr-v4 .mr-stay-option:focus-visible,
+.mr-v4 .mr-stay-step:focus-visible,
+.mr-v4 .mr-stay-submit:focus-visible,
+.mr-v4 .mr-stay-ghost:focus-visible {
+  outline: 2.5px solid var(--persimmon);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mr-v4 .mr-stay-option,
+  .mr-v4 .mr-stay-step,
+  .mr-v4 .mr-stay-submit,
+  .mr-v4 .mr-stay-ghost {
+    transition: none;
+  }
+}
+
+/* ── Desktop ────────────────────────────────────────────────────────────── */
+@media (min-width: 960px) {
+  .mr-v4 .mr-stay {
+    --stay-card-pad-x: 48px;
+  }
+  .mr-v4 .mr-stay .mr-stay-desktop-only {
+    display: revert;
+  }
+  .mr-v4 .mr-stay .mr-stay-mobile-only {
+    display: none;
+  }
+
+  .mr-v4 .mr-stay-header {
+    padding: 28px clamp(40px, 8vw, 120px);
+  }
+  .mr-v4 .mr-stay-wordmark {
+    font-size: 26px;
+  }
+  .mr-v4 .mr-stay-header-meta {
+    font-size: 13px;
+  }
+
+  .mr-v4 .mr-stay-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: clamp(48px, 6vw, 88px);
+    align-items: start;
+    max-width: 1440px;
+    box-sizing: border-box;
+    margin: 0 auto;
+    padding: 72px clamp(40px, 8vw, 120px);
+  }
+  .mr-v4 .mr-stay-intro {
+    gap: 24px;
+    padding: 0;
+  }
+  .mr-v4 .mr-stay-kicker {
+    font-size: 18px;
+  }
+  .mr-v4 .mr-stay-greeting {
+    font-size: 26px;
+  }
+  .mr-v4 .mr-stay-heading {
+    font-size: clamp(72px, 6.7vw, 96px);
+  }
+  .mr-v4 .mr-stay-lede {
+    max-width: 480px;
+    font-size: 19px;
+  }
+
+  .mr-v4 .mr-stay-keycard {
+    margin-top: 26px;
+    margin-left: 12px;
+    width: 400px;
+    max-width: 100%;
+    height: 250px;
+    box-sizing: border-box;
+    padding: 26px 30px;
+    border-radius: 16px;
+    background: var(--sand);
+    color: var(--ink);
+    transform: rotate(-4deg);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .mr-v4 .mr-stay-keycard-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .mr-v4 .mr-stay-keycard-venue {
+    font-family: var(--grotesque);
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+  }
+  .mr-v4 .mr-stay-keycard-mid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .mr-v4 .mr-stay-keycard-names {
+    font-family: var(--display);
+    font-size: 30px;
+    line-height: 1;
+    font-variation-settings: 'opsz' 144;
+  }
+  .mr-v4 .mr-stay-mono-sm {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mr-v4 .mr-stay-keycard-cells {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1.5px solid color-mix(in srgb, var(--ink) 50%, transparent);
+  }
+  .mr-v4 .mr-stay-keycard-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    font-weight: 500;
+  }
+  .mr-v4 .mr-stay-keycard-value {
+    margin-top: 3px;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .mr-v4 .mr-stay-card {
+    margin: 0;
+    padding: 48px;
+    border-radius: 22px;
+  }
+  .mr-v4 .mr-stay-form {
+    gap: 40px;
+  }
+  .mr-v4 .mr-stay-fieldset {
+    gap: 16px;
+  }
+  .mr-v4 .mr-stay-legend {
+    margin-bottom: 18px;
+    gap: 4px 14px;
+  }
+  .mr-v4 .mr-stay-num {
+    font-size: 13px;
+  }
+  .mr-v4 .mr-stay-q {
+    font-size: 30px;
+  }
+  .mr-v4 .mr-stay-legend-hint {
+    font-size: 15px;
+  }
+
+  .mr-v4 .mr-stay-option {
+    border-radius: 14px;
+  }
+  .mr-v4 .mr-stay-option-sub {
+    font-size: 14px;
+  }
+  .mr-v4 .mr-stay-status-grid,
+  .mr-v4 .mr-stay-night-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .mr-v4 .mr-stay-status {
+    min-height: 96px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px 18px;
+  }
+  .mr-v4 .mr-stay-status .mr-stay-option-sub {
+    text-align: left;
+  }
+  .mr-v4 .mr-stay-option-label {
+    font-size: 21px;
+  }
+
+  /* Night tile: date block top-left, check dot top-right, title + note at the bottom. */
+  .mr-v4 .mr-stay-night {
+    position: relative;
+    min-height: 176px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px;
+  }
+  .mr-v4 .mr-stay-night-date {
+    width: auto;
+    align-items: flex-start;
+    padding-right: 34px;
+  }
+  .mr-v4 .mr-stay-night-kicker {
+    font-size: 12px;
+  }
+  .mr-v4 .mr-stay-night-day {
+    font-size: 46px;
+  }
+  .mr-v4 .mr-stay-night-text {
+    flex-grow: 0;
+    gap: 4px;
+  }
+  .mr-v4 .mr-stay-night-title {
+    font-size: 20px;
+  }
+  .mr-v4 .mr-stay-dot {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+  }
+
+  .mr-v4 .mr-stay-range {
+    align-items: center;
+    gap: 10px;
+    padding-top: 0;
+    font-size: 14px;
+  }
+
+  .mr-v4 .mr-stay-rooms {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+  }
+  .mr-v4 .mr-stay-rooms-head {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .mr-v4 .mr-stay-rooms-hint {
+    padding-left: 32px;
+    font-size: 14px;
+  }
+  .mr-v4 .mr-stay-step {
+    width: 50px;
+    height: 50px;
+  }
+  .mr-v4 .mr-stay-step-value {
+    min-width: 34px;
+    font-size: 48px;
+  }
+
+  .mr-v4 .mr-stay-no-note {
+    padding: 20px 22px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+  .mr-v4 .mr-stay-perf {
+    height: 28px;
+  }
+  .mr-v4 .mr-stay-notch {
+    width: 28px;
+    height: 28px;
+  }
+  .mr-v4 .mr-stay-notch--left {
+    left: calc(-1 * var(--stay-card-pad-x) - 14px);
+  }
+  .mr-v4 .mr-stay-notch--right {
+    right: calc(-1 * var(--stay-card-pad-x) - 14px);
+  }
+  .mr-v4 .mr-stay-summary-label {
+    font-size: 12px;
+  }
+  .mr-v4 .mr-stay-summary-value {
+    font-size: 26px;
+  }
+  .mr-v4 .mr-stay-submit {
+    min-height: 58px;
+    font-size: 15px;
+  }
+  .mr-v4 .mr-stay-fineprint,
+  .mr-v4 .mr-stay-error {
+    font-size: 14px;
+  }
+
+  .mr-v4 .mr-stay-done {
+    min-height: 460px;
+    gap: 20px;
+  }
+  .mr-v4 .mr-stay-done-icon {
+    width: 52px;
+    height: 52px;
+  }
+  .mr-v4 .mr-stay-done-title {
+    font-size: 52px;
+    line-height: 1.02;
+  }
+  .mr-v4 .mr-stay-done-body {
+    font-size: 17px;
+  }
+  .mr-v4 .mr-stay-ghost {
+    font-size: 15px;
+  }
+}

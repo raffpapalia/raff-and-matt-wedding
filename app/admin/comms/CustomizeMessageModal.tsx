@@ -5,15 +5,23 @@ import type { EmailTemplateKey } from '@/lib/email/renderTemplate';
 import { resolveMergeTags } from '@/lib/email/mergeTags';
 import MergeTagChips from './MergeTagChips';
 
+// Sample {{stay_link}} for the SMS preview only, never sent.
+const SMS_SAMPLE_STAY_LINK = `${(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.mattandraff.com').replace(/\/$/, '')}/i/A7B2C/stay`;
+
 const EMAIL_MERGE_TAGS = [
   { tag: '{{first_name}}', hint: "Guest's first name" },
   { tag: '{{household_name}}', hint: 'Household name' },
   { tag: '{{wedding_date}}', hint: 'Wedding date, formatted' },
   { tag: '{{venue}}', hint: 'Venue name' },
   { tag: '{{cta_button}}', hint: 'Invite button — must be on its own line' },
+  { tag: '{{stay_link}}', hint: 'Room interest page link' },
+  { tag: '{{stay_button}}', hint: 'Register interest button — must be on its own line' },
 ];
 
-const SMS_MERGE_TAGS = [{ tag: '{{first_name}}', hint: "Guest's first name" }];
+const SMS_MERGE_TAGS = [
+  { tag: '{{first_name}}', hint: "Guest's first name" },
+  { tag: '{{stay_link}}', hint: 'Room interest link (replaces the invite link)' },
+];
 
 function useEmailPreview(subject: string, body: string, baseKey?: EmailTemplateKey) {
   const [html, setHtml] = useState<string | null>(null);
@@ -73,7 +81,9 @@ export default function CustomizeMessageModal({
   const [body, setBody] = useState(draft.body);
 
   const emailPreview = useEmailPreview(subject, body, draft.baseKey);
-  const smsPreviewText = resolveMergeTags(body, { first_name: 'Jane' });
+  // The invite link is appended at send time, not shown here, so only a
+  // {{stay_link}} (which replaces it) needs a sample value.
+  const smsPreviewText = resolveMergeTags(body, { first_name: 'Jane', stay_link: SMS_SAMPLE_STAY_LINK });
 
   const canContinue = draft.channel === 'email' ? subject.trim().length > 0 && body.trim().length > 0 : body.trim().length > 0;
 
@@ -121,7 +131,7 @@ export default function CustomizeMessageModal({
                   The invite button renders wherever <code>{'{{cta_button}}'}</code> appears on its own line.
                 </p>
               ) : (
-                <p className="mt-2 text-xs text-admin-bone/40">Your invite link is appended automatically after sending.</p>
+                <p className="mt-2 text-xs text-admin-bone/40">Your invite link is appended automatically after sending, unless you use <code>{'{{stay_link}}'}</code>.</p>
               )}
             </div>
           </div>

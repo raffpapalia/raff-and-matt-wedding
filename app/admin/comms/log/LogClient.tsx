@@ -12,6 +12,8 @@ function substitutePreviewTags(message: string, householdName: string, weddingDa
     .replace(/\{\{first_name\}\}/g, firstName)
     .replace(/\{\{household_name\}\}/g, householdName)
     .replace(/\{\{invite_link\}\}/g, '[invite link]')
+    .replace(/\{\{stay_link\}\}/g, '[room interest link]')
+    .replace(/\{\{stay_button\}\}/g, '[Register interest button]')
     .replace(/\{\{wedding_date\}\}/g, weddingDate)
     .replace(/\{\{venue\}\}/g, venueName);
 }

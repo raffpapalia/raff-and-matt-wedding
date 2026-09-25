@@ -1,7 +1,7 @@
 import { supabaseServer, type PhaseName } from '@/lib/supabase';
-import { resolveMergeTags } from '@/lib/email/mergeTags';
 import { PHASE_TEMPLATE_MAP } from '@/lib/email/templateInfo';
-import { getShortLink } from '@/lib/shortLink';
+import { getShortLink, getStayShortLink } from '@/lib/shortLink';
+import { buildSmsBody } from './smsBody';
 import { twilioClient, TWILIO_FROM_NUMBER } from './twilioClient';
 import { normalizeAuMobile } from './normalizeMobile';
 import { loadSmsTemplate, type SmsTemplateKey } from './smsTemplates';
@@ -82,8 +82,11 @@ export async function sendGuestSms(
   let body: string;
   try {
     const template = custom ? custom.body : await loadSmsTemplate(templateKey);
-    const shortLink = getShortLink({ short_code: household.short_code });
-    body = `${resolveMergeTags(template, { first_name: guest.first_name })} ${shortLink}`;
+    body = buildSmsBody(template, {
+      first_name: guest.first_name,
+      inviteLink: getShortLink({ short_code: household.short_code }),
+      stayLink: getStayShortLink({ short_code: household.short_code }),
+    });
   } catch (err) {
     const reason = err instanceof Error ? err.message : 'Failed to resolve SMS template';
     await supabaseServer.from('communications').insert({
@@ -356,8 +359,12 @@ export async function sendTestSms(key: SmsTemplate, toRaw: string): Promise<SmsT
       throw new Error('No household available to build a sample short link');
     }
 
-    const shortLink = getShortLink({ short_code: household.short_code as string });
-    body = `${resolveMergeTags(template, { first_name: 'Jane' })} ${shortLink}`;
+    const shortCode = household.short_code as string;
+    body = buildSmsBody(template, {
+      first_name: 'Jane',
+      inviteLink: getShortLink({ short_code: shortCode }),
+      stayLink: getStayShortLink({ short_code: shortCode }),
+    });
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Failed to render SMS template' };
   }

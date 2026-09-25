@@ -5,3 +5,9 @@ const EMAIL_LINK_BASE = process.env.EMAIL_LINK_BASE ?? 'https://www.mattandraff.
 export function getShortLink(household: { short_code: string }): string {
   return `${EMAIL_LINK_BASE}/i/${household.short_code}`;
 }
+
+// Short link straight to the household's room interest page (/invite/<slug>/stay),
+// resolved by app/i/[code]/stay/route.ts. Backs the {{stay_link}} SMS merge tag.
+export function getStayShortLink(household: { short_code: string }): string {
+  return `${getShortLink(household)}/stay`;
+}

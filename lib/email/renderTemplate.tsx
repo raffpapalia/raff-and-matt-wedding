@@ -68,10 +68,15 @@ export async function loadEmailTemplate(key: string): Promise<EmailTemplateRow |
 // out like a genuinely unknown tag would be.
 const CTA_BUTTON_TOKEN = '{{cta_button}}';
 
+// Same rules as cta_button, but the button points at the household's room
+// interest page (/invite/<slug>/stay) instead of the invite.
+const STAY_BUTTON_TOKEN = '{{stay_button}}';
+const STAY_BUTTON_LABEL = 'Register interest';
+
 // Splits on blank-line boundaries (matching the literal-<br/> rendering the body
-// relies on), pulls out cta_button paragraphs as their own block, and re-joins
-// consecutive text paragraphs with '\n\n' so unrelated body copy still renders as
-// one merged block exactly as it did before this existed.
+// relies on), pulls out cta_button / stay_button paragraphs as their own block, and
+// re-joins consecutive text paragraphs with '\n\n' so unrelated body copy still
+// renders as one merged block exactly as it did before this existed.
 function buildBodyBlocks(rawBody: string, mergeValues: Record<string, string>): BodyBlock[] {
   const paragraphs = rawBody.split(/\n\s*\n/);
   const blocks: BodyBlock[] = [];
@@ -81,8 +86,12 @@ function buildBodyBlocks(rawBody: string, mergeValues: Record<string, string>): 
       blocks.push({ type: 'cta' });
       continue;
     }
+    if (paragraph.trim() === STAY_BUTTON_TOKEN) {
+      blocks.push({ type: 'cta', href: mergeValues.stay_link, label: STAY_BUTTON_LABEL });
+      continue;
+    }
 
-    const resolved = resolveMergeTags(paragraph, mergeValues, ['cta_button']);
+    const resolved = resolveMergeTags(paragraph, mergeValues, ['cta_button', 'stay_button']);
     const previous = blocks[blocks.length - 1];
     if (previous?.type === 'text') {
       previous.content = `${previous.content}\n\n${resolved}`;
@@ -118,17 +127,18 @@ async function renderWithWrapper(
 ): Promise<RenderedEmail> {
   const settings = await getSettings();
   const weddingDate = formatWeddingDate(settings.wedding_date);
+  const inviteLink = `${EMAIL_LINK_BASE}/invite/${householdSlug}`;
   const mergeValues: Record<string, string> = {
     first_name: firstName,
     household_name: householdName,
     wedding_date: weddingDate,
     venue: settings.venue_name,
+    stay_link: `${inviteLink}/stay`,
     ...extraMergeValues,
   };
 
   const resolvedSubject = resolveMergeTags(subject, mergeValues);
   const bodyBlocks = buildBodyBlocks(body, mergeValues);
-  const inviteLink = `${EMAIL_LINK_BASE}/invite/${householdSlug}`;
   const unsubscribeUrl = `${EMAIL_LINK_BASE}/api/unsubscribe/${guestId ?? 'preview'}`;
 
   const Wrapper = getWrapperForTemplate(templateKey);

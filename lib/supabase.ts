@@ -226,6 +226,9 @@ export type Settings = {
   registry_story_heading: string;
   registry_story_body: string;
   registry_travel_photos: string[];
+  // ── QT room block expression of interest (see migration 027) ──
+  // Closes /invite/[slug]/stay before RSVP launches.
+  stay_eoi_open: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -284,6 +287,7 @@ export const DEFAULT_SETTINGS: Settings = {
   registry_story_heading: '',
   registry_story_body: '',
   registry_travel_photos: [],
+  stay_eoi_open: true,
 };
 
 // ── Budget tracking (admin-only; tables have no anon RLS policies) ──
