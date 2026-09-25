@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { supabaseServer, getSettings, type Household } from '@/lib/supabase';
+import { isAdminAuthenticated } from '@/lib/adminAuth';
 import {
   isStayOpen,
   shiftIsoDate,
@@ -17,7 +18,8 @@ import StayClient, { type StayNight } from './StayClient';
 // QT room block expression of interest. Lives under app/invite/[slug]/ (like the
 // registry) so it inherits that layout's fonts, the .mr-v4 wrapper and
 // design.css. Unlike the invite page it never bumps link_open_count, so a visit
-// here doesn't count as the household opening their invitation.
+// here doesn't count as the household opening their invitation; it has its own
+// stay_link_* open tracking instead.
 
 export const revalidate = 0;
 
@@ -43,6 +45,25 @@ async function getStayData(slug: string) {
   if (!householdRes.data) return null;
   const household = householdRes.data as Household;
 
+  // Track the open on the stay-specific columns (migration 029), never the invite's
+  // link_open_count. Admin visits are skipped so reviewing a household's page
+  // doesn't show up as the guest having opened it. Awaited alongside the reads
+  // below rather than fire-and-forget, so it isn't dropped when the render ends.
+  const now = new Date().toISOString();
+  const trackOpen = (await isAdminAuthenticated())
+    ? Promise.resolve()
+    : supabaseServer
+        .from('households')
+        .update({
+          stay_link_open_count: (household.stay_link_open_count || 0) + 1,
+          stay_link_first_opened_at: household.stay_link_first_opened_at || now,
+          stay_link_last_opened_at: now,
+        })
+        .eq('id', household.id)
+        .then(({ error }) => {
+          if (error) console.error('[stay:page] open tracking failed', error);
+        });
+
   const [guestsRes, interestRes] = await Promise.all([
     supabaseServer
       .from('guests')
@@ -54,6 +75,7 @@ async function getStayData(slug: string) {
       .select('status, night_before, wedding_night, staying_longer, rooms')
       .eq('household_id', household.id)
       .maybeSingle(),
+    trackOpen,
   ]);
 
   if (interestRes.error) {

@@ -5,13 +5,18 @@ import StayInterestTable from './StayInterestTable';
 
 export const revalidate = 0;
 
+// One row per household, answered or not, so "opened the link but hasn't
+// answered" is visible alongside the answers themselves.
 export type StayTableRow = {
   id: string;
   household: string;
-  status: StayStatus;
+  openCount: number;
+  firstOpenedAt: string | null;
+  lastOpenedAt: string | null;
+  status: StayStatus | null;
   nights: string;
   rooms: number | null;
-  updatedAt: string;
+  answeredAt: string | null;
 };
 
 type NightKey = 'night_before' | 'wedding_night' | 'staying_longer';
@@ -40,7 +45,9 @@ export default async function StayInterestPage() {
 
   const [interestRes, householdsRes] = await Promise.all([
     supabaseServer.from('stay_interest').select('*'),
-    supabaseServer.from('households').select('id, name'),
+    supabaseServer
+      .from('households')
+      .select('id, name, stay_link_open_count, stay_link_first_opened_at, stay_link_last_opened_at'),
   ]);
 
   if (interestRes.error) {
@@ -49,11 +56,14 @@ export default async function StayInterestPage() {
 
   const interest = (interestRes.data ?? []) as StayInterestRow[];
   const households = householdsRes.data ?? [];
-  const householdMap = new Map(households.map(h => [h.id, h.name as string]));
+  const interestByHousehold = new Map(interest.map(r => [r.household_id, r]));
 
   const counts = { yes: 0, maybe: 0, no: 0 };
   for (const r of interest) counts[r.status] += 1;
   const notAnswered = Math.max(0, households.length - interest.length);
+
+  const opened = households.filter(h => (h.stay_link_open_count ?? 0) > 0);
+  const openedNotAnswered = opened.filter(h => !interestByHousehold.has(h.id)).length;
 
   const perNight = NIGHTS.map(({ key, label }) => {
     let firm = 0;
@@ -66,14 +76,20 @@ export default async function StayInterestPage() {
     return { key, label, firm, maybe, total: firm + maybe };
   });
 
-  const rows: StayTableRow[] = interest.map(r => ({
-    id: r.id,
-    household: householdMap.get(r.household_id) ?? 'Deleted household',
-    status: r.status,
-    nights: describeNights(r),
-    rooms: r.rooms,
-    updatedAt: r.updated_at,
-  }));
+  const rows: StayTableRow[] = households.map(h => {
+    const answer = interestByHousehold.get(h.id);
+    return {
+      id: h.id,
+      household: h.name,
+      openCount: h.stay_link_open_count ?? 0,
+      firstOpenedAt: h.stay_link_first_opened_at,
+      lastOpenedAt: h.stay_link_last_opened_at,
+      status: answer?.status ?? null,
+      nights: answer ? describeNights(answer) : '',
+      rooms: answer?.rooms ?? null,
+      answeredAt: answer?.updated_at ?? null,
+    };
+  });
 
   return (
     <div className="space-y-8">
@@ -103,6 +119,15 @@ export default async function StayInterestPage() {
             <StatTile label="Maybe" value={String(counts.maybe)} />
             <StatTile label="No" value={String(counts.no)} />
             <StatTile label="Not answered" value={String(notAnswered)} />
+          </div>
+        </div>
+
+        <div>
+          <p className="mb-3 text-xs uppercase tracking-[0.3em] text-admin-ink/50">Link opens</p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <StatTile label="Opened" value={`${opened.length} of ${households.length}`} />
+            <StatTile label="Opened, not answered" value={String(openedNotAnswered)} />
+            <StatTile label="Not opened" value={String(households.length - opened.length)} />
           </div>
         </div>
 

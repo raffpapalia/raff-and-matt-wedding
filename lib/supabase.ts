@@ -28,6 +28,10 @@ export type Household = {
   link_open_count: number;
   link_first_opened_at: string | null;
   link_last_opened_at: string | null;
+  // Room interest page opens (migration 029), separate from the invite link above.
+  stay_link_open_count: number;
+  stay_link_first_opened_at: string | null;
+  stay_link_last_opened_at: string | null;
   created_at: string;
 };
 
