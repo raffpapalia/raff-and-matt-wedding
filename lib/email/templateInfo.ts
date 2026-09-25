@@ -13,6 +13,7 @@ export const EMAIL_TEMPLATE_TITLES: Record<EmailTemplateKey, string> = {
   thank_you: 'Thank You',
   link_recovery: 'Lost Invitation Link',
   registry_gift_confirmed: 'Gift Confirmed',
+  stay_interest_request: 'Room Interest Request',
 };
 
 export const PHASE_LABELS: Record<PhaseName, string> = {

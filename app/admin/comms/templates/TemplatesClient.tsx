@@ -42,6 +42,8 @@ const TEMPLATE_DESCRIPTIONS: Record<string, string> = {
   pre_wedding: 'Sends automatically to every guest when you switch the wedding into the Pre-wedding phase.',
   thank_you: 'Sends automatically to every guest when you switch the wedding into the Thank You phase.',
   link_recovery: 'Sends automatically whenever a guest requests their invitation link again.',
+  stay_interest_request:
+    "Send manually, whenever you choose. Asks each household whether they'd stay at the venue, linking to their own room interest page.",
   registry_gift_confirmed:
     "Sends automatically to the giving household's eligible guests the moment a registry gift is confirmed — by card payment, or by an admin marking a bank transfer as received.",
 };
@@ -50,7 +52,14 @@ type TemplateGroup = { label: string; key: string };
 type PhaseTab = { id: string; label: string; groups: TemplateGroup[] };
 
 const PHASE_TABS: PhaseTab[] = [
-  { id: 'save_the_date', label: 'Save the Date', groups: [{ label: 'Save the Date', key: 'save_the_date' }] },
+  {
+    id: 'save_the_date',
+    label: 'Save the Date',
+    groups: [
+      { label: 'Save the Date', key: 'save_the_date' },
+      { label: 'Room Interest Request', key: 'stay_interest_request' },
+    ],
+  },
   {
     id: 'invitation',
     label: 'Invitation',

@@ -18,7 +18,8 @@ export type EmailTemplateKey =
   | 'pre_wedding'
   | 'thank_you'
   | 'link_recovery'
-  | 'registry_gift_confirmed';
+  | 'registry_gift_confirmed'
+  | 'stay_interest_request';
 
 const EYEBROW_LABELS: Record<EmailTemplateKey, string> = {
   save_the_date: 'Save the Date',
@@ -30,6 +31,7 @@ const EYEBROW_LABELS: Record<EmailTemplateKey, string> = {
   thank_you: 'Thank You',
   link_recovery: 'Your Invitation Link',
   registry_gift_confirmed: 'Thank You',
+  stay_interest_request: 'Expression of Interest',
 };
 
 export type EmailTemplateRow = {

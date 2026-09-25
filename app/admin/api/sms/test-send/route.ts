@@ -12,6 +12,7 @@ const VALID_KEYS: SmsTemplate[] = [
   'pre_wedding',
   'thank_you',
   'link_recovery',
+  'stay_interest_request',
 ];
 
 // Triggers a real SMS send (via sendHouseholdSms, the same engine the send buttons

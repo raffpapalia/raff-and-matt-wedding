@@ -11,6 +11,7 @@ const VALID_KEYS: SmsTemplate[] = [
   'pre_wedding',
   'thank_you',
   'link_recovery',
+  'stay_interest_request',
 ];
 
 async function requireAuth() {

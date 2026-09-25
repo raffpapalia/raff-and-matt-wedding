@@ -12,6 +12,7 @@ const VALID_KEYS: EmailTemplateKey[] = [
   'thank_you',
   'link_recovery',
   'registry_gift_confirmed',
+  'stay_interest_request',
 ];
 
 // Sample data for templates whose merge tags aren't covered by the standard
