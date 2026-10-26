@@ -25,9 +25,7 @@ function previewPadding(text: string): string {
   return PREVIEW_WHITESPACE.repeat(Math.ceil(needed / PREVIEW_WHITESPACE.length)).substring(0, needed);
 }
 
-// A cta block with no href/label is the {{cta_button}} invite button (inviteLink +
-// ctaLabel below); {{stay_button}} supplies its own.
-export type BodyBlock = { type: 'text'; content: string } | { type: 'cta'; href?: string; label?: string };
+export type BodyBlock = { type: 'text'; content: string } | { type: 'cta' };
 
 export interface EmailWrapperProps {
   previewText: string;
@@ -159,7 +157,7 @@ export default function EmailWrapper({
                   <Row key={index} style={{ marginBottom: paragraphGap }}>
                     <Column style={{ textAlign: 'center' }}>
                       <Button
-                        href={block.href ?? inviteLink}
+                        href={inviteLink}
                         style={{
                           backgroundColor: persimmon,
                           color: ink,
@@ -174,7 +172,7 @@ export default function EmailWrapper({
                           display: 'inline-block',
                         }}
                       >
-                        {block.label ?? ctaLabel}
+                        {ctaLabel}
                       </Button>
                     </Column>
                   </Row>

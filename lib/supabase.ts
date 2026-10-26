@@ -28,10 +28,6 @@ export type Household = {
   link_open_count: number;
   link_first_opened_at: string | null;
   link_last_opened_at: string | null;
-  // Room interest page opens (migration 029), separate from the invite link above.
-  stay_link_open_count: number;
-  stay_link_first_opened_at: string | null;
-  stay_link_last_opened_at: string | null;
   created_at: string;
 };
 
@@ -230,9 +226,6 @@ export type Settings = {
   registry_story_heading: string;
   registry_story_body: string;
   registry_travel_photos: string[];
-  // ── QT room block expression of interest (see migration 027) ──
-  // Closes /invite/[slug]/stay before RSVP launches.
-  stay_eoi_open: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -291,7 +284,6 @@ export const DEFAULT_SETTINGS: Settings = {
   registry_story_heading: '',
   registry_story_body: '',
   registry_travel_photos: [],
-  stay_eoi_open: true,
 };
 
 // ── Budget tracking (admin-only; tables have no anon RLS policies) ──

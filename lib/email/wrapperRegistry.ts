@@ -15,7 +15,6 @@ const TEMPLATE_WRAPPERS: Record<string, ComponentType<TemplateWrapperProps>> = {
   thank_you: EmailWrapper,
   link_recovery: EmailWrapper,
   registry_gift_confirmed: EmailWrapper,
-  stay_interest_request: EmailWrapper,
 };
 
 export function getWrapperForTemplate(key: string): ComponentType<TemplateWrapperProps> {

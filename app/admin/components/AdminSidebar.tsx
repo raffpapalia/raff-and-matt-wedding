@@ -4,7 +4,6 @@ import { useEffect, useState, type ComponentType, type ReactNode } from 'react';
 import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  BedDouble,
   CalendarClock,
   ClipboardList,
   Gift,
@@ -46,7 +45,6 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/comms/inbox', label: 'Inbox', icon: Inbox },
   { href: '/admin/responses', label: 'Responses', icon: ClipboardList },
   { href: '/admin/registry', label: 'Registry', icon: Gift },
-  { href: '/admin/stay', label: 'Room interest', icon: BedDouble },
   { href: '/admin/budget', label: 'Budget', icon: Wallet },
   { href: '/admin/runsheet', label: 'Run sheet', icon: CalendarClock },
   {
@@ -74,7 +72,7 @@ function isActive(pathname: string, item: NavItem): boolean {
 }
 
 // Bottom tab bar fits five tabs comfortably; the rest live in the "More" sheet.
-const MOBILE_MORE_LABELS = ['Responses', 'Inbox', 'Registry', 'Room interest', 'Setup'];
+const MOBILE_MORE_LABELS = ['Responses', 'Inbox', 'Registry', 'Setup'];
 const MOBILE_PRIMARY = NAV_ITEMS.filter((i) => !MOBILE_MORE_LABELS.includes(i.label));
 const MOBILE_MORE = NAV_ITEMS.filter((i) => MOBILE_MORE_LABELS.includes(i.label));
 
