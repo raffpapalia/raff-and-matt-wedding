@@ -7,6 +7,7 @@ import {
   CalendarClock,
   ClipboardList,
   Gift,
+  Hotel,
   Inbox,
   LayoutDashboard,
   LogOut,
@@ -45,6 +46,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/comms/inbox', label: 'Inbox', icon: Inbox },
   { href: '/admin/responses', label: 'Responses', icon: ClipboardList },
   { href: '/admin/registry', label: 'Registry', icon: Gift },
+  { href: '/admin/hotels', label: 'Nearby hotels', icon: Hotel },
   { href: '/admin/budget', label: 'Budget', icon: Wallet },
   { href: '/admin/runsheet', label: 'Run sheet', icon: CalendarClock },
   {
@@ -72,7 +74,7 @@ function isActive(pathname: string, item: NavItem): boolean {
 }
 
 // Bottom tab bar fits five tabs comfortably; the rest live in the "More" sheet.
-const MOBILE_MORE_LABELS = ['Responses', 'Inbox', 'Registry', 'Setup'];
+const MOBILE_MORE_LABELS = ['Responses', 'Inbox', 'Registry', 'Nearby hotels', 'Setup'];
 const MOBILE_PRIMARY = NAV_ITEMS.filter((i) => !MOBILE_MORE_LABELS.includes(i.label));
 const MOBILE_MORE = NAV_ITEMS.filter((i) => MOBILE_MORE_LABELS.includes(i.label));
 

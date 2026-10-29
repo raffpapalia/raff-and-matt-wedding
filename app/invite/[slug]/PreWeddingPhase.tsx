@@ -251,6 +251,7 @@ function ConciergeCard({
   body,
   ctaLabel,
   href,
+  newTab = true,
 }: {
   num: string;
   category: string;
@@ -258,6 +259,8 @@ function ConciergeCard({
   body: string;
   ctaLabel: string;
   href: string;
+  // The stay page is part of this site, so it opens in the same tab; external links open a new one.
+  newTab?: boolean;
 }) {
   return (
     <div style={{ background: tokens.greenDeep, color: tokens.bone, padding: '30px 26px' }}>
@@ -268,8 +271,7 @@ function ConciergeCard({
       <p style={{ fontFamily: tokens.grotesque, fontWeight: 400, color: tokens.sand, opacity: 0.78, fontSize: '0.95rem', margin: 0 }}>{body}</p>
       <a
         href={href}
-        target="_blank"
-        rel="noopener noreferrer"
+        {...(newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         style={{
           display: 'inline-block',
           marginTop: 14,
@@ -313,7 +315,7 @@ export default function PreWeddingPhase({
     return item ? item.visible_phases?.includes(currentPhase) ?? true : true;
   };
 
-  const hasGoodToKnowContent = Boolean(settings.accommodation_url || settings.photos_upload_url || settings.registry_url);
+  const hasGoodToKnowContent = Boolean(settings.stay_page_enabled || settings.accommodation_url || settings.photos_upload_url || settings.registry_url);
   const runningOrderItems = weddingSchedule.map((item, i) => ({
     num: String(i + 1).padStart(2, '0'),
     name: item.label,
@@ -341,14 +343,15 @@ export default function PreWeddingPhase({
       label: 'Good to know',
       content: hasGoodToKnowContent ? (
         <div className="mr-conc">
-          {settings.accommodation_url && (
+          {(settings.stay_page_enabled || settings.accommodation_url) && (
             <ConciergeCard
               num="01"
               category="Stay"
               title="Where to sleep"
-              body="A special rate nearby, plus plenty of CBD options a short walk away."
-              ctaLabel="Book a room"
-              href={settings.accommodation_url}
+              body="We’ve got a discount code for QT, plus a list of other hotels close by."
+              ctaLabel="Where to stay"
+              href={settings.stay_page_enabled ? `/invite/${household.slug}/stay` : settings.accommodation_url}
+              newTab={!settings.stay_page_enabled}
             />
           )}
           {settings.photos_upload_url && (

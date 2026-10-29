@@ -161,6 +161,7 @@ function ConciergeCard({
   body,
   ctaLabel,
   href,
+  newTab = true,
 }: {
   num: string;
   category: string;
@@ -168,6 +169,8 @@ function ConciergeCard({
   body: string;
   ctaLabel: string;
   href: string;
+  // The stay page is part of this site, so it opens in the same tab; external links open a new one.
+  newTab?: boolean;
 }) {
   return (
     <div style={{ background: tokens.greenDeep, color: tokens.bone, padding: '30px 26px' }}>
@@ -178,8 +181,7 @@ function ConciergeCard({
       <p style={{ fontFamily: tokens.grotesque, fontWeight: 400, color: tokens.sand, opacity: 0.78, fontSize: '0.95rem', margin: 0 }}>{body}</p>
       <a
         href={href}
-        target="_blank"
-        rel="noopener noreferrer"
+        {...(newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         style={{
           display: 'inline-block',
           marginTop: 14,
@@ -227,7 +229,7 @@ export default function InvitationPhaseV4({
   const showRunningOrder = isVisible('on_the_day') && weddingSchedule.length > 0;
   const showDressCode = isVisible('dress_code');
   // Same idea — don't render an empty .mr-conc grid when every link is unset.
-  const hasGoodToKnowContent = Boolean(settings.accommodation_url || settings.photos_upload_url || settings.registry_url);
+  const hasGoodToKnowContent = Boolean(settings.stay_page_enabled || settings.accommodation_url || settings.photos_upload_url || settings.registry_url);
   const showGoodToKnow = isVisible('practicalities') && hasGoodToKnowContent;
   // Gated on data too — an empty faqs table renders nothing on the guest-facing invite
   // (no "coming soon" placeholder, unlike PreWeddingPhase).
@@ -539,14 +541,15 @@ export default function InvitationPhaseV4({
         <Section variant="deep" id="good-to-know" className="mr-inv-green-glow">
           <SectionPill num={goodToKnowNum} label="Good to know" />
           <div className="mr-conc">
-              {settings.accommodation_url && (
+              {(settings.stay_page_enabled || settings.accommodation_url) && (
                 <ConciergeCard
                   num="01"
                   category="Stay"
                   title="Where to sleep"
-                  body="A special rate nearby, plus plenty of CBD options a short walk away."
-                  ctaLabel="Book a room"
-                  href={settings.accommodation_url}
+                  body="We’ve got a discount code for QT, plus a list of other hotels close by."
+                  ctaLabel="Where to stay"
+                  href={settings.stay_page_enabled ? `/invite/${household.slug}/stay` : settings.accommodation_url}
+                  newTab={!settings.stay_page_enabled}
                 />
               )}
               {settings.photos_upload_url && (

@@ -107,6 +107,24 @@ export type Faq = {
   updated_at: string;
 };
 
+// "Where to stay" page (see migration 031). map_x / map_y are in the stay map's
+// own units: SVG viewBox "380 -40 560 480", QT at (600, 258).
+export type NearbyHotel = {
+  id: string;
+  name: string;
+  street: string;
+  walk_minutes: number;
+  price_tier: number;
+  blurb: string;
+  website_url: string | null;
+  map_x: number;
+  map_y: number;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 // Helper functions
 export async function getHousehold(slug: string) {
   return supabase
@@ -226,6 +244,15 @@ export type Settings = {
   registry_story_heading: string;
   registry_story_body: string;
   registry_travel_photos: string[];
+  // ── "Where to stay" page (see migration 031) ──
+  // stay_page_enabled turns /invite/[slug]/stay on for guests; accommodation_url
+  // above stays as the fallback link on the "Where to sleep" card while it's off.
+  stay_page_enabled: boolean;
+  qt_booking_code: string;
+  qt_booking_url: string;
+  hotel_checkin: string;
+  hotel_checkout: string;
+  venue_street: string;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -284,6 +311,12 @@ export const DEFAULT_SETTINGS: Settings = {
   registry_story_heading: '',
   registry_story_body: '',
   registry_travel_photos: [],
+  stay_page_enabled: false,
+  qt_booking_code: 'EVENTQTME',
+  qt_booking_url: '',
+  hotel_checkin: 'From 3 PM',
+  hotel_checkout: 'By 11 AM',
+  venue_street: '133 Russell St',
 };
 
 // ── Budget tracking (admin-only; tables have no anon RLS policies) ──

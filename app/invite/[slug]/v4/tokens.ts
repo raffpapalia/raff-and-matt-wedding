@@ -34,10 +34,12 @@ export const tokens = {
   body: 'var(--font-dm-sans), system-ui, sans-serif',
 } as const;
 
-export type SectionVariant = 'deep' | 'bone' | 'green' | 'bright';
+export type SectionVariant = 'deep' | 'sand' | 'bone' | 'green' | 'bright';
 
 export const sectionVariantStyles: Record<SectionVariant, { background: string; color: string }> = {
   deep: { background: tokens.greenDeep, color: tokens.bone },
+  // Sand surface (BRAND §2): small text is Ink, never Bone/Violet/Persimmon.
+  sand: { background: tokens.sand, color: tokens.ink },
   bone: { background: tokens.bone, color: tokens.ink },
   green: { background: tokens.green, color: tokens.bone },
   bright: { background: tokens.greenBright, color: tokens.ink },

@@ -1,4 +1,5 @@
 import { sectionVariantStyles, type SectionVariant } from '../tokens';
+import { BLOOM_FOOTER, BLOOM_GRAIN_URL, BLOOM_HERO } from '../bloom';
 
 interface SectionProps {
   variant: SectionVariant;
@@ -17,28 +18,55 @@ interface SectionProps {
   // How content sits within minHeight: 'end' (default, the invitation hero's
   // bottom-aligned copy) or 'center' (the save-the-date hero's centred poster layout).
   contentAlign?: 'end' | 'center';
+  // Canonical bloom field + grain (BRAND §3), for heroes and footers on a 'deep'
+  // surface. Replaces the variant background.
+  bloom?: 'hero' | 'footer';
+  // Overrides for pages with their own rhythm (the stay page). Omit all three and
+  // the section behaves exactly as before: clamp(72px,12vw,150px) vertical padding,
+  // 1200px content box with clamp(20px,5.5vw,90px) side padding.
+  padding?: { top: string; bottom: string };
+  // Side gutter applied to the section itself; the content box then has no padding
+  // of its own and is capped at contentMaxWidth.
+  gutter?: string;
+  contentMaxWidth?: string;
   children: React.ReactNode;
 }
 
 // Colour-blocked section wrapper. Sets background + text colour from the variant
 // and the mockup's vertical padding rhythm: clamp(72px,12vw,150px) top and bottom.
-export default function Section({ variant, id, className, backgroundImage, backgroundPosition = 'center', minHeight, contentAlign = 'end', children }: SectionProps) {
+export default function Section({
+  variant,
+  id,
+  className,
+  backgroundImage,
+  backgroundPosition = 'center',
+  minHeight,
+  contentAlign = 'end',
+  bloom,
+  padding,
+  gutter,
+  contentMaxWidth = '1200px',
+  children,
+}: SectionProps) {
   const { background, color } = sectionVariantStyles[variant];
+  const surface = bloom ? (bloom === 'hero' ? BLOOM_HERO : BLOOM_FOOTER) : background;
   return (
     <section
       id={id}
       className={className}
       style={{
-        background,
+        background: surface,
         color,
         position: 'relative',
-        overflow: backgroundImage ? 'hidden' : undefined,
+        overflow: backgroundImage || bloom ? 'hidden' : undefined,
         minHeight,
         display: minHeight ? 'flex' : undefined,
         flexDirection: minHeight ? 'column' : undefined,
         justifyContent: minHeight ? (contentAlign === 'center' ? 'center' : 'flex-end') : undefined,
-        paddingTop: 'clamp(72px, 12vw, 150px)',
-        paddingBottom: 'clamp(72px, 12vw, 150px)',
+        paddingTop: padding?.top ?? 'clamp(72px, 12vw, 150px)',
+        paddingBottom: padding?.bottom ?? 'clamp(72px, 12vw, 150px)',
+        paddingLeft: gutter,
+        paddingRight: gutter,
       }}
     >
       {backgroundImage && (
@@ -60,15 +88,31 @@ export default function Section({ variant, id, className, backgroundImage, backg
           />
         </>
       )}
+      {bloom && (
+        // Grain sits above the bloom and below the content (zIndex 2 below).
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            opacity: 0.08,
+            mixBlendMode: 'overlay',
+            backgroundImage: BLOOM_GRAIN_URL,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '180px 180px',
+          }}
+        />
+      )}
       <div
         style={{
           position: 'relative',
           zIndex: 2,
           width: '100%',
-          maxWidth: '1200px',
+          maxWidth: contentMaxWidth,
           margin: '0 auto',
-          paddingLeft: 'clamp(20px, 5.5vw, 90px)',
-          paddingRight: 'clamp(20px, 5.5vw, 90px)',
+          paddingLeft: gutter ? 0 : 'clamp(20px, 5.5vw, 90px)',
+          paddingRight: gutter ? 0 : 'clamp(20px, 5.5vw, 90px)',
         }}
       >
         {children}

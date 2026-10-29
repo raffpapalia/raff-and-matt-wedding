@@ -133,6 +133,12 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       dress_code_heading: settings.dress_code_heading,
       dress_code_description: settings.dress_code_description,
       accommodation_url: settings.accommodation_url,
+      stay_page_enabled: settings.stay_page_enabled,
+      qt_booking_code: settings.qt_booking_code,
+      qt_booking_url: settings.qt_booking_url,
+      hotel_checkin: settings.hotel_checkin,
+      hotel_checkout: settings.hotel_checkout,
+      venue_street: settings.venue_street,
       registry_url: settings.registry_url,
       photos_upload_url: settings.photos_upload_url,
       story_heading: settings.story_heading,
@@ -507,12 +513,83 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               />
             </Field>
 
-            <Field label="Accommodation URL" helper="Where to stay — shown as the card button. Leave blank to hide the card.">
+            <Field
+              label="Accommodation URL"
+              helper="Where to stay. The card button links here while the stay page below is switched off. Leave blank to hide the card."
+            >
               <input
                 type="text"
                 value={settings.accommodation_url}
                 onChange={e => update('accommodation_url', e.target.value)}
                 placeholder="https://..."
+                className={INPUT_CLASS}
+              />
+            </Field>
+
+            <Field
+              label="Stay page"
+              helper="The Where to stay page (QT discount code plus nearby hotels). When on, the Where to sleep card links to it instead of the Accommodation URL. Admins can preview it either way."
+            >
+              <label className="flex items-center gap-2 text-sm text-admin-ink">
+                <input
+                  type="checkbox"
+                  checked={settings.stay_page_enabled}
+                  onChange={e => update('stay_page_enabled', e.target.checked)}
+                  className="accent-admin-green"
+                />
+                Stay page is live for guests
+              </label>
+              <p className="mt-2 text-xs text-admin-ink/50">
+                Edit the hotel list in <a href="/admin/hotels" className="underline hover:text-admin-green">Nearby hotels</a>.
+              </p>
+            </Field>
+
+            <Field label="QT booking code" helper="The discount code guests type into QT's Corporate ID box.">
+              <input
+                type="text"
+                value={settings.qt_booking_code}
+                onChange={e => update('qt_booking_code', e.target.value)}
+                placeholder="EVENTQTME"
+                className={INPUT_CLASS}
+              />
+            </Field>
+
+            <Field label="QT booking URL" helper="Opens in a new tab from the Book at QT button. Leave blank to hide the button.">
+              <input
+                type="text"
+                value={settings.qt_booking_url}
+                onChange={e => update('qt_booking_url', e.target.value)}
+                placeholder="https://..."
+                className={INPUT_CLASS}
+              />
+            </Field>
+
+            <Field label="Hotel check-in" helper="Shown on the stay page, e.g. From 3 PM.">
+              <input
+                type="text"
+                value={settings.hotel_checkin}
+                onChange={e => update('hotel_checkin', e.target.value)}
+                placeholder="From 3 PM"
+                className={INPUT_CLASS}
+              />
+            </Field>
+
+            <Field label="Hotel check-out" helper="Shown on the stay page, e.g. By 11 AM.">
+              <input
+                type="text"
+                value={settings.hotel_checkout}
+                onChange={e => update('hotel_checkout', e.target.value)}
+                placeholder="By 11 AM"
+                className={INPUT_CLASS}
+              />
+            </Field>
+
+            <Field label="Venue street address" helper="Short form shown on the stay page, e.g. 133 Russell St.">
+              <input
+                type="text"
+                value={settings.venue_street}
+                onChange={e => update('venue_street', e.target.value)}
+                placeholder="133 Russell St"
                 className={INPUT_CLASS}
               />
             </Field>

@@ -1,0 +1,31 @@
+/* Perforation (BRAND §3): a 2px dashed Ink rule at 25% with 28px round notches in
+   the colour of the surface behind the card. Set --perf-notch to that surface and
+   --perf-inset to the card's inner padding (how far the rule is indented from the
+   card edge); the notches are centred on the card edges. */
+.mr-v4 .mr-perforation {
+  position: relative;
+  height: 28px;
+  margin: 0 var(--perf-inset, 32px);
+  display: flex;
+  align-items: center;
+}
+.mr-v4 .mr-perforation__rule {
+  flex-grow: 1;
+  border-top: 2px dashed rgba(11, 33, 24, 0.25);
+}
+.mr-v4 .mr-perforation::before,
+.mr-v4 .mr-perforation::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--perf-notch, var(--green-deep));
+}
+.mr-v4 .mr-perforation::before {
+  left: calc(-1 * var(--perf-inset, 32px) - 14px);
+}
+.mr-v4 .mr-perforation::after {
+  right: calc(-1 * var(--perf-inset, 32px) - 14px);
+}
