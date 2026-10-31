@@ -7,7 +7,7 @@ import Perforation from '../v4/components/Perforation';
 import CopyCodeButton from './CopyCodeButton';
 import HotelCard from './HotelCard';
 import StayMap from './StayMap';
-import { PRICE_LEGEND, safeHttpUrl } from './stayData';
+import { safeHttpUrl } from './stayData';
 import './stay.css';
 
 const CODE_ID = 'stay-code';
@@ -172,7 +172,6 @@ export default function StayView({
             <div className="stay-near__body">
               <div className="stay-near__mapcol">
                 <StayMap hotels={hotels} />
-                <p className="stay-near__legend">{PRICE_LEGEND}</p>
               </div>
               <div className="stay-near__cards">
                 <ol className="stay-cards">

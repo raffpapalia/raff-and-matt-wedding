@@ -362,15 +362,6 @@
   flex-direction: column;
   gap: 24px;
 }
-.mr-v4 .stay-near__legend {
-  margin: 0;
-  font-family: var(--mono);
-  font-weight: 400;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  line-height: 1.7;
-  color: rgba(246, 238, 221, 0.75);
-}
 .mr-v4 .stay-near__cards {
   container-type: inline-size;
 }
@@ -529,22 +520,35 @@
   line-height: 1.25;
   color: var(--ink);
 }
-.mr-v4 a.stay-card__name {
+/* Link on Bone: Deep Green, underlined. Mono label like the walk line above it. */
+.mr-v4 .stay-card__link {
   position: relative;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  color: var(--green-deep);
   text-decoration: underline;
-  text-decoration-color: rgba(11, 33, 24, 0.3);
+  text-decoration-color: rgba(15, 67, 49, 0.4);
   text-underline-offset: 4px;
 }
 /* Grows the tap area to 44px tall without changing the layout. */
-.mr-v4 a.stay-card__name::after {
+.mr-v4 .stay-card__link::after {
   content: '';
   position: absolute;
-  inset: -11px -6px;
+  inset: -14px -8px;
 }
-.mr-v4 a.stay-card__name:hover {
-  text-decoration-color: var(--ink);
+.mr-v4 .stay-card__link:hover {
+  text-decoration-color: var(--green-deep);
 }
-.mr-v4 a.stay-card__name:focus-visible {
+.mr-v4 .stay-card__link:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 3px;
   border-radius: 2px;

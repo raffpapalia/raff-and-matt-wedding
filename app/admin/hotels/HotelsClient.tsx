@@ -415,7 +415,7 @@ export default function HotelsClient({ hotels: initial }: { hotels: NearbyHotel[
                   </label>
                 </div>
                 <p className="mt-2 text-xs text-admin-bone/50">
-                  Map units: Russell St is x 600, Collins St is y 300; QT sits at 600, 258.
+                  Map units (2.5 m each): QT sits at 600, 258. Russell St is x 608 and Collins St is y 330; the blocks are about 92 units apart.
                 </p>
               </div>
 

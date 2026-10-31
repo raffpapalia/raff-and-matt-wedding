@@ -22,18 +22,20 @@ export default function HotelCard({ hotel, number }: { hotel: NearbyHotel; numbe
       <span className="stay-card__num" aria-hidden="true">{number}</span>
       <div className="stay-card__body">
         <div className="stay-card__top">
-          {url ? (
-            <a className="stay-card__name" href={url} target="_blank" rel="noopener">
-              {hotel.name}
-              <span className="stay-sr"> (opens in a new tab)</span>
-            </a>
-          ) : (
-            <span className="stay-card__name">{hotel.name}</span>
-          )}
+          <span className="stay-card__name">{hotel.name}</span>
           <PriceMeter tier={hotel.price_tier} />
         </div>
         <span className="stay-meta">{hotel.walk_minutes} min walk · {hotel.street}</span>
         <span className="stay-card__blurb">{hotel.blurb}</span>
+        {url && (
+          <a className="stay-card__link" href={url} target="_blank" rel="noopener">
+            Hotel website
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M7 17L17 7M9 7h8v8" />
+            </svg>
+            <span className="stay-sr"> for {hotel.name} (opens in a new tab)</span>
+          </a>
+        )}
       </div>
     </li>
   );
