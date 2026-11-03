@@ -139,7 +139,6 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       hotel_checkin: settings.hotel_checkin,
       hotel_checkout: settings.hotel_checkout,
       venue_street: settings.venue_street,
-      registry_url: settings.registry_url,
       photos_upload_url: settings.photos_upload_url,
       story_heading: settings.story_heading,
       story_body: settings.story_body,
@@ -604,16 +603,6 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
               />
             </Field>
 
-            <Field label="Registry URL" helper="Registry link — shown as the card button. Leave blank to hide the card.">
-              <input
-                type="text"
-                value={settings.registry_url}
-                onChange={e => update('registry_url', e.target.value)}
-                placeholder="https://..."
-                className={INPUT_CLASS}
-              />
-            </Field>
-
             <Field
               label="Story Photo"
               helper="Used in the 'How we got here' section. Crop ratio 4:5. Uploads and saves immediately."
@@ -870,7 +859,7 @@ export default function SettingsClient({ initial }: { initial: Settings }) {
       {activeTab === 'links' && (
         <Section label="Standalone links" title="Links">
           <p className="-mt-2 text-xs text-admin-ink/50">
-            Links that aren&rsquo;t tied to a specific page section. The accommodation, registry, and guest
+            Links that aren&rsquo;t tied to a specific page section. The accommodation and guest
             photo upload links now live inside their cards on the Invitation tab — edit them there instead.
           </p>
           <Field

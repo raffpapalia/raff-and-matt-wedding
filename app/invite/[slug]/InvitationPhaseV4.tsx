@@ -229,7 +229,7 @@ export default function InvitationPhaseV4({
   const showRunningOrder = isVisible('on_the_day') && weddingSchedule.length > 0;
   const showDressCode = isVisible('dress_code');
   // Same idea — don't render an empty .mr-conc grid when every link is unset.
-  const hasGoodToKnowContent = Boolean(settings.stay_page_enabled || settings.accommodation_url || settings.photos_upload_url || settings.registry_url);
+  const hasGoodToKnowContent = Boolean(settings.stay_page_enabled || settings.accommodation_url || settings.photos_upload_url || settings.registry_enabled);
   const showGoodToKnow = isVisible('practicalities') && hasGoodToKnowContent;
   // Gated on data too — an empty faqs table renders nothing on the guest-facing invite
   // (no "coming soon" placeholder, unlike PreWeddingPhase).
@@ -562,14 +562,15 @@ export default function InvitationPhaseV4({
                   href={settings.photos_upload_url}
                 />
               )}
-              {settings.registry_url && (
+              {settings.registry_enabled && (
                 <ConciergeCard
                   num="03"
                   category="Gifts"
                   title="The registry"
                   body="Your presence is the gift. If you'd like to give more, we've made a small list."
                   ctaLabel="View registry"
-                  href={settings.registry_url}
+                  href={`/invite/${household.slug}/registry`}
+                  newTab={false}
                 />
               )}
           </div>

@@ -357,7 +357,9 @@ export default function CatalogClient({
           <div className="flex items-center gap-3 rounded-2xl border border-admin-sand/30 bg-admin-bone/40 px-4 py-2">
             <div>
               <p className="text-sm text-admin-ink">Registry live</p>
-              <p className="text-xs text-admin-ink/50">Off = admins only</p>
+              <p className="text-xs text-admin-ink/50">
+                Controls the registry page and the &ldquo;Good to know&rdquo; Gifts tile. Off = admins only.
+              </p>
             </div>
             <Toggle
               on={settings.registry_enabled}

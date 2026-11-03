@@ -210,7 +210,6 @@ export type Settings = {
   default_plus_one_allowance: number;
   accommodation_url: string;
   photos_upload_url: string;
-  registry_url: string;
   hashtag: string;
   wedding_photo_url: string;
   couple_photo_url: string;
@@ -227,8 +226,8 @@ export type Settings = {
   thank_you_attended_message: string;
   thank_you_not_attended_message: string;
   // ── Gift registry (see migration 021) ──
-  // registry_url above is the *link* shown on the "Good to know" card; these
-  // drive the registry page's own copy and the manual PayID path.
+  // registry_enabled gates both /invite/[slug]/registry and the "Good to know"
+  // Gifts tile; the rest drive the registry page's own copy and the manual PayID path.
   registry_enabled: boolean;
   registry_hero_eyebrow: string;
   registry_hero_heading: string;
@@ -270,7 +269,6 @@ export const DEFAULT_SETTINGS: Settings = {
   default_plus_one_allowance: 0,
   accommodation_url: '',
   photos_upload_url: '',
-  registry_url: '',
   hashtag: '#mattraff2027',
   wedding_photo_url: '',
   couple_photo_url: '',

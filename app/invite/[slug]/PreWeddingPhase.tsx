@@ -315,7 +315,7 @@ export default function PreWeddingPhase({
     return item ? item.visible_phases?.includes(currentPhase) ?? true : true;
   };
 
-  const hasGoodToKnowContent = Boolean(settings.stay_page_enabled || settings.accommodation_url || settings.photos_upload_url || settings.registry_url);
+  const hasGoodToKnowContent = Boolean(settings.stay_page_enabled || settings.accommodation_url || settings.photos_upload_url || settings.registry_enabled);
   const runningOrderItems = weddingSchedule.map((item, i) => ({
     num: String(i + 1).padStart(2, '0'),
     name: item.label,
@@ -364,14 +364,15 @@ export default function PreWeddingPhase({
               href={settings.photos_upload_url}
             />
           )}
-          {settings.registry_url && (
+          {settings.registry_enabled && (
             <ConciergeCard
               num="03"
               category="Gifts"
               title="The registry"
               body="Your presence is the gift. If you'd like to give more, we've made a small list."
               ctaLabel="View registry"
-              href={settings.registry_url}
+              href={`/invite/${household.slug}/registry`}
+              newTab={false}
             />
           )}
         </div>
