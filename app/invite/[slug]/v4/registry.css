@@ -112,9 +112,13 @@
 }
 
 /* Travel photo strip — horizontal scroll-snap row, no arrows/dots/autoplay;
-   guests scroll it themselves with touch, trackpad, or mouse drag. */
+   guests scroll it themselves with touch, trackpad, or mouse drag.
+   Every photo shares one height and takes its own width, so landscape and
+   portrait sit side by side uncropped. min-width holds a placeholder slot until
+   the image has loaded; max-width keeps a wide photo inside a narrow screen. */
 .mr-v4 .mr-reg-photo-strip {
   display: flex;
+  align-items: flex-start;
   gap: 16px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -122,18 +126,21 @@
   -webkit-overflow-scrolling: touch;
 }
 .mr-v4 .mr-reg-photo-strip-item {
+  --strip-height: clamp(240px, 30vw, 340px);
   flex: 0 0 auto;
-  width: clamp(220px, 32vw, 340px);
-  aspect-ratio: 4 / 3;
+  height: var(--strip-height);
+  min-width: calc(var(--strip-height) * 0.75);
+  max-width: 100%;
   border-radius: 14px;
   overflow: hidden;
   scroll-snap-align: start;
-  background: var(--bone-2);
+  background: rgba(11, 33, 24, 0.06);
 }
 .mr-v4 .mr-reg-photo-strip-item img {
   display: block;
-  width: 100%;
   height: 100%;
+  width: auto;
+  max-width: 100%;
   object-fit: cover;
 }
 

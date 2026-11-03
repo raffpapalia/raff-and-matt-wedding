@@ -1,7 +1,13 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Cropper from 'react-easy-crop';
 import { Spinner, UploadIcon, usePhotoCropper } from '@/lib/photo/useCropUpload';
+
+export interface AspectOption {
+  label: string;
+  ratio: number;
+}
 
 interface PhotoUploadProps {
   value: string | null;
@@ -9,11 +15,48 @@ interface PhotoUploadProps {
   aspectRatio: number;
   label: string;
   uploadPathPrefix?: string;
+  // When set, the crop step offers these shapes (e.g. landscape / portrait) and starts on
+  // whichever is closest to the chosen image. The saved photo is then shown at its own
+  // shape instead of being boxed into `aspectRatio`, which only sizes the empty state.
+  aspectOptions?: AspectOption[];
 }
 
-export default function PhotoUpload({ value, onChange, aspectRatio, label, uploadPathPrefix }: PhotoUploadProps) {
+export default function PhotoUpload({ value, onChange, aspectRatio, label, uploadPathPrefix, aspectOptions }: PhotoUploadProps) {
   const cropper = usePhotoCropper();
   const { imageSrc, crop, setCrop, zoom, setZoom, croppedAreaPixels, onCropComplete, uploading, error } = cropper;
+  const [optionIndex, setOptionIndex] = useState(0);
+  const cropAspect = aspectOptions ? aspectOptions[optionIndex].ratio : aspectRatio;
+  const naturalPreview = Boolean(aspectOptions);
+
+  useEffect(() => {
+    if (!imageSrc || !aspectOptions) return;
+    let cancelled = false;
+    const img = new Image();
+    img.onload = () => {
+      if (cancelled || !img.naturalWidth || !img.naturalHeight) return;
+      const imageRatio = img.naturalWidth / img.naturalHeight;
+      let best = 0;
+      let bestDistance = Infinity;
+      aspectOptions.forEach((opt, i) => {
+        const distance = Math.abs(Math.log(opt.ratio / imageRatio));
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = i;
+        }
+      });
+      setOptionIndex(best);
+    };
+    img.src = imageSrc;
+    return () => {
+      cancelled = true;
+    };
+  }, [imageSrc, aspectOptions]);
+
+  function chooseOption(i: number) {
+    setOptionIndex(i);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+  }
 
   const handleConfirmCrop = async () => {
     if (!imageSrc || !croppedAreaPixels) return;
@@ -55,10 +98,16 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') cropper.fileInputRef.current?.click();
             }}
-            className="group relative w-full max-w-md cursor-pointer overflow-hidden rounded-2xl border border-admin-sand/30 bg-admin-ink/5"
-            style={{ aspectRatio }}
+            className={`group relative cursor-pointer overflow-hidden rounded-2xl border border-admin-sand/30 bg-admin-ink/5 ${
+              naturalPreview ? 'w-fit max-w-full' : 'w-full max-w-md'
+            }`}
+            style={naturalPreview ? undefined : { aspectRatio }}
           >
-            <img src={value} alt={label} className="h-full w-full object-cover" />
+            <img
+              src={value}
+              alt={label}
+              className={naturalPreview ? 'block max-h-56 w-auto max-w-full' : 'h-full w-full object-cover'}
+            />
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/50 group-hover:opacity-100 group-active:bg-black/50 group-active:opacity-100">
               <span className="rounded-full bg-admin-green px-4 py-2 text-sm font-semibold text-admin-bone">
                 Change photo
@@ -111,12 +160,35 @@ export default function PhotoUpload({ value, onChange, aspectRatio, label, uploa
                 image={imageSrc}
                 crop={crop}
                 zoom={zoom}
-                aspect={aspectRatio}
+                aspect={cropAspect}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
               />
             </div>
+            {aspectOptions && aspectOptions.length > 1 ? (
+              <div className="mt-4 flex items-center gap-3">
+                <span className="text-xs uppercase tracking-[0.25em] text-admin-bone/50">Shape</span>
+                <div className="flex gap-2" role="radiogroup" aria-label="Crop shape">
+                  {aspectOptions.map((opt, i) => (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      role="radio"
+                      aria-checked={optionIndex === i}
+                      onClick={() => chooseOption(i)}
+                      className={`rounded-full px-4 py-1.5 text-xs transition ${
+                        optionIndex === i
+                          ? 'bg-admin-green font-semibold text-admin-bone'
+                          : 'border border-admin-bone/30 text-admin-bone hover:bg-white/5'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="mt-4 flex items-center gap-3">
               <span className="text-xs uppercase tracking-[0.25em] text-admin-bone/50">Zoom</span>
               <input

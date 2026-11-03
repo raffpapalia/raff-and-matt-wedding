@@ -2,7 +2,13 @@
 
 import { useState } from 'react';
 import { REGISTRY_CATEGORIES, type RegistryFund, type RegistryItem } from '@/lib/supabase';
-import PhotoUpload from '../components/PhotoUpload';
+import PhotoUpload, { type AspectOption } from '../components/PhotoUpload';
+
+// Module-level so the reference is stable (PhotoUpload keys an effect on it).
+const TRAVEL_PHOTO_SHAPES: AspectOption[] = [
+  { label: 'Landscape', ratio: 4 / 3 },
+  { label: 'Portrait', ratio: 3 / 4 },
+];
 
 // Funds and items share a single client component because they're two views of
 // the same catalogue and the couple edits them together. Form conventions match
@@ -433,6 +439,10 @@ export default function CatalogClient({
 
           <div className="space-y-3">
             <span className="block text-xs uppercase tracking-[0.25em] text-admin-ink/50">Travel photos</span>
+            <p className="text-xs text-admin-ink/60">
+              Landscape or portrait: choose the shape when you crop (it starts on whichever suits the photo). Each
+              photo shows at its own shape on the registry page.
+            </p>
             {settings.registry_travel_photos.map((photo, i) => (
               <div key={i} className="flex items-start gap-3 rounded-2xl border border-admin-sand/30 bg-white p-3">
                 <div className="w-40 shrink-0">
@@ -440,6 +450,7 @@ export default function CatalogClient({
                     value={photo || null}
                     onChange={url => updateTravelPhoto(i, url)}
                     aspectRatio={4 / 3}
+                    aspectOptions={TRAVEL_PHOTO_SHAPES}
                     label={`Photo ${i + 1}`}
                     uploadPathPrefix="registry/travel"
                   />
