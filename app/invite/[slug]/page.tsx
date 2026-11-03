@@ -174,7 +174,11 @@ export default async function InvitePage({
     notFound();
   }
 
-  const { household, guests, phase, questions, existingAnswers, settings, faqs } = data;
+  const { household, guests, phase, questions, existingAnswers, faqs } = data;
+  // In admin preview the "Good to know" Gifts tile is always live, even while the
+  // registry is switched off for guests, so the link can be clicked through. The
+  // registry page itself lets admins in either way (see registry/page.tsx).
+  const settings = previewPhase ? { ...data.settings, registry_enabled: true } : data.settings;
 
   const guestName = formatGuestName(guests) || household.name;
   const effectivePhase: PhaseName = previewPhase ?? phase.current_phase;
